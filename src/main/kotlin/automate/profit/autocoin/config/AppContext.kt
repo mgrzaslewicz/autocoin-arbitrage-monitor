@@ -1,6 +1,7 @@
 package automate.profit.autocoin.config
 
 import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
+import automate.profit.autocoin.exchange.TickerSpreadCache
 import automate.profit.autocoin.exchange.TickerFetchScheduler
 import automate.profit.autocoin.exchange.TwoLegArbitrageMonitor
 import automate.profit.autocoin.exchange.ticker.DefaultTickerListenerRegistrars
@@ -26,10 +27,11 @@ class AppContext(val appConfig: AppConfig) {
             initialTickerListenerRegistrarList = emptyList(),
             tickerListenerRegistrarProvider = tickerListenerRegistrarProvider
     )
+    val spreadListener = TickerSpreadCache()
     val twoLegArbitrageMonitors = appConfig.twoLegArbitragePairs.flatMap {
-        it.value.map { exchangePair -> TwoLegArbitrageMonitor(it.key, exchangePair) }
+        it.value.map { exchangePair -> TwoLegArbitrageMonitor(it.key, exchangePair, spreadListener) }
     }
-    val tickerListeners = twoLegArbitrageMonitors.flatMap { it.getTickerListeners() }
+    val tickerListeners = twoLegArbitrageMonitors.flatMap { it.getTickerListeners().toList() }
     val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars)
 
 }
