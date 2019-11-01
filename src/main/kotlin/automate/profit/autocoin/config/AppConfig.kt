@@ -3,6 +3,7 @@ package automate.profit.autocoin.config
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
+import java.io.File
 import java.lang.System.getProperty
 
 data class ExchangePair(
@@ -28,7 +29,8 @@ data class AppConfig(
         val tickerApiUrl: String,
         val arbitrageMonitorOauth2ClientId: String,
         val arbitrageMonitorOauth2ClientSecret: String,
-        val oauth2ServerUrl: String
+        val oauth2ServerUrl: String,
+        val tickerPairsRepositoryPath: String
 )
 
 fun loadConfig(): AppConfig {
@@ -37,6 +39,7 @@ fun loadConfig(): AppConfig {
             tickerApiUrl = getProperty("TICKER_API_URL", "https://orders-api.autocoin-trader.com"),
             arbitrageMonitorOauth2ClientId = getProperty("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
             arbitrageMonitorOauth2ClientSecret = getProperty("APP_OAUTH_CLIENT_SECRET"),
-            oauth2ServerUrl = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com")
+            oauth2ServerUrl = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
+            tickerPairsRepositoryPath = getProperty("APP_DATA_PATH", "data") + File.pathSeparator + "tickerPairs"
     )
 }
