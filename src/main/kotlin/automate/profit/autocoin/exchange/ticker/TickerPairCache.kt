@@ -21,7 +21,7 @@ class TickerPairCache(private val ageOfOldestTickerPairToKeepMs: Long, private v
 
     private fun removeTooOldTickers(currencyTickerPairs: LinkedList<TickerPair>, ageOfOldestTickerPairToKeepMs: Long) {
         val currentTimeMs = currentTimeMillis()
-        while (listOf(currencyTickerPairs.last.first.timestamp!!.toEpochMilli(), currencyTickerPairs.last.second.timestamp!!.toEpochMilli()).any { currentTimeMs - it > ageOfOldestTickerPairToKeepMs }) {
+        while (currencyTickerPairs.isNotEmpty() && listOf(currencyTickerPairs.last.first.timestamp!!.toEpochMilli(), currencyTickerPairs.last.second.timestamp!!.toEpochMilli()).any { currentTimeMs - it > ageOfOldestTickerPairToKeepMs }) {
             currencyTickerPairs.removeLast()
         }
     }
