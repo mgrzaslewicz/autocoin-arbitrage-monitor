@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange
+package automate.profit.autocoin.scheduled
 
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrars
 import java.util.concurrent.Executors
