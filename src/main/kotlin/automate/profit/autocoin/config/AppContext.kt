@@ -1,5 +1,7 @@
 package automate.profit.autocoin.config
 
+import automate.profit.autocoin.api.ArbitrageProfitController
+import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
 import automate.profit.autocoin.exchange.TwoLegArbitrageMonitor
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
@@ -39,4 +41,7 @@ class AppContext(val appConfig: AppConfig) {
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath)
     val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository)
     val tickerPairCacheLoader = TickerPairCacheLoader(tickerPairCache, fileTickerPairRepository)
+    val arbitrageProfitController = ArbitrageProfitController(twoLegArbitrageProfitCache, objectMapper)
+    val controllers = listOf(arbitrageProfitController)
+    val server = ServerBuilder(appConfig.appServerPort, controllers).build()
 }
