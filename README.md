@@ -6,3 +6,4 @@ Service responsibility:
 - Calculates spread statistics and exposes them for authorized users
 
 
+To run locally - use RunLocal.kt

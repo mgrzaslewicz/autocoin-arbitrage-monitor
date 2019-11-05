@@ -2,6 +2,7 @@ package automate.profit.autocoin.api
 
 import automate.profit.autocoin.config.AppConfig
 import io.undertow.Undertow
+import io.undertow.security.handlers.AuthenticationCallHandler
 import io.undertow.server.RoutingHandler
 
 class ServerBuilder(
@@ -15,7 +16,7 @@ class ServerBuilder(
                 routingHandler.add(
                         handler.method(),
                         handler.urlTemplate(),
-                        handler.httpHandler()
+                        (handler.httpHandler())
                 )
             }
         }
