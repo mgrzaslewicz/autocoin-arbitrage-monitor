@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class TwoLegArbitrageProfitCache(private val maximumTwoLegArbitrageProfitsToKeep: Int) {
     private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, LinkedList<TwoLegArbitrageProfit>>()
+    private val profitThresholdToLog = 0.005.toBigDecimal()
 
     companion object : KLogging()
 
@@ -20,9 +21,15 @@ class TwoLegArbitrageProfitCache(private val maximumTwoLegArbitrageProfitsToKeep
                 profits[key] = newList
                 newList
             }
-            logger.info { "Adding profit $profit" }
+            logProfitAboveThreshold(profit)
             list.addFirst(profit)
             deleteLastItemsIfListTooBig(list)
+        }
+    }
+
+    private fun logProfitAboveThreshold(profit: TwoLegArbitrageProfit) {
+        if (profit.relativeProfit > profitThresholdToLog) {
+            logger.info { "Adding profit $profit" }
         }
     }
 
