@@ -37,9 +37,9 @@ class ArbitrageProfitController(
     )
 
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
-        override fun method() = GET
-        override fun urlTemplate() = "/two-leg-arbitrage-profits"
-        override fun httpHandler() = HttpHandler {
+        override val method = GET
+        override val urlTemplate = "/two-leg-arbitrage-profits"
+        override val httpHandler = HttpHandler {
             it.securityContext
             val minimumRelativeProfit = 0.005.toBigDecimal()
             val profits = twoLegArbitrageProfitCache
