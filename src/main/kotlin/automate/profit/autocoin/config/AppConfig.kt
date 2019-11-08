@@ -14,21 +14,46 @@ data class ExchangePair(
         val secondExchange: SupportedExchange
 )
 
-private val commonCurrencyPairs = listOf(
-        CurrencyPair.of("XRP/BTC"),
-        CurrencyPair.of("ETH/BTC"),
-        CurrencyPair.of("LSK/BTC")
-
-)
-private val exchangePairsForArbitrage = listOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BINANCE, KUCOIN),
-        ExchangePair(BITTREX, KUCOIN)
+private val currencyPairsForArbitrage = mapOf(
+        CurrencyPair.of("LSK/BTC") to listOf(
+                ExchangePair(BITTREX, BINANCE),
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(KUCOIN, BINANCE)
+        ),
+        CurrencyPair.of("LSK/ETH") to listOf(
+                ExchangePair(KUCOIN, BINANCE)
+        ),
+        CurrencyPair.of("GNT/ETH") to listOf(
+                ExchangePair(BINANCE, BITTREX)
+        ),
+        CurrencyPair.of("GNT/BTC") to listOf(
+                ExchangePair(BINANCE, BITTREX)
+        ),
+        CurrencyPair.of("EOS/BTC") to listOf(
+                ExchangePair(BITTREX, BINANCE),
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(KUCOIN, BINANCE)
+        ),
+        CurrencyPair.of("EOS/ETH") to listOf(
+                ExchangePair(BITTREX, BINANCE),
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(KUCOIN, BINANCE)
+        ),
+        CurrencyPair.of("TRX/BTC") to listOf(
+                ExchangePair(BITTREX, BINANCE),
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(KUCOIN, BINANCE)
+        ),
+        CurrencyPair.of("TRX/ETH") to listOf(
+                ExchangePair(BITTREX, BINANCE),
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(KUCOIN, BINANCE)
+        )
 )
 
 data class AppConfig(
         val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
-        val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = commonCurrencyPairs.map { it to exchangePairsForArbitrage }.toMap(),
+        val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = currencyPairsForArbitrage,
         val tickerApiUrl: String = getPropertyThenEnv("TICKER_API_URL", "https://orders-api.autocoin-trader.com"),
         val arbitrageMonitorOauth2ClientId: String = getPropertyThenEnv("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
         val arbitrageMonitorOauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
