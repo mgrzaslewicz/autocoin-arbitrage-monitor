@@ -2,46 +2,49 @@ package automate.profit.autocoin.exchange.arbitrage
 
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class TwoLegArbitrageProfitCache(private val maximumTwoLegArbitrageProfitsToKeep: Int) {
-    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, LinkedList<TwoLegArbitrageProfit>>()
-    private val profitThresholdToLog = 0.005.toBigDecimal()
+class TwoLegArbitrageProfitCache(
+        private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
+        private val currentTimeMillis: () -> Long = System::currentTimeMillis
+) {
+    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegArbitrageProfit>()
 
     companion object : KLogging()
 
-    fun addProfit(profit: TwoLegArbitrageProfit?) {
-        if (profit != null) {
-            val key = CurrencyPairWithExchangePair(profit.currencyPair, profit.exchangePair)
-            val list = if (profits.containsKey(key)) {
-                profits[key]!!
-            } else {
-                val newList = LinkedList<TwoLegArbitrageProfit>()
-                profits[key] = newList
-                newList
+    fun addProfit(profit: TwoLegArbitrageProfit) {
+        logger.info { "Setting profit $profit" }
+        synchronized(profits) {
+            profits[profit.currencyPairWithExchangePair] = profit
+        }
+    }
+
+    fun removeProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
+        synchronized(profits) {
+            if (profits.contains(currencyPairWithExchangePair)) {
+                logger.info { "Removing profit for key $currencyPairWithExchangePair" }
             }
-            logProfitAboveThreshold(profit)
-            list.addFirst(profit)
-            deleteLastItemsIfListTooBig(list)
+            profits.remove(currencyPairWithExchangePair)
         }
     }
 
-    private fun logProfitAboveThreshold(profit: TwoLegArbitrageProfit) {
-        if (profit.relativeProfit > profitThresholdToLog) {
-            logger.info { "Adding profit $profit" }
-        }
-    }
-
-    private fun deleteLastItemsIfListTooBig(list: LinkedList<TwoLegArbitrageProfit>) {
-        while (list.isNotEmpty() && list.size > maximumTwoLegArbitrageProfitsToKeep) {
-            list.removeLast()
-        }
-    }
-
-    fun getProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TwoLegArbitrageProfit> {
+    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegArbitrageProfit {
         return profits.getValue(currencyPairWithExchangePair)
     }
 
     fun getCurrencyPairWithExchangePairs() = profits.keys.toList()
+
+    fun removeTooOldProfits() {
+        val currentTimeMs = currentTimeMillis()
+        getCurrencyPairWithExchangePairs().forEach {
+            synchronized(profits) {
+                if (profits.containsKey(it)) {
+                    if (currentTimeMs - profits[it]!!.calculatedAtMillis > ageOfOldestTwoLegArbitrageProfitToKeepMs) {
+                        profits.remove(it)
+                    }
+                }
+            }
+        }
+    }
+
 }

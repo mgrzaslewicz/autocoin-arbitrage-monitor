@@ -31,10 +31,11 @@ class AccessTokenChecker(
                 .url("${appConfig.oauth2ServerUrl}/oauth/check_token")
                 .build()
         ).execute()
+        val responseBody = tokenCheckResponse.body?.string() // close response body
         return when {
             tokenCheckResponse.code == 401 -> null
             tokenCheckResponse.code == 200 -> {
-                objectMapper.readValue(tokenCheckResponse.body?.string(), CheckTokenDto::class.java)
+                objectMapper.readValue(responseBody, CheckTokenDto::class.java)
             }
             else -> null
         }

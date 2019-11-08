@@ -31,7 +31,12 @@ class TwoLegArbitrageMonitor(
         if (lastFirstExchangeTicker != null && lastSecondExchangeTicker != null) {
             val tickerPair = TickerPair(lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
             tickerPairCache.addTickerPair(currencyPairWithExchangePair, tickerPair)
-            twoLegArbitrageProfitCache.addProfit(twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair))
+            val profit =  twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
+            if (profit == null) {
+                twoLegArbitrageProfitCache.removeProfit(currencyPairWithExchangePair)
+            } else {
+                twoLegArbitrageProfitCache.addProfit(profit)
+            }
         }
     }
 
