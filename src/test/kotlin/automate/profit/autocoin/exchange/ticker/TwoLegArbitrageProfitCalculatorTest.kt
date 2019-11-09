@@ -5,23 +5,27 @@ import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Instant
 
 class TwoLegArbitrageProfitCalculatorTest {
-    private val currencyPair = CurrencyPair.of("A/B")
-    private val exchangePair = ExchangePair(BITTREX, BINANCE)
+    private val currencyPair = CurrencyPair.of("X/Y")
+    private val exchangeA = BITTREX
+    private val exchangeB = BINANCE
+    private val exchangePair = ExchangePair(exchangeA, exchangeB)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
+    private val doesNotMatter = Instant.now()
+    private val priceToChangeInTest = BigDecimal.ONE
+    private val sampleTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.011"), bid = priceToChangeInTest, timestamp = doesNotMatter)
 
     @Test
     fun shouldFindNoProfit() {
         // given
-        val tickerPair = TickerPair(
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.011"), timestamp = Instant.ofEpochMilli(1005)),
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1005))
-        )
+        val theSameBuyPrice = BigDecimal("1.001")
+        val tickerPair = TickerPair(sampleTicker.copy(bid = theSameBuyPrice), sampleTicker.copy(bid = theSameBuyPrice))
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
         // then
@@ -29,37 +33,42 @@ class TwoLegArbitrageProfitCalculatorTest {
     }
 
     @Test
-    fun shouldCalculateProfitWhenSellAtFirstExchange() {
+    fun shouldSellAtExchangeA() {
         // given
-        val tickerPair = TickerPair(
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.011"), bid = BigDecimal("1.001"), timestamp = Instant.ofEpochMilli(1005)),
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.0021"), bid = BigDecimal("1.002"), timestamp = Instant.ofEpochMilli(1005))
-        )
+        val buyPriceA = BigDecimal("1.0021")
+        val buyPriceB = BigDecimal("1.001")
+        val tickerPair = TickerPair(sampleTicker.copy(bid = buyPriceA), sampleTicker.copy(bid = buyPriceB))
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
         // then
-        assertThat(profit?.buyAtExchange).isEqualTo(BINANCE)
-        assertThat(profit?.sellAtExchange).isEqualTo(BITTREX)
-        assertThat(profit?.sellPrice).isEqualTo(BigDecimal("1.011"))
-        assertThat(profit?.buyPrice).isEqualTo(BigDecimal("1.002"))
-        assertThat(profit?.relativeProfit).isEqualTo(BigDecimal("0.009")) // 0.0089820359 rounded
+        with(SoftAssertions()) {
+            assertThat(profit).isNotNull
+            assertThat(profit?.buyAtExchange).isEqualTo(exchangeB)
+            assertThat(profit?.sellAtExchange).isEqualTo(exchangeA)
+            assertThat(profit?.sellPrice).isEqualTo(buyPriceA)
+            assertThat(profit?.buyPrice).isEqualTo(buyPriceB)
+            assertThat(profit?.relativeProfit).isEqualTo(BigDecimal("0.0011")) // 0.0089820359 rounded
+            assertAll()
+        }
     }
 
     @Test
-    fun shouldCalculateProfitWhenSellAtSecondExchange() {
+    fun shouldSellAtExchangeB() {
         // given
-        val tickerPair = TickerPair(
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.001"), timestamp = Instant.ofEpochMilli(1005)),
-                Ticker(currencyPair = currencyPair, ask = BigDecimal("1.0028"), bid = BigDecimal("1.003"), timestamp = Instant.ofEpochMilli(1005))
-        )
+        val buyPriceA = BigDecimal("1.001")
+        val buyPriceB = BigDecimal("1.0021")
+        val tickerPair = TickerPair(sampleTicker.copy(bid = buyPriceA), sampleTicker.copy(bid = buyPriceB))
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
         // then
-        assertThat(profit?.buyAtExchange).isEqualTo(BITTREX)
-        assertThat(profit?.sellAtExchange).isEqualTo(BINANCE)
-        assertThat(profit?.sellPrice).isEqualTo(BigDecimal("1.0028"))
-        assertThat(profit?.buyPrice).isEqualTo(BigDecimal("1.001"))
-        assertThat(profit?.relativeProfit).isEqualTo(BigDecimal("0.0018")) // 0.0017982018 rounded
+        with(SoftAssertions()) {
+            assertThat(profit?.buyAtExchange).isEqualTo(exchangeA)
+            assertThat(profit?.sellAtExchange).isEqualTo(exchangeB)
+            assertThat(profit?.sellPrice).isEqualTo(buyPriceB)
+            assertThat(profit?.buyPrice).isEqualTo(buyPriceA)
+            assertThat(profit?.relativeProfit).isEqualTo(BigDecimal("0.0011")) // 0.0017982018 rounded
+            assertAll()
+        }
     }
 
 }
