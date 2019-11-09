@@ -13,7 +13,7 @@ class TwoLegArbitrageProfitCache(
     companion object : KLogging()
 
     fun addProfit(profit: TwoLegArbitrageProfit) {
-        logger.info { "Setting profit $profit" }
+        logger.debug { "Setting profit $profit" }
         synchronized(profits) {
             profits[profit.currencyPairWithExchangePair] = profit
         }
@@ -22,7 +22,7 @@ class TwoLegArbitrageProfitCache(
     fun removeProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
         synchronized(profits) {
             if (profits.contains(currencyPairWithExchangePair)) {
-                logger.info { "Removing profit for key $currencyPairWithExchangePair" }
+                logger.debug { "Removing profit for key $currencyPairWithExchangePair" }
             }
             profits.remove(currencyPairWithExchangePair)
         }

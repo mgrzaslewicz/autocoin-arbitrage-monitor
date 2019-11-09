@@ -14,7 +14,8 @@ fun main(args: Array<String>) {
         logger.info { "Config: $config" }
         val appContext = AppContext(config)
         val appStarter = AppStarter(
-                tickerListeners = appContext.tickerListeners,
+                commonExchangeCurrencyPairsService = appContext.commonExchangeCurrencyPairsService,
+                tickerListenersProvider = appContext.tickerListenersProvider,
                 tickerFetchScheduler = appContext.tickerFetchScheduler,
                 tickerListenerRegistrars = appContext.tickerListenerRegistrars,
                 tickerPairsSaveScheduler = appContext.tickerPairsSaveScheduler,
