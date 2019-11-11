@@ -1,7 +1,7 @@
 package automate.profit.autocoin.exchange.ticker
 
 import automate.profit.autocoin.config.ExchangePair
-import automate.profit.autocoin.exchange.TwoLegArbitrageMonitor
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageMonitor
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 

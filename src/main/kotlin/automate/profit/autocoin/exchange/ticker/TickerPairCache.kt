@@ -32,8 +32,8 @@ class TickerPairCache(private val ageOfOldestTickerPairToKeepMs: Long, private v
         return if (maxElements == 0) {
             tickerPairs.getValue(currencyPairWithExchangePair)
         } else {
-            val list =tickerPairs.getValue(currencyPairWithExchangePair)
-            list.subList(0, Math.min(maxElements -1 , list.lastIndex))
+            val list = tickerPairs.getValue(currencyPairWithExchangePair)
+            list.subList(0, Math.min(maxElements - 1, list.lastIndex))
         }
     }
 
