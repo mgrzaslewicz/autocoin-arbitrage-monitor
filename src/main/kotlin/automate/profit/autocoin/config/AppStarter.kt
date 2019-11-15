@@ -3,7 +3,6 @@ package automate.profit.autocoin.config
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrars
 import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
-import automate.profit.autocoin.exchange.ticker.TickerPairCacheLoader
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler
 import io.undertow.Undertow
@@ -15,14 +14,11 @@ class AppStarter(
         private val tickerFetchScheduler: TickerFetchScheduler,
         private val tickerListenerRegistrars: TickerListenerRegistrars,
         private val tickerPairsSaveScheduler: TickerPairsSaveScheduler,
-        private val tickerPairCacheLoader: TickerPairCacheLoader,
         private val server: Undertow
 ) {
     companion object : KLogging()
 
     fun start() {
-        logger.info { "Loading all previously saved ticker pairs to cache" }
-        tickerPairCacheLoader.loadAllSavedTickerPairs()
         logger.info { "Fetching currency pairs from exchanges" }
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
         val tickerListeners = tickerListenersProvider.createTickerListenersFrom(commonCurrencyPairs)

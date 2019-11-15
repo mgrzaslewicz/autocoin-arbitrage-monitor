@@ -39,7 +39,6 @@ class AppContext(appConfig: AppConfig) {
     )
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath, appConfig.ageOfOldestTickerPairToKeepInRepositoryMs)
     val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository)
-    val tickerPairCacheLoader = TickerPairCacheLoader(tickerPairCache, fileTickerPairRepository)
     val accessTokenChecker = AccessTokenChecker(httpClient, objectMapper, appConfig)
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
