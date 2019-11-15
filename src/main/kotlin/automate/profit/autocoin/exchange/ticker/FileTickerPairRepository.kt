@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter
  */
 class FileTickerPairRepository(
         tickerRepositoryPath: String,
+        private val ageOfOldestTickerPairToKeepMs: Long,
         private val currentTimeMillis: () -> Long = System::currentTimeMillis
 ) {
 
@@ -51,19 +52,44 @@ class FileTickerPairRepository(
         return "${currencyPair.base}-${currencyPair.counter}-${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
     }
 
-    fun saveAll(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPairsToSave: List<TickerPair>) {
+    private fun createNewTickersFile(currencyPairWithExchangePair: CurrencyPairWithExchangePair): File {
         val exchangeDirectory = getOrCreateExchangePairDirectory(currencyPairWithExchangePair.exchangePair)
         val currentDateTime = getCurrentDateTimeAsString()
         val tickersFileName = "${getCurrencyPairFileNamePrefix(currencyPairWithExchangePair)}_$currentDateTime.csv"
-        val tickersFile = exchangeDirectory.resolve(tickersFileName)
+        return exchangeDirectory.resolve(tickersFileName)
+    }
+
+    private fun List<TickerPair>.writeTo(file: File) {
         val tickerPairsCsvLines = StringBuffer()
-        tickerPairsToSave.forEach {
+        this.forEach {
             tickerPairsCsvLines.append(it.toCsvLine())
             tickerPairsCsvLines.appendln()
         }
         synchronized(this) {
-            tickersFile.writeText(tickerPairsCsvLines.toString())
+            file.writeText(tickerPairsCsvLines.toString())
         }
+    }
+
+    private fun List<TickerPair>.appendTo(file: File) {
+        val tickerPairsCsvLines = StringBuffer()
+        this.forEach {
+            tickerPairsCsvLines.append(it.toCsvLine())
+            tickerPairsCsvLines.appendln()
+        }
+        synchronized(this) {
+            file.appendText(tickerPairsCsvLines.toString())
+        }
+    }
+
+    fun addAll(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPairsToSave: List<TickerPair>) {
+        val tickersFile = getLatestTickerPairsFile(currencyPairWithExchangePair)
+                ?: createNewTickersFile(currencyPairWithExchangePair)
+        tickerPairsToSave.appendTo(tickersFile)
+    }
+
+    fun saveAll(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPairsToSave: List<TickerPair>) {
+        val tickersFile = createNewTickersFile(currencyPairWithExchangePair)
+        tickerPairsToSave.writeTo(tickersFile)
     }
 
     private fun getOrCreateExchangePairDirectory(exchangePair: ExchangePair): File {
@@ -85,13 +111,15 @@ class FileTickerPairRepository(
 
     private fun getLatestTickerPairsFile(currencyPairWithExchangePair: CurrencyPairWithExchangePair): File? {
         val directory = getOrCreateExchangePairDirectory(currencyPairWithExchangePair.exchangePair)
-        val latestFileName = directory
-                .list()
-                .filter { it.contains(".csv") && it.contains(getCurrencyPairFileNamePrefix(currencyPairWithExchangePair)) }
-                .maxBy { getNumberFromName(it) }
-        return if (latestFileName != null) {
-            directory.resolve(latestFileName)
-        } else null
+        synchronized(this) {
+            val latestFileName = directory
+                    .list()
+                    .filter { it.contains(".csv") && it.contains(getCurrencyPairFileNamePrefix(currencyPairWithExchangePair)) }
+                    .maxBy { getNumberFromName(it) }
+            return if (latestFileName != null) {
+                directory.resolve(latestFileName)
+            } else null
+        }
     }
 
 
@@ -140,6 +168,48 @@ class FileTickerPairRepository(
     private fun getCurrencyPairFrom(csvFile: String): CurrencyPair {
         val nameParts = csvFile.split("-")
         return CurrencyPair(nameParts[0], nameParts[1])
+    }
+
+    private fun TickerPair?.isOlderThan(maxAgeMillis: Long, currentTimeMillis: Long): Boolean {
+        if (this == null) {
+            return false
+        }
+        val firstTickerTimeMillis = this.first.timestamp?.toEpochMilli() ?: currentTimeMillis
+        val secondTickerTimeMillis = this.second.timestamp?.toEpochMilli() ?: currentTimeMillis
+        return currentTimeMillis - firstTickerTimeMillis > maxAgeMillis
+                || currentTimeMillis - secondTickerTimeMillis > maxAgeMillis
+    }
+
+    /**
+     * if file has too old tickers, new file will be created as a copy with skipped too old tickers
+     */
+    fun removeTooOldTickers(currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
+        val latestFile = getLatestTickerPairsFile(currencyPairWithExchangePair)
+        val firstTickerPairInFile = latestFile?.useLines { it.firstOrNull() }?.toTickerPair(currencyPairWithExchangePair.currencyPair)
+        val currentTimeMillis = currentTimeMillis()
+        if (firstTickerPairInFile.isOlderThan(ageOfOldestTickerPairToKeepMs, currentTimeMillis)) {
+            writeTickersToNewFileAndSkipTooOldTickers(latestFile!!, currencyPairWithExchangePair, currentTimeMillis)
+        }
+    }
+
+    private fun writeTickersToNewFileAndSkipTooOldTickers(fileToCopy: File, currencyPairWithExchangePair: CurrencyPairWithExchangePair, currentTimeMillis: Long) {
+        val newFile = createNewTickersFile(currencyPairWithExchangePair)
+        fileToCopy.useLines { lines ->
+            var firstLineNotToSkipFound = false
+            lines.forEach { line ->
+                if (firstLineNotToSkipFound) { // don't parse, just write strings
+                    newFile.appendText(line)
+                } else {
+                    val tickerPair = line.toTickerPair(currencyPairWithExchangePair.currencyPair)
+                    if (!tickerPair.isOlderThan(ageOfOldestTickerPairToKeepMs, currentTimeMillis)) {
+                        newFile.appendText(line)
+                    } else {
+                        firstLineNotToSkipFound = true
+                    }
+                }
+            }
+
+        }
     }
 
 }

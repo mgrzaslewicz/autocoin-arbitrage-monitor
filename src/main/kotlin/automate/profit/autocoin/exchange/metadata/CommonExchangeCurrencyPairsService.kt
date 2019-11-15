@@ -10,7 +10,7 @@ import mu.KLogging
 
 class CommonExchangeCurrencyPairsService(
         private val exchangeMetadataService: ExchangeMetadataService,
-        private val exchanges: List<SupportedExchange> = listOf(BINANCE, BITTREX, KUCOIN, BITBAY, BITMEX, BITSTAMP, GATEIO, KRAKEN),
+        private val exchanges: List<SupportedExchange> = listOf(BINANCE, BITTREX),//, KUCOIN, BITBAY, BITMEX, BITSTAMP, GATEIO, KRAKEN),
         private val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = emptyMap()
 ) {
     private var cachedResult: MutableMap<CurrencyPair, MutableList<ExchangePair>>? = null
