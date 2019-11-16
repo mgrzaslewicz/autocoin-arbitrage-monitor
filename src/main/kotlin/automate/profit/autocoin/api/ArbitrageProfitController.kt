@@ -42,7 +42,6 @@ class ArbitrageProfitController(
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
         override val httpHandler = HttpHandler {
-            it.securityContext
             val profits = twoLegArbitrageProfitCache
                     .getCurrencyPairWithExchangePairs()
                     .mapNotNull { currencyPairWithExchangePair ->
