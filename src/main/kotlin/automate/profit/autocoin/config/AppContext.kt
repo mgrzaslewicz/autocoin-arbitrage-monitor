@@ -14,7 +14,12 @@ import automate.profit.autocoin.exchange.ticker.DefaultTickerListenerRegistrars
 import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
 import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
 import automate.profit.autocoin.exchange.ticker.TickerPairCache
-import automate.profit.autocoin.oauth.*
+import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
+import automate.profit.autocoin.oauth.client.AccessTokenInterceptor
+import automate.profit.autocoin.oauth.client.ClientCredentialsAccessTokenProvider
+import automate.profit.autocoin.oauth.server.AccessTokenChecker
+import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
+import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler

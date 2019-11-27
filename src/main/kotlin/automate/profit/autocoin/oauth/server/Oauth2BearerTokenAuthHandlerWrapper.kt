@@ -1,4 +1,4 @@
-package automate.profit.autocoin.oauth
+package automate.profit.autocoin.oauth.server
 
 import io.undertow.security.api.AuthenticationMode
 import io.undertow.security.handlers.AuthenticationCallHandler
