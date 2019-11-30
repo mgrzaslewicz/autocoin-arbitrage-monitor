@@ -36,9 +36,11 @@ class ClientCredentialsAccessTokenProvider(
                 .url("${appConfig.oauth2ServerUrl}/oauth/token")
                 .build()
         ).execute()
-        check(tokenResponse.code != 401) { "Could not get access token" }
-        val body = tokenResponse.body?.string()
-        return objectMapper.readValue(body, TokenResponseDto::class.java)
+        tokenResponse.use {
+            check(tokenResponse.code != 401) { "Could not get access token" }
+            val body = tokenResponse.body?.string()
+            return objectMapper.readValue(body, TokenResponseDto::class.java)
+        }
     }
 
     override fun token(): String? {

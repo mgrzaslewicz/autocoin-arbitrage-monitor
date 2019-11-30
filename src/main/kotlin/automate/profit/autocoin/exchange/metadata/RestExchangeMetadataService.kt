@@ -23,9 +23,12 @@ class RestExchangeMetadataService(
                 .url(exchangeMetadataApiUrl)
                 .build()
         ).execute()
-        check(metadataResponse.code == 200) { "Could not get exchange metadata response, code=${metadataResponse.code}" }
-        return objectMapper.readValue(metadataResponse.body?.string(), ExchangeMetadataDto::class.java)
-                .toExchangeMetadata()
+        metadataResponse.use {
+            check(metadataResponse.code == 200) { "Could not get exchange metadata response, code=${metadataResponse.code}" }
+            return objectMapper.readValue(metadataResponse.body?.string(), ExchangeMetadataDto::class.java)
+                    .toExchangeMetadata()
+        }
+
     }
 
     override fun getMetadata(exchangeName: String, currencyPair: CurrencyPair): CurrencyPairMetadata {
