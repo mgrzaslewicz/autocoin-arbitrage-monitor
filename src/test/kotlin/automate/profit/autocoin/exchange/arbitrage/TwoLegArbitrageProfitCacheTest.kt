@@ -24,7 +24,9 @@ class TwoLegArbitrageProfitCacheTest {
             sellPrice = doesNotMatter,
             buyPrice = doesNotMatter,
             sellAtExchange = exchangeDoesNotMatter,
+            usd24hVolumeAtSellExchange = doesNotMatter,
             buyAtExchange = exchangeDoesNotMatter,
+            usd24hVolumeAtBuyExchange = doesNotMatter,
             relativeProfit = doesNotMatter,
             calculatedAtMillis = 1
     )

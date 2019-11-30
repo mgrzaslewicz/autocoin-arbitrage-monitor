@@ -1,12 +1,17 @@
 package automate.profit.autocoin.exchange.arbitrage
 
 import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
@@ -19,7 +24,10 @@ class TwoLegArbitrageProfitCalculatorTest {
     private val exchangeB = BINANCE
     private val exchangePair = ExchangePair(exchangeA, exchangeB)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
-    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
+    private val pricesService = mock<PriceService>().apply {
+        whenever(getUsdValue(eq("Y"), any())).thenReturn(BigDecimal(2000.0))
+    }
+    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService)
     private val doesNotMatter = Instant.now()
     private val volumeDoesNotMatter = BigDecimal.ONE
 

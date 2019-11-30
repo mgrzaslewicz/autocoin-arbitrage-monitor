@@ -30,6 +30,7 @@ class ExchangeTickerFetcher(
         check(tickerDtoResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair" }
 
         val tickerDto = objectMapper.readValue(tickerDtoResponse.body?.string(), TickerDto::class.java)
+        tickerDtoResponse.close()
         val ticker = tickerDto.toTicker()
         return if (ticker.hasTimestamp()) {
             ticker
