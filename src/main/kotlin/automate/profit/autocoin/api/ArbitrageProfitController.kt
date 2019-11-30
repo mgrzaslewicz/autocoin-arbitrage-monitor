@@ -28,7 +28,10 @@ class ArbitrageProfitController(
         private val objectMapper: ObjectMapper,
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
-    val minimumRelativeProfit = 0.003.toBigDecimal()
+
+    val minRelativeProfit = 0.003.toBigDecimal()
+    val minUsd24hVolume = 1000.toBigDecimal()
+
     private fun TwoLegArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
             baseCurrency = currencyPair.base,
             counterCurrency = currencyPair.counter,
@@ -50,7 +53,7 @@ class ArbitrageProfitController(
                     .getCurrencyPairWithExchangePairs()
                     .mapNotNull { currencyPairWithExchangePair ->
                         val profit = twoLegArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
-                        if (profit.relativeProfit > minimumRelativeProfit) {
+                        if (profit.relativeProfit > minRelativeProfit && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume) {
                             profit.toDto()
                         } else null
                     }

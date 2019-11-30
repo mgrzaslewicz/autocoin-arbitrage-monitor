@@ -23,8 +23,9 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
+    private val usd24hVolume = BigDecimal(2000.0)
     private val pricesService = mock<PriceService>().apply {
-        whenever(getUsdValue(eq("B"), any())).thenReturn(BigDecimal(2000.0))
+        whenever(getUsdValue(eq("B"), any())).thenReturn(usd24hVolume)
     }
     private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService)
     private val volumeDoesNotMatter = BigDecimal.ONE
@@ -56,6 +57,7 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
         assertThat(statistic.profitOpportunityHistogram.first().relativeProfitThreshold).isCloseTo(BigDecimal(0.005), Percentage.withPercentage(0.1))
         assertThat(statistic.profitOpportunityHistogram.first().count).isEqualTo(0)
         assertThat(statistic.profitOpportunityHistogram.last().relativeProfitThreshold).isCloseTo(BigDecimal(0.05), Percentage.withPercentage(0.1))
+        assertThat(statistic.minUsd24hVolume).isEqualTo(usd24hVolume)
         assertThat(statistic.profitOpportunityHistogram.last().count).isEqualTo(1)
 
     }

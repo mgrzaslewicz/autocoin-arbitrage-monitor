@@ -14,5 +14,6 @@ data class TwoLegArbitrageProfitStatistic(
         val average: BigDecimal,
         val min: BigDecimal,
         val max: BigDecimal,
+        val minUsd24hVolume: BigDecimal,
         val profitOpportunityHistogram: List<ProfitOpportunityCount>
 )

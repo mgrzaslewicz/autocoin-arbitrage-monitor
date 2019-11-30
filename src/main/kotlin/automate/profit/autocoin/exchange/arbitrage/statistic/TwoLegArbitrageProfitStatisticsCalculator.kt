@@ -67,6 +67,7 @@ class TwoLegArbitrageProfitStatisticsCalculator(private val fileTickerPairReposi
                     average = average,
                     min = min,
                     max = max,
+                    minUsd24hVolume = profits.last().minUsd24hVolumeOfBothExchanges,
                     profitOpportunityHistogram = listOf(
                             ProfitOpportunityCount(zeroPoint5Percent, howManyTimesProfitAbove0Point5Percent),
                             ProfitOpportunityCount(zeroPoint75Percent, howManyTimesProfitAbove0Point75Percent),

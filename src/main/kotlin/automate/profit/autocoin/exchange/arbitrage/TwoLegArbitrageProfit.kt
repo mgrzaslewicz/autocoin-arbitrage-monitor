@@ -21,6 +21,8 @@ data class TwoLegArbitrageProfit(
 
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
 
+    val minUsd24hVolumeOfBothExchanges = usd24hVolumeAtBuyExchange.min(usd24hVolumeAtSellExchange)
+
     override fun toString(): String {
         return "TwoLegArbitrageProfit(" +
                 "currencyPair=$currencyPair, " +
