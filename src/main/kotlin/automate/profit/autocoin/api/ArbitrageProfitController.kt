@@ -14,12 +14,12 @@ data class TwoLegArbitrageProfitDto(
         val baseCurrency: String,
         val counterCurrency: String,
         val sellAtExchange: SupportedExchange,
-        val usd24hVolumeAtSellExchange: Double,
+        val usd24hVolumeAtSellExchange: String,
         val buyAtExchange: SupportedExchange,
-        val usd24hVolumeAtBuyExchange: Double,
-        val sellPrice: Double,
-        val buyPrice: Double,
-        val relativeProfitPercent: Double,
+        val usd24hVolumeAtBuyExchange: String,
+        val sellPrice: String,
+        val buyPrice: String,
+        val relativeProfitPercent: String,
         val calculatedAtMillis: Long
 )
 
@@ -36,12 +36,12 @@ class ArbitrageProfitController(
             baseCurrency = currencyPair.base,
             counterCurrency = currencyPair.counter,
             sellAtExchange = sellAtExchange,
-            usd24hVolumeAtSellExchange = usd24hVolumeAtSellExchange.setScale(2, HALF_DOWN).toDouble(),
+            usd24hVolumeAtSellExchange = usd24hVolumeAtSellExchange.setScale(2, HALF_DOWN).toPlainString(),
             buyAtExchange = buyAtExchange,
-            usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange.setScale(2, HALF_DOWN).toDouble(),
-            sellPrice = sellPrice.setScale(8, HALF_DOWN).toDouble(),
-            buyPrice = buyPrice.setScale(8, HALF_DOWN).toDouble(),
-            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toDouble(),
+            usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange.setScale(2, HALF_DOWN).toPlainString(),
+            sellPrice = sellPrice.setScale(8, HALF_DOWN).toPlainString(),
+            buyPrice = buyPrice.setScale(8, HALF_DOWN).toPlainString(),
+            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toPlainString(),
             calculatedAtMillis = calculatedAtMillis
     )
 

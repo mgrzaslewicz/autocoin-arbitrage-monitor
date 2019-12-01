@@ -13,7 +13,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode.HALF_DOWN
 
 data class ProfitOpportunityCountDto(
-        val profitPercentThreshold: Double,
+        val profitPercentThreshold: String,
         val count: Int
 )
 
@@ -22,10 +22,10 @@ data class TwoLegArbitrageProfitStatisticDto(
         val counterCurrency: String,
         val firstExchange: SupportedExchange,
         val secondExchange: SupportedExchange,
-        val minProfitPercent: Double,
-        val maxProfitPercent: Double,
-        val averageProfitPercent: Double,
-        val minUsd24hVolume: Double,
+        val minProfitPercent: String,
+        val maxProfitPercent: String,
+        val averageProfitPercent: String,
+        val minUsd24hVolume: String,
         val profitOpportunityHistogram: List<ProfitOpportunityCountDto>
 )
 
@@ -38,19 +38,19 @@ class ArbitrageProfitStatisticsController(
     val minRelativeProfit = 0.003.toBigDecimal()
     val minUsd24hVolume = 1000.toBigDecimal()
 
-    private fun BigDecimal.toPercentWith2DecimalPlaces(): Double {
+    private fun BigDecimal.toPercentWith2DecimalPlaces(): String {
         return try {
-            movePointRight(2).setScale(2).toDouble()
+            movePointRight(2).setScale(2).toPlainString()
         } catch (e: ArithmeticException) {
-            movePointRight(2).setScale(2, HALF_DOWN).toDouble()
+            movePointRight(2).setScale(2, HALF_DOWN).toPlainString()
         }
     }
 
-    private fun BigDecimal.with2DecimalPlaces(): Double {
+    private fun BigDecimal.with2DecimalPlaces(): String {
         return try {
-            setScale(2).toDouble()
+            setScale(2).toPlainString()
         } catch (e: ArithmeticException) {
-            setScale(2, HALF_DOWN).toDouble()
+            setScale(2, HALF_DOWN).toPlainString()
         }
     }
 
