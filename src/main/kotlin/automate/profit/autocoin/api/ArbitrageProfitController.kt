@@ -29,8 +29,8 @@ class ArbitrageProfitController(
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
 
-    val minRelativeProfit = 0.003.toBigDecimal()
-    val minUsd24hVolume = 1000.toBigDecimal()
+    private val minRelativeProfit = 0.003.toBigDecimal()
+    private val minUsd24hVolume = 1000.toBigDecimal()
 
     private fun TwoLegArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
             baseCurrency = currencyPair.base,

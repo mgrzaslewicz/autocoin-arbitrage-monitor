@@ -7,10 +7,13 @@ import mu.KLogging
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_UP
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 class TwoLegArbitrageProfitCalculator(
         private val priceService: PriceService,
-        private val currentTimeMillis: () -> Long = System::currentTimeMillis
+        private val currentTimeMillis: () -> Long = System::currentTimeMillis,
+        private val maxAgeOfTickerMs: Long = Duration.of(2, ChronoUnit.MINUTES).toMillis()
 ) {
     companion object : KLogging()
 
@@ -22,6 +25,7 @@ class TwoLegArbitrageProfitCalculator(
         return try {
             val currentTimeMillis = currentTimeMillis()
             when {
+                oneOfTickersIsTooOld(tickerPair, currentTimeMillis) -> null
                 tickerPair.first.bid > tickerPair.second.bid -> // sell on first, buy on second
                     TwoLegArbitrageProfit(
                             currencyPair = currencyPairWithExchangePair.currencyPair,
@@ -58,6 +62,11 @@ class TwoLegArbitrageProfitCalculator(
             logger.error(e) { "Could not calculate two leg arbitrage profit" }
             null
         }
+    }
+
+    private fun oneOfTickersIsTooOld(tickerPair: TickerPair, currentTimeMillis: Long): Boolean {
+        return (currentTimeMillis - (tickerPair.first.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfTickerMs ||
+                currentTimeMillis - (tickerPair.first.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfTickerMs)
     }
 
 }

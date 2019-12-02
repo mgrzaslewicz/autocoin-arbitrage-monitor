@@ -19,7 +19,7 @@ data class PriceDto(
 class PriceService(private val priceApiUrl: String,
                    private val httpClient: OkHttpClient,
                    private val objectMapper: ObjectMapper,
-                   private val maxPriceCacheAge: Long = Duration.of(12, ChronoUnit.HOURS).toMillis(),
+                   private val maxPriceCacheAgeMs: Long = Duration.of(12, ChronoUnit.HOURS).toMillis(),
                    private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
 
     private data class ValueWithTimestamp(
@@ -58,7 +58,7 @@ class PriceService(private val priceApiUrl: String,
 
 
     private fun isOlderThanMaxCacheAge(calculatedAtMillis: Long): Boolean {
-        return currentTimeMillis() - calculatedAtMillis > maxPriceCacheAge
+        return currentTimeMillis() - calculatedAtMillis > maxPriceCacheAgeMs
     }
 
     private fun fetchUsdPrice(currencyCode: String): BigDecimal {

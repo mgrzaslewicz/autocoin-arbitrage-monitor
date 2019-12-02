@@ -17,6 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.data.Percentage
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Instant
 
 class TwoLegArbitrageProfitStatisticsCalculatorTest {
 
@@ -27,7 +28,9 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
     private val pricesService = mock<PriceService>().apply {
         whenever(getUsdValue(eq("B"), any())).thenReturn(usd24hVolume)
     }
-    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService)
+    private val currentFixedTimeMs = 10L
+    private val freshTickerTime = Instant.ofEpochMilli(15L)
+    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService, { currentFixedTimeMs })
     private val volumeDoesNotMatter = BigDecimal.ONE
     private val tickerPairs = listOf(
             tickerPair(10.0, 11.0, 9.5, 10.5), // relative profit 0.1
@@ -36,8 +39,22 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
 
     private fun tickerPair(buyA: Double, sellA: Double, buyB: Double, sellB: Double): TickerPair {
         return TickerPair(
-                first = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellA.toBigDecimal(), bid = buyA.toBigDecimal(), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter),
-                second = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellB.toBigDecimal(), bid = buyB.toBigDecimal(), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
+                first = Ticker(
+                        currencyPair = currencyPair,
+                        timestamp = freshTickerTime,
+                        ask = sellA.toBigDecimal(),
+                        bid = buyA.toBigDecimal(),
+                        baseCurrency24hVolume = volumeDoesNotMatter,
+                        counterCurrency24hVolume = volumeDoesNotMatter
+                ),
+                second = Ticker(
+                        currencyPair = currencyPair,
+                        timestamp = freshTickerTime,
+                        ask = sellB.toBigDecimal(),
+                        bid = buyB.toBigDecimal(),
+                        baseCurrency24hVolume = volumeDoesNotMatter,
+                        counterCurrency24hVolume = volumeDoesNotMatter
+                )
         )
     }
 
