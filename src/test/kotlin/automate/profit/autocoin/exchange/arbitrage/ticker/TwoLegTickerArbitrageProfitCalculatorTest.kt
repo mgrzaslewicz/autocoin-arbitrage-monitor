@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange.arbitrage
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.PriceService
@@ -20,7 +20,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class TwoLegArbitrageProfitCalculatorTest {
+class TwoLegTickerArbitrageProfitCalculatorTest {
     private val currencyPair = CurrencyPair.of("X/Y")
     private val exchangeA = BITTREX
     private val exchangeB = BINANCE
@@ -29,7 +29,7 @@ class TwoLegArbitrageProfitCalculatorTest {
     private val pricesService = mock<PriceService>().apply {
         whenever(getUsdValue(eq("Y"), any())).thenReturn(BigDecimal(2000.0))
     }
-    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService)
+    private val twoLegArbitrageProfitCalculator = TwoLegTickerArbitrageProfitCalculator(pricesService)
     private val doesNotMatter = Instant.now()
     private val volumeDoesNotMatter = BigDecimal.ONE
 

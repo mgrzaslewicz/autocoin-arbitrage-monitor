@@ -1,8 +1,7 @@
-package automate.profit.autocoin.exchange
+package automate.profit.autocoin.exchange.ticker
 
+import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.UserExchangeTickerService
 import automate.profit.autocoin.ticker.TickerDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging

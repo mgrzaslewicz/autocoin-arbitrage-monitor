@@ -1,12 +1,12 @@
 package automate.profit.autocoin.exchange.arbitrage.statistic
 
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCalculator
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
 import java.math.BigDecimal
 import java.math.RoundingMode.HALF_DOWN
 
-class TwoLegArbitrageProfitStatisticsCalculator(private val fileTickerPairRepository: FileTickerPairRepository, private val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator) {
+class TwoLegArbitrageProfitStatisticsCalculator(private val fileTickerPairRepository: FileTickerPairRepository, private val twoLegTickerArbitrageProfitCalculator: TwoLegTickerArbitrageProfitCalculator) {
 
     private val zeroPoint5Percent = BigDecimal.valueOf(0.005)
     private val zeroPoint75Percent = BigDecimal.valueOf(0.0075)
@@ -33,7 +33,7 @@ class TwoLegArbitrageProfitStatisticsCalculator(private val fileTickerPairReposi
     }
 
     fun calculateStatistic(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegArbitrageProfitStatistic? {
-        val profits = fileTickerPairRepository.getTickerPairs(currencyPairWithExchangePair).mapNotNull { twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, it) }
+        val profits = fileTickerPairRepository.getTickerPairs(currencyPairWithExchangePair).mapNotNull { twoLegTickerArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, it) }
         return if (profits.isEmpty()) {
             null
         } else {

@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange.arbitrage
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange
@@ -6,7 +6,7 @@ import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import java.math.BigDecimal
 
-data class TwoLegArbitrageProfit(
+data class TwoLegTickerArbitrageProfit(
         val currencyPair: CurrencyPair,
         val exchangePair: ExchangePair,
         val sellPrice: BigDecimal,

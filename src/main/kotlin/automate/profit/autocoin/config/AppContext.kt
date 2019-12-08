@@ -5,8 +5,8 @@ import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
 import automate.profit.autocoin.exchange.PriceService
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCalculator
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCache
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
@@ -45,12 +45,12 @@ class AppContext(appConfig: AppConfig) {
     val tickerPairCache = TickerPairCache()
 
     val priceService = PriceService(appConfig.tickerApiUrl, oauth2HttpClient, objectMapper)
-    val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(priceService)
+    val twoLegTickerArbitrageProfitCalculator: TwoLegTickerArbitrageProfitCalculator = TwoLegTickerArbitrageProfitCalculator(priceService)
 
-    val twoLegArbitrageProfitCache = TwoLegArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepMs)
+    val twoLegArbitrageProfitCache = TwoLegTickerArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepMs)
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
     val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars, twoLegArbitrageProfitCache, scheduledExecutorService)
-    val tickerListenersProvider = TickerListenersProvider(tickerPairCache, twoLegArbitrageProfitCalculator, twoLegArbitrageProfitCache)
+    val tickerListenersProvider = TickerListenersProvider(tickerPairCache, twoLegTickerArbitrageProfitCalculator, twoLegArbitrageProfitCache)
     private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.tickerApiUrl, objectMapper)
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
@@ -60,7 +60,7 @@ class AppContext(appConfig: AppConfig) {
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath, appConfig.ageOfOldestTickerPairToKeepInRepositoryMs)
     val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository, scheduledExecutorService)
 
-    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(fileTickerPairRepository, twoLegArbitrageProfitCalculator)
+    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(fileTickerPairRepository, twoLegTickerArbitrageProfitCalculator)
     val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
     val arbitrageProfitStatisticCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(twoLegArbitrageProfitStatisticCalculator, twoLegArbitrageProfitStatisticsCache, scheduledExecutorService)
 

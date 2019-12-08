@@ -1,6 +1,7 @@
 package automate.profit.autocoin.exchange
 
 import automate.profit.autocoin.exchange.ticker.DefaultTickerListenerRegistrar
+import automate.profit.autocoin.exchange.ticker.ExchangeTickerFetcher
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrar
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrarProvider
 import com.fasterxml.jackson.databind.ObjectMapper

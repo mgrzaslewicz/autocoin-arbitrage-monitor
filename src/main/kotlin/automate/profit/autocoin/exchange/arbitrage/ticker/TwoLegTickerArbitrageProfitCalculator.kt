@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange.arbitrage
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
@@ -10,24 +10,24 @@ import java.math.RoundingMode.HALF_UP
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-class TwoLegArbitrageProfitCalculator(
+class TwoLegTickerArbitrageProfitCalculator(
         private val priceService: PriceService,
         private val currentTimeMillis: () -> Long = System::currentTimeMillis,
         private val maxAgeOfTickerMs: Long = Duration.of(2, ChronoUnit.MINUTES).toMillis()
 ) {
     companion object : KLogging()
 
-    fun calculateProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPairs: List<TickerPair>): List<TwoLegArbitrageProfit> {
+    fun calculateProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPairs: List<TickerPair>): List<TwoLegTickerArbitrageProfit> {
         return tickerPairs.mapNotNull { calculateProfit(currencyPairWithExchangePair, it) }
     }
 
-    fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPair: TickerPair): TwoLegArbitrageProfit? {
+    fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, tickerPair: TickerPair): TwoLegTickerArbitrageProfit? {
         return try {
             val currentTimeMillis = currentTimeMillis()
             when {
                 oneOfTickersIsTooOld(tickerPair, currentTimeMillis) -> null
                 tickerPair.first.bid > tickerPair.second.bid -> // sell on first, buy on second
-                    TwoLegArbitrageProfit(
+                    TwoLegTickerArbitrageProfit(
                             currencyPair = currencyPairWithExchangePair.currencyPair,
                             exchangePair = currencyPairWithExchangePair.exchangePair,
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
@@ -42,7 +42,7 @@ class TwoLegArbitrageProfitCalculator(
                             calculatedAtMillis = currentTimeMillis
                     )
                 tickerPair.second.bid > tickerPair.first.bid -> // sell on second, buy on first
-                    TwoLegArbitrageProfit(
+                    TwoLegTickerArbitrageProfit(
                             currencyPair = currencyPairWithExchangePair.currencyPair,
                             exchangePair = currencyPairWithExchangePair.exchangePair,
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,

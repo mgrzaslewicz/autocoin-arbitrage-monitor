@@ -1,8 +1,8 @@
 package automate.profit.autocoin.api
 
 import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfit
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfit
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCache
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -24,7 +24,7 @@ data class TwoLegArbitrageProfitDto(
 )
 
 class ArbitrageProfitController(
-        private val twoLegArbitrageProfitCache: TwoLegArbitrageProfitCache,
+        private val twoLegTickerArbitrageProfitCache: TwoLegTickerArbitrageProfitCache,
         private val objectMapper: ObjectMapper,
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
@@ -32,7 +32,7 @@ class ArbitrageProfitController(
     private val minRelativeProfit = 0.003.toBigDecimal()
     private val minUsd24hVolume = 1000.toBigDecimal()
 
-    private fun TwoLegArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
+    private fun TwoLegTickerArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
             baseCurrency = currencyPair.base,
             counterCurrency = currencyPair.counter,
             sellAtExchange = sellAtExchange,
@@ -49,10 +49,10 @@ class ArbitrageProfitController(
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
         override val httpHandler = HttpHandler {
-            val profits = twoLegArbitrageProfitCache
+            val profits = twoLegTickerArbitrageProfitCache
                     .getCurrencyPairWithExchangePairs()
                     .mapNotNull { currencyPairWithExchangePair ->
-                        val profit = twoLegArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
+                        val profit = twoLegTickerArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
                         if (profit.relativeProfit > minRelativeProfit && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume) {
                             profit.toDto()
                         } else null
