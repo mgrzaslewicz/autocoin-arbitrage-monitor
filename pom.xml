@@ -14,8 +14,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>12</java.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
-        <kotlin.version>1.3.50</kotlin.version>
+        <kotlin.version>1.3.61</kotlin.version>
         <junit.version>5.5.2</junit.version>
+        <maven.compiler.source>12</maven.compiler.source>
+        <maven.compiler.target>12</maven.compiler.target>
+        <maven.compiler.release>12</maven.compiler.release>
 
         <!-- v1.4.11 and v1.4.12 has bug which does not allow custom port for private repositories-->
         <dockerfile.maven.plugin.version>1.4.13</dockerfile.maven.plugin.version>
@@ -25,7 +28,7 @@
         <dependency>
             <groupId>automate.profit</groupId>
             <artifactId>autocoin-exchange-api-rest</artifactId>
-            <version>1.0.35</version>
+            <version>1.0.38</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -59,7 +62,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>2.9.9</version>
+            <version>2.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -69,7 +72,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>1.3.1</version>
+            <version>1.3.2</version>
         </dependency>
         <dependency>
             <groupId>io.github.microutils</groupId>
@@ -242,7 +245,7 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
                 <configuration>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>12</jvmTarget>
                     <compilerPlugins>
                         <plugin>all-open</plugin>
                         <plugin>spring</plugin>
