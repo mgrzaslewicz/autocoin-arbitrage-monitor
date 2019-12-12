@@ -1,14 +1,9 @@
 package automate.profit.autocoin.exchange
 
-import automate.profit.autocoin.exchange.ticker.DefaultTickerListenerRegistrar
-import automate.profit.autocoin.exchange.ticker.ExchangeTickerFetcher
-import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrar
-import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrarProvider
-import com.fasterxml.jackson.databind.ObjectMapper
-import okhttp3.OkHttpClient
+import automate.profit.autocoin.exchange.ticker.*
 
-class DefaultTickerListenerRegistrarProvider(private val tickerApiUrl: String, private val httpClient: OkHttpClient, private val objectMapper: ObjectMapper) : TickerListenerRegistrarProvider {
+class DefaultTickerListenerRegistrarProvider(private val tickerFetcher: TickerFetcher) : TickerListenerRegistrarProvider {
     override fun createTickerListenerRegistrar(exchangeName: SupportedExchange): TickerListenerRegistrar {
-        return DefaultTickerListenerRegistrar(exchangeName, ExchangeTickerFetcher(supportedExchange = exchangeName, tickerApiUrl = tickerApiUrl, httpClient = httpClient, objectMapper = objectMapper))
+        return DefaultTickerListenerRegistrar(exchangeName, ExchangeTickerFetcher(supportedExchange = exchangeName, tickerFetcher = tickerFetcher))
     }
 }
