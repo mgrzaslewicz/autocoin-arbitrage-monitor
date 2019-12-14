@@ -16,7 +16,6 @@ import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Duration
@@ -134,21 +133,27 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
         // then
-        with(SoftAssertions()) {
-            assertThat(profit).isNotNull
-            assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
-            assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("0.01002100"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeA)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("0.01001000"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
-            assertAll()
-        }
+        assertThat(profit).isNotNull
+        assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
+        assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
+        assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
+        assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("1.00210000"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeA)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("1.00100000"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isEqualTo(
+                TwoLegOrderBookArbitrageOpportunity(
+                        sellPrice = BigDecimal("1.00210000"),
+                        buyPrice = BigDecimal("1.00100000"),
+                        sellAtExchange = BITTREX,
+                        buyAtExchange = BINANCE,
+                        relativeProfit = BigDecimal("0.00109890"),
+                        usdDepthUpTo = BigDecimal("500.0")
+                )
+        )
     }
 
     @Test
@@ -175,21 +180,25 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
         // then
-        with(SoftAssertions()) {
-            assertThat(profit).isNotNull
-            assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
-            assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("0.01002100"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeB)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("0.01001000"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeA)
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-            assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
-            assertAll()
-        }
+        assertThat(profit).isNotNull
+        assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
+        assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
+        assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
+        assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("1.00210000"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeB)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("1.00100000"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeA)
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
+        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isEqualTo(TwoLegOrderBookArbitrageOpportunity(
+                sellPrice = BigDecimal("1.00210000"),
+                buyPrice = BigDecimal("1.00100000"),
+                sellAtExchange = BINANCE,
+                buyAtExchange = BITTREX,
+                relativeProfit = BigDecimal("0.00109890"),
+                usdDepthUpTo = BigDecimal("500.0")
+        ))
     }
 
 }
