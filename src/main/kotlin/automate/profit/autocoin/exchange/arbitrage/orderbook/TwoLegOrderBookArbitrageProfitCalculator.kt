@@ -26,7 +26,9 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val maximum = Int.MAX_VALUE.toBigDecimal()
 
     fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, orderBookPair: OrderBookPair): TwoLegOrderBookArbitrageProfit? {
-
+        if (currencyPairWithExchangePair.currencyPair.base == "GAS") {
+            logger.info { "GAS" }
+        }
         val currentTimeMillis = currentTimeMillis()
 
         val firstExchangeTicker = tickerFetcher.getCachedTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)
@@ -46,10 +48,10 @@ class TwoLegOrderBookArbitrageProfitCalculator(
             val usdPrice = priceService.getUsdPrice(currencyPairWithExchangePair.currencyPair.counter)
 
             val firstOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
-                orderBookPair.first.getWeightedAverageBuyPriceInOtherCurrency(usdPrice, it)
+                orderBookPair.first.getWeightedAverageBuyPrice(usdPrice, it)
             }
             val secondOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
-                orderBookPair.second.getWeightedAverageBuyPriceInOtherCurrency(usdPrice, it)
+                orderBookPair.second.getWeightedAverageBuyPrice(usdPrice, it)
             }
             val opportunities = orderBookUsdAmountThresholds.mapIndexed { index, usdDepthTo ->
                 when {

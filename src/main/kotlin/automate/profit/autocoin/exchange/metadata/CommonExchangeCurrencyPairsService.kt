@@ -10,7 +10,8 @@ import mu.KLogging
 class CommonExchangeCurrencyPairsService(
         private val exchangeMetadataService: ExchangeMetadataService,
         private val exchanges: List<SupportedExchange>,
-        private val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = emptyMap()
+        private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
+        private val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, List<ExchangePair>> = emptyMap()
 ) {
     private var cachedResult: MutableMap<CurrencyPair, MutableList<ExchangePair>>? = null
 
@@ -20,11 +21,11 @@ class CommonExchangeCurrencyPairsService(
         if (cachedResult != null) {
             return cachedResult!!
         }
-        if (twoLegArbitragePairs.isNotEmpty()) {
+        if (twoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
             logger.warn { "Using hardcoded currency pairs for monitoring profits" }
-            return twoLegArbitragePairs
+            return twoLegArbitrageCurrencyAndExchangePairs
         }
-        cachedResult = mutableMapOf<CurrencyPair, MutableList<ExchangePair>>()
+        cachedResult = mutableMapOf()
         val exchangesWithCurrencyPairs = fetchExchangesWithCurrencyPairs()
         for (i in exchangesWithCurrencyPairs.indices) {
             for (j in i + 1 until exchangesWithCurrencyPairs.size) {
@@ -40,7 +41,13 @@ class CommonExchangeCurrencyPairsService(
     }
 
     private fun findCommonCurrencyPairs(firstExchangeCurrencyPairs: Set<CurrencyPair>, secondExchangeCurrencyPairs: Set<CurrencyPair>): Set<CurrencyPair> {
-        return firstExchangeCurrencyPairs.filter { secondExchangeCurrencyPairs.contains(it) }.toSet()
+        val currencyPairs = firstExchangeCurrencyPairs
+                .filter { it in secondExchangeCurrencyPairs }.toSet()
+        return if (currencyPairsWhiteList.isEmpty()) {
+            currencyPairs
+        } else {
+            currencyPairs.filter { it in currencyPairsWhiteList }.toSet()
+        }
     }
 
     private fun fetchExchangesWithCurrencyPairs(): Array<Pair<String, Set<CurrencyPair>>> {

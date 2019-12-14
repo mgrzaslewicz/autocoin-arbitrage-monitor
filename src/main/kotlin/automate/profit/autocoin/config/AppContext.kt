@@ -59,7 +59,8 @@ class AppContext(appConfig: AppConfig) {
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
             exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
-            twoLegArbitragePairs = appConfig.twoLegArbitragePairs
+            currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
+            twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
     val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(twoLegOrderBookArbitrageProfitCalculator)
