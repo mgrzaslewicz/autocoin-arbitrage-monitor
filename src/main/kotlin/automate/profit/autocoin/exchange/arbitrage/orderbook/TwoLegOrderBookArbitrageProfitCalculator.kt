@@ -26,9 +26,6 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val maximum = Int.MAX_VALUE.toBigDecimal()
 
     fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, orderBookPair: OrderBookPair): TwoLegOrderBookArbitrageProfit? {
-        if (currencyPairWithExchangePair.currencyPair.base == "GAS") {
-            logger.info { "GAS" }
-        }
         val currentTimeMillis = currentTimeMillis()
 
         val firstExchangeTicker = tickerFetcher.getCachedTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)

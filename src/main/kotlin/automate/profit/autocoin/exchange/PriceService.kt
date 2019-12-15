@@ -19,7 +19,7 @@ data class PriceDto(
 class PriceService(private val priceApiUrl: String,
                    private val httpClient: OkHttpClient,
                    private val objectMapper: ObjectMapper,
-                   private val maxPriceCacheAgeMs: Long = Duration.of(12, ChronoUnit.HOURS).toMillis(),
+                   private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
                    private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
 
     private data class ValueWithTimestamp(
