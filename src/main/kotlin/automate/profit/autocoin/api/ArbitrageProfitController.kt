@@ -9,6 +9,7 @@ import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.server.HttpHandler
 import io.undertow.util.Methods.GET
+import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_DOWN
 
@@ -32,8 +33,14 @@ data class TwoLegArbitrageProfitDto(
         val calculatedAtMillis: Long
 )
 
+data class TwoLegArbitrageResponseDto(
+        val usdDepthThresholds: List<Int>,
+        val profits: List<TwoLegArbitrageProfitDto?>
+)
+
 class ArbitrageProfitController(
         private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
+        private val orderBookUsdAmountThresholds: List<BigDecimal>,
         private val objectMapper: ObjectMapper,
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
@@ -79,7 +86,11 @@ class ArbitrageProfitController(
                             profit.toDto()
                         } else null
                     }
-            it.responseSender.send(objectMapper.writeValueAsString(profits))
+            val result = TwoLegArbitrageResponseDto(
+                    usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
+                    profits = profits
+            )
+            it.responseSender.send(objectMapper.writeValueAsString(result))
         }.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 

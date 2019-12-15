@@ -71,7 +71,7 @@ data class AppConfig(
         val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "binance,bittrex,kucoin,bitbay,bitmex,bitstamp,gateio,kraken")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
-        val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,2000.0")
+        val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0")
                 .split(",")
                 .map { BigDecimal(it) }
 )
