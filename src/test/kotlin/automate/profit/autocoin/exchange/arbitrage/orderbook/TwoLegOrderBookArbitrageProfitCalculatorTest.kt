@@ -117,7 +117,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                         buyOrders = listOf(sampleOrderExchangeA.copy(
                                 timestamp = Instant.now(),
                                 price = BigDecimal("1.0021"),
-                                orderedAmount = BigDecimal("31.0")
+                                orderedAmount = BigDecimal("340.0")
                         )),
                         sellOrders = listOf(mock())
                 ),
@@ -125,7 +125,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                         buyOrders = listOf(sampleOrderExchangeA.copy(
                                 timestamp = Instant.now(),
                                 price = BigDecimal("1.001"),
-                                orderedAmount = BigDecimal("31.0")
+                                orderedAmount = BigDecimal("340.0")
                         )),
                         sellOrders = listOf(mock())
                 )
@@ -144,16 +144,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isEqualTo(
-                TwoLegOrderBookArbitrageOpportunity(
-                        sellPrice = BigDecimal("1.00210000"),
-                        buyPrice = BigDecimal("1.00100000"),
-                        sellAtExchange = BITTREX,
-                        buyAtExchange = BINANCE,
-                        relativeProfit = BigDecimal("0.00109890"),
-                        usdDepthUpTo = BigDecimal("500.0")
-                )
-        )
+        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
     }
 
     @Test
@@ -164,7 +155,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                         buyOrders = listOf(sampleOrderExchangeA.copy(
                                 timestamp = Instant.now(),
                                 price = BigDecimal("1.001"),
-                                orderedAmount = BigDecimal("31.0")
+                                orderedAmount = BigDecimal("340.0")
                         )),
                         sellOrders = listOf(mock())
                 ),
@@ -172,7 +163,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                         buyOrders = listOf(sampleOrderExchangeA.copy(
                                 timestamp = Instant.now(),
                                 price = BigDecimal("1.0021"),
-                                orderedAmount = BigDecimal("31.0")
+                                orderedAmount = BigDecimal("340.0")
                         )),
                         sellOrders = listOf(mock())
                 )
@@ -191,14 +182,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeA)
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
         assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isEqualTo(TwoLegOrderBookArbitrageOpportunity(
-                sellPrice = BigDecimal("1.00210000"),
-                buyPrice = BigDecimal("1.00100000"),
-                sellAtExchange = BINANCE,
-                buyAtExchange = BITTREX,
-                relativeProfit = BigDecimal("0.00109890"),
-                usdDepthUpTo = BigDecimal("500.0")
-        ))
+        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
     }
 
 }

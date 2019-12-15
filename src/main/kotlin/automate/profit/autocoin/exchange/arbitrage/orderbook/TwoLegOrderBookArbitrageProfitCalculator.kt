@@ -45,10 +45,10 @@ class TwoLegOrderBookArbitrageProfitCalculator(
             val usdPrice = priceService.getUsdPrice(currencyPairWithExchangePair.currencyPair.counter)
 
             val firstOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
-                orderBookPair.first.getWeightedAverageBuyPrice(usdPrice, it)
+                orderBookPair.first.getWeightedAverageBuyPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
             }
             val secondOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
-                orderBookPair.second.getWeightedAverageBuyPrice(usdPrice, it)
+                orderBookPair.second.getWeightedAverageBuyPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
             }
             val opportunities = orderBookUsdAmountThresholds.mapIndexed { index, usdDepthTo ->
                 when {
