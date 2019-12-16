@@ -36,7 +36,7 @@ class OrderBookFetcher(
             orderBookResponse.body?.close()
 
             val millisAfter = System.currentTimeMillis()
-            statsDClient.recordExecutionTime("fetchOrderBook", millisAfter - millisBefore, currencyPair.toString())
+            statsDClient.recordExecutionTime("fetchOrderBook", millisAfter - millisBefore, currencyPair.toString(), supportedExchange.exchangeName)
             return orderBookDto.toOrderBook()
         }
     }
