@@ -14,6 +14,7 @@ import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegis
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrars
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
 import automate.profit.autocoin.exchange.ticker.TickerFetcher
+import automate.profit.autocoin.metrics.FileStatsdClient
 import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
 import automate.profit.autocoin.oauth.client.AccessTokenInterceptor
 import automate.profit.autocoin.oauth.client.ClientCredentialsAccessTokenProvider
@@ -21,6 +22,7 @@ import automate.profit.autocoin.oauth.server.AccessTokenChecker
 import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
+import automate.profit.autocoin.scheduled.MetricsSaveScheduler
 import automate.profit.autocoin.scheduled.OrderBookFetchScheduler
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -40,7 +42,9 @@ class AppContext(appConfig: AppConfig) {
             .build()
     val tickerFetcher = TickerFetcher(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper)
 
-    val priceService = PriceService(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper)
+    private val statsdClient = FileStatsdClient(appConfig.metricsFolder)
+
+    val priceService = PriceService(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper, statsdClient)
 
     val twoLegOrderBookArbitrageProfitCalculator: TwoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(priceService, tickerFetcher, appConfig.orderBookUsdAmountThresholds)
 
@@ -48,13 +52,15 @@ class AppContext(appConfig: AppConfig) {
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
     private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.exchangeMediatorApiUrl, objectMapper)
 
-    val orderBookListenersProvider = OrderBookListenersProvider(twoLegOrderBookArbitrageProfitCache, twoLegOrderBookArbitrageProfitCalculator)
-    val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper)
+
+    val orderBookListenersProvider = OrderBookListenersProvider(twoLegOrderBookArbitrageProfitCache, twoLegOrderBookArbitrageProfitCalculator, statsdClient)
+    val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper, statsdClient)
     val orderBookListenerRegistrars = DefaultOrderBookListenerRegistrars(
             initialTickerListenerRegistrarList = emptyList(),
             orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider
     )
     val orderBookFetchScheduler = OrderBookFetchScheduler(orderBookListenerRegistrars, twoLegOrderBookArbitrageProfitCache, scheduledExecutorService)
+    val metricsSaveScheduler = MetricsSaveScheduler(statsdClient, scheduledExecutorService)
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
@@ -87,8 +93,9 @@ class AppContext(appConfig: AppConfig) {
         logger.info { "Registering ${orderBookListeners.size} order book listeners" }
         orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
 
-        logger.info { "Scheduling fetching order books" }
+        logger.info { "Scheduling jobs" }
         orderBookFetchScheduler.scheduleFetchingOrderBooks()
+        metricsSaveScheduler.scheduleSavingMetrics()
 
         logger.info { "Scheduling calculating arbitrage profit statistics" }
         arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()

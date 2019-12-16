@@ -3,7 +3,10 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.timgroup.statsd.StatsDClient
 import mu.KLogging
+import mu.NamedKLogging
+import kotlin.system.measureTimeMillis
 
 /**
  * Calculates arbitrage opportunities based on order books
@@ -11,9 +14,10 @@ import mu.KLogging
 class TwoLegOrderBookArbitrageMonitor(
         private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
-        private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator
+        private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
+        private val statsDClient: StatsDClient
 ) {
-    companion object : KLogging()
+    private companion object : KLogging()
 
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
@@ -33,12 +37,15 @@ class TwoLegOrderBookArbitrageMonitor(
     private fun onOrderBooks() {
         if (firstExchangeOrderBook != null && secondExchangeOrderBook != null) {
             val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
-            val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
-            if (profit == null) {
-                profitCache.removeProfit(currencyPairWithExchangePair)
-            } else {
-                profitCache.setProfit(profit)
+            val millis = measureTimeMillis {
+                val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
+                if (profit == null) {
+                    profitCache.removeProfit(currencyPairWithExchangePair)
+                } else {
+                    profitCache.setProfit(profit)
+                }
             }
+            statsDClient.recordExecutionTime("calculateArbitrageProfits", millis)
         }
     }
 
