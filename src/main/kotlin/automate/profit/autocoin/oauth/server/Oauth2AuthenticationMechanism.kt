@@ -3,14 +3,15 @@ package automate.profit.autocoin.oauth.server
 import io.undertow.security.api.AuthenticationMechanism
 import io.undertow.security.api.AuthenticationMechanism.AuthenticationMechanismOutcome
 import io.undertow.security.api.AuthenticationMechanism.AuthenticationMechanismOutcome.*
-import io.undertow.security.api.AuthenticationMechanism.ChallengeResult.NOT_SENT
 import io.undertow.security.api.SecurityContext
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.HeaderMap
+import io.undertow.util.StatusCodes
 
 class Oauth2AuthenticationMechanism(private val accessTokenChecker: AccessTokenChecker) : AuthenticationMechanism {
     private val mechanismName = "Oauth2Authentication"
-    override fun sendChallenge(exchange: HttpServerExchange?, securityContext: SecurityContext?) = NOT_SENT!!
+
+    override fun sendChallenge(exchange: HttpServerExchange?, securityContext: SecurityContext?) = AuthenticationMechanism.ChallengeResult(true, StatusCodes.UNAUTHORIZED)
 
     override fun authenticate(exchange: HttpServerExchange, securityContext: SecurityContext?): AuthenticationMechanismOutcome {
         val account = securityContext?.authenticatedAccount
