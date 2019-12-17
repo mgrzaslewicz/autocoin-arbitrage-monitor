@@ -91,7 +91,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     @Test
     fun shouldFindNoProfitWhenSpreadTooSmall() {
         // given
-        val orderBookPairWithTooOldOrders = OrderBookPair(
+        val orderBookPair = OrderBookPair(
                 first = OrderBook(
                         buyOrders = listOf(sampleOrderExchangeA.copy(timestamp = Instant.now())),
                         sellOrders = listOf(sampleOrderExchangeA.copy(timestamp = Instant.now()))
@@ -102,11 +102,9 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                 )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPairWithTooOldOrders)
+        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
         // then
-        assertThat(profit).isNotNull
-        assertThat(profit!!.orderBookArbitrageProfitHistogram.size).isEqualTo(orderBookUsdAmountThresholds.size)
-        assertThat(profit.orderBookArbitrageProfitHistogram.filterNotNull()).isEmpty()
+        assertThat(profit).isNull()
     }
 
     @Test

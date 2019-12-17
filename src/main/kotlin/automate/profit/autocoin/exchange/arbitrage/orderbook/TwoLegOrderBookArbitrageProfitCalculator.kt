@@ -8,6 +8,7 @@ import automate.profit.autocoin.exchange.ticker.TickerFetcher
 import mu.KLogging
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_EVEN
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -26,6 +27,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val maximum = Int.MAX_VALUE.toBigDecimal()
 
     fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, orderBookPair: OrderBookPair): TwoLegOrderBookArbitrageProfit? {
+        logger.debug { "Calculating profit for $currencyPairWithExchangePair" }
         val currentTimeMillis = currentTimeMillis()
 
         val firstExchangeTicker = tickerFetcher.getCachedTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)
@@ -51,23 +53,26 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 orderBookPair.second.getWeightedAverageBuyPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
             }
             val opportunities = orderBookUsdAmountThresholds.mapIndexed { index, usdDepthTo ->
+                val firstOrderBookPrice = firstOrderBookAverageBuyPrices[index]
+                val secondOrderBookPrice = secondOrderBookAverageBuyPrices[index]
                 when {
-                    firstOrderBookAverageBuyPrices[index] ?: minimum > secondOrderBookAverageBuyPrices[index] ?: maximum ->
+                    firstOrderBookPrice ?: minimum <= ZERO || secondOrderBookPrice ?: minimum <= ZERO -> null
+                    firstOrderBookPrice ?: minimum > secondOrderBookPrice ?: maximum ->
                         TwoLegOrderBookArbitrageOpportunity(
-                                sellPrice = firstOrderBookAverageBuyPrices[index]!!,
+                                sellPrice = firstOrderBookPrice!!,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
                                 buyPrice = secondOrderBookAverageBuyPrices[index]!!,
-                                relativeProfit = firstOrderBookAverageBuyPrices[index]!!.divide(secondOrderBookAverageBuyPrices[index]!!, HALF_EVEN) - ONE,
+                                relativeProfit = firstOrderBookPrice.divide(secondOrderBookPrice!!, HALF_EVEN) - ONE,
                                 usdDepthUpTo = usdDepthTo
                         )
-                    secondOrderBookAverageBuyPrices[index] ?: minimum > firstOrderBookAverageBuyPrices[index] ?: maximum ->
+                    secondOrderBookPrice ?: minimum > firstOrderBookPrice ?: maximum ->
                         TwoLegOrderBookArbitrageOpportunity(
-                                sellPrice = secondOrderBookAverageBuyPrices[index]!!,
+                                sellPrice = secondOrderBookPrice!!,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
                                 buyPrice = firstOrderBookAverageBuyPrices[index]!!,
-                                relativeProfit = secondOrderBookAverageBuyPrices[index]!!.divide(firstOrderBookAverageBuyPrices[index]!!, HALF_EVEN) - ONE,
+                                relativeProfit = secondOrderBookPrice.divide(firstOrderBookPrice!!, HALF_EVEN) - ONE,
                                 usdDepthUpTo = usdDepthTo
                         )
 
@@ -75,6 +80,10 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 }
             }
 
+            if (opportunities.all { it == null }) {
+                logger.trace { "No profit found for $currencyPairWithExchangePair" }
+                return null
+            }
 
             val usd24hVolumeAtFirstExchange = priceService.getUsdValue(firstExchangeTicker.currencyPair.counter, firstExchangeTicker.counterCurrency24hVolume)
             val usd24hVolumeAtSecondExchange = priceService.getUsdValue(secondExchangeTicker.currencyPair.counter, secondExchangeTicker.counterCurrency24hVolume)
@@ -87,7 +96,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                     calculatedAtMillis = currentTimeMillis
             )
         } catch (e: Exception) {
-            logger.error(e) { "Could not calculate two leg arbitrage profit" }
+            logger.error(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
             null
         }
     }
