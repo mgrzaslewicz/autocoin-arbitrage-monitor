@@ -12,7 +12,7 @@ fun main() {
 //    setProperty("EXCHANGE_MEDIATOR_API_URL", "http://localhost:9001")
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
     setProperty("APP_OAUTH_CLIENT_SECRET", "changeme")
-    setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_IN_REPOSITORY_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
+    setProperty("APP_SAVE_METRICS_TO_FILE_EVERY_N_SECONDS", "60")
 //    setProperty("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS", "true")
     setProperty("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "binance,bittrex,kucoin")
 //    setProperty("APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST", "QTUM/BTC,GAS/BTC")

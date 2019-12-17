@@ -9,7 +9,8 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
-class FileStatsdClient(private val metricsFolder: String, private val currentTimeMillis: () -> Long = System::currentTimeMillis) : StatsDClient {
+class FileStatsdClient(private val metricsFolder: String, private val currentTimeMillis: () -> Long = System::currentTimeMillis
+) : StatsDClient {
     private companion object : KLogging()
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -62,25 +63,27 @@ class FileStatsdClient(private val metricsFolder: String, private val currentTim
                 var min = Long.MAX_VALUE
                 var max = Long.MIN_VALUE
                 val timeList = it.value
-                timeList.forEach { timeMs ->
-                    max = Math.max(timeMs, max)
-                    min = Math.min(timeMs, min)
-                    sum += timeMs
-                }
-                val avg = sum.toDouble() / it.value.size
-                val metricsFolderDirectory = File(metricsFolder)
-                metricsFolderDirectory.mkdirs()
-                val aspectFileNamePlusTags = it.key.split("!@#")
-                val tags = if(aspectFileNamePlusTags.size == 2) {
-                    aspectFileNamePlusTags[1]
-                } else ""
-                val aspectFile = metricsFolderDirectory.resolve(aspectFileNamePlusTags[0])
-                try {
-                    aspectFile.appendText("${currentTimeMillis()},$min,$max,$avg,$tags\n")
-                } catch (e: Exception) {
-                    logger.error(e) { "Could not save metrics ${it.key}" }
-                } finally { // whether save was successful or not, clear buffer. metrics are not crucial
-                    timeList.clear()
+                if (timeList.isNotEmpty()) {
+                    timeList.forEach { timeMs ->
+                        max = Math.max(timeMs, max)
+                        min = Math.min(timeMs, min)
+                        sum += timeMs
+                    }
+                    val avg = sum.toDouble() / it.value.size
+                    val metricsFolderDirectory = File(metricsFolder)
+                    metricsFolderDirectory.mkdirs()
+                    val aspectFileNamePlusTags = it.key.split("!@#")
+                    val tags = if (aspectFileNamePlusTags.size == 2) {
+                        aspectFileNamePlusTags[1]
+                    } else ""
+                    val aspectFile = metricsFolderDirectory.resolve(aspectFileNamePlusTags[0])
+                    try {
+                        aspectFile.appendText("${currentTimeMillis()},$min,$max,$avg,$tags\n")
+                    } catch (e: Exception) {
+                        logger.error(e) { "Could not save metrics ${it.key}" }
+                    } finally { // whether save was successful or not, clear buffer. metrics are not crucial
+                        timeList.clear()
+                    }
                 }
             }
         }

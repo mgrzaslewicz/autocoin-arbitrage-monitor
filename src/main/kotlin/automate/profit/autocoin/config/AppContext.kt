@@ -60,7 +60,7 @@ class AppContext(appConfig: AppConfig) {
             orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider
     )
     val orderBookFetchScheduler = OrderBookFetchScheduler(orderBookListenerRegistrars, twoLegOrderBookArbitrageProfitCache, scheduledExecutorService)
-    val metricsSaveScheduler = MetricsSaveScheduler(statsdClient, scheduledExecutorService)
+    val metricsSaveScheduler = MetricsSaveScheduler(statsdClient, scheduledExecutorService, appConfig.saveMetricsToFileEveryNSeconds)
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,

@@ -5,7 +5,6 @@ import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import com.timgroup.statsd.StatsDClient
 import mu.KLogging
-import mu.NamedKLogging
 import kotlin.system.measureTimeMillis
 
 /**
@@ -21,6 +20,8 @@ class TwoLegOrderBookArbitrageMonitor(
 
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
+    private val currencyPairMetricsTag = currencyPair.toString()
+    private val exchangeMetricsTag = "${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
     private var firstExchangeOrderBook: OrderBook? = null
     private var secondExchangeOrderBook: OrderBook? = null
 
@@ -45,7 +46,7 @@ class TwoLegOrderBookArbitrageMonitor(
                     profitCache.setProfit(profit)
                 }
             }
-            statsDClient.recordExecutionTime("calculateArbitrageProfits", millis)
+            statsDClient.recordExecutionTime("calculateArbitrageProfits", millis, currencyPairMetricsTag, exchangeMetricsTag)
         }
     }
 
