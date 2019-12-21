@@ -5,7 +5,6 @@ import com.timgroup.statsd.ServiceCheck
 import com.timgroup.statsd.StatsDClient
 import mu.KLogging
 import java.io.File
-import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -89,15 +88,19 @@ class FileStatsdClient(private val metricsFolder: String, private val currentTim
         }
     }
 
-    override fun recordExecutionTime(aspect: String, timeInMs: Long, vararg tags: String) {
+    private fun addToBuffer(aspect: String, value: Long, vararg tags: String) {
         executor.submit {
             val key = aspect + "!@#" + tags.joinToString(":")
             recordedTimeBuffer.computeIfAbsent(key) { ArrayList() }
             val list = recordedTimeBuffer[key]!!
             synchronized(list) {
-                recordedTimeBuffer[key]!!.add(timeInMs)
+                recordedTimeBuffer[key]!!.add(value)
             }
         }
+    }
+
+    override fun recordExecutionTime(aspect: String, timeInMs: Long, vararg tags: String) {
+        addToBuffer(aspect, timeInMs, *tags)
     }
 
     override fun recordExecutionTime(aspect: String, timeInMs: Long, sampleRate: Double, vararg tags: String) {
@@ -193,7 +196,7 @@ class FileStatsdClient(private val metricsFolder: String, private val currentTim
     }
 
     override fun gauge(aspect: String, value: Long, vararg tags: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        addToBuffer(aspect, value, *tags)
     }
 
     override fun gauge(aspect: String, value: Long, sampleRate: Double, vararg tags: String) {

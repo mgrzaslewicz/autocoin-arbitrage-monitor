@@ -27,6 +27,8 @@ class TwoLegOrderBookArbitrageMonitor(
 
     private fun onFirstExchangeOrderBook(orderBook: OrderBook) {
         firstExchangeOrderBook = orderBook
+        statsDClient.gauge("buy.orderbook.size", orderBook.buyOrders.size.toLong(), currencyPairMetricsTag, exchangeMetricsTag)
+        statsDClient.gauge("sell.orderbook.size", orderBook.sellOrders.size.toLong(), currencyPairMetricsTag, exchangeMetricsTag)
         onOrderBooks()
     }
 

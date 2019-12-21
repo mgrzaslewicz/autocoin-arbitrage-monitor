@@ -18,7 +18,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
         private val tickerFetcher: TickerFetcher,
         private val orderBookUsdAmountThresholds: List<BigDecimal>,
         private val currentTimeMillis: () -> Long = System::currentTimeMillis,
-        private val maxAgeOfTickerMs: Long = Duration.of(2, ChronoUnit.HOURS).toMillis()
+        private val maxAgeOfFirstOrderInOrderBookMs: Long = Duration.of(2, ChronoUnit.HOURS).toMillis()
 ) {
     companion object : KLogging()
 
@@ -49,30 +49,50 @@ class TwoLegOrderBookArbitrageProfitCalculator(
             val firstOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
                 orderBookPair.first.getWeightedAverageBuyPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
             }
+            val firstOrderBookAverageSellPrices = orderBookUsdAmountThresholds.map {
+                orderBookPair.first.getWeightedAverageSellPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
+            }
             val secondOrderBookAverageBuyPrices = orderBookUsdAmountThresholds.map {
                 orderBookPair.second.getWeightedAverageBuyPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
             }
+            val secondOrderBookAverageSellPrices = orderBookUsdAmountThresholds.map {
+                orderBookPair.second.getWeightedAverageSellPrice(otherCurrencyAmount = it, otherCurrencyPrice = usdPrice)
+            }
             val opportunities = orderBookUsdAmountThresholds.mapIndexed { index, usdDepthTo ->
-                val firstOrderBookPrice = firstOrderBookAverageBuyPrices[index]
-                val secondOrderBookPrice = secondOrderBookAverageBuyPrices[index]
+                val firstOrderBookBuyPrice = firstOrderBookAverageBuyPrices[index]
+                val firstOrderBookSellPrice = firstOrderBookAverageSellPrices[index]
+                val secondOrderBookBuyPrice = secondOrderBookAverageBuyPrices[index]
+                val secondOrderBookSellPrice = secondOrderBookAverageSellPrices[index]
                 when {
-                    firstOrderBookPrice ?: minimum <= ZERO || secondOrderBookPrice ?: minimum <= ZERO -> null
-                    firstOrderBookPrice ?: minimum > secondOrderBookPrice ?: maximum ->
+                    firstOrderBookBuyPrice?.averagePrice ?: minimum <= ZERO
+                            || firstOrderBookSellPrice?.averagePrice ?: minimum <= ZERO
+                            || secondOrderBookBuyPrice?.averagePrice ?: minimum <= ZERO
+                            || secondOrderBookSellPrice?.averagePrice ?: minimum <= ZERO
+                    -> null
+                    firstOrderBookBuyPrice?.averagePrice ?: minimum > secondOrderBookSellPrice?.averagePrice ?: maximum ->
                         TwoLegOrderBookArbitrageOpportunity(
-                                sellPrice = firstOrderBookPrice!!,
+                                sellPrice = firstOrderBookBuyPrice!!.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
+                                baseCurrencyAmountAtSellExchange = firstOrderBookBuyPrice.baseCurrencyAmount,
+
+                                buyPrice = secondOrderBookSellPrice!!.averagePrice,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                                buyPrice = secondOrderBookAverageBuyPrices[index]!!,
-                                relativeProfit = firstOrderBookPrice.divide(secondOrderBookPrice!!, HALF_EVEN) - ONE,
+                                baseCurrencyAmountAtBuyExchange = secondOrderBookSellPrice.baseCurrencyAmount,
+
+                                relativeProfit = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, HALF_EVEN) - ONE,
                                 usdDepthUpTo = usdDepthTo
                         )
-                    secondOrderBookPrice ?: minimum > firstOrderBookPrice ?: maximum ->
+                    secondOrderBookBuyPrice?.averagePrice ?: minimum > firstOrderBookSellPrice?.averagePrice ?: maximum ->
                         TwoLegOrderBookArbitrageOpportunity(
-                                sellPrice = secondOrderBookPrice!!,
+                                sellPrice = secondOrderBookBuyPrice!!.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
+                                baseCurrencyAmountAtSellExchange = secondOrderBookBuyPrice.baseCurrencyAmount,
+
+                                buyPrice = firstOrderBookSellPrice!!.averagePrice,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                                buyPrice = firstOrderBookAverageBuyPrices[index]!!,
-                                relativeProfit = secondOrderBookPrice.divide(firstOrderBookPrice!!, HALF_EVEN) - ONE,
+                                baseCurrencyAmountAtBuyExchange = firstOrderBookSellPrice.baseCurrencyAmount,
+
+                                relativeProfit = secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, HALF_EVEN) - ONE,
                                 usdDepthUpTo = usdDepthTo
                         )
 
@@ -107,14 +127,14 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 return true
             } else {
                 val whenNoTimestampOrderIsNotTooOld = first().timestamp?.toEpochMilli() ?: currentTimeMillis
-                currentTimeMillis - whenNoTimestampOrderIsNotTooOld > maxAgeOfTickerMs
+                currentTimeMillis - whenNoTimestampOrderIsNotTooOld > maxAgeOfFirstOrderInOrderBookMs
             }
         }
     }
 
     private fun oneOfTickersIsTooOld(ticker1: Ticker, ticker2: Ticker, currentTimeMillis: Long): Boolean {
-        return (currentTimeMillis - (ticker1.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfTickerMs ||
-                currentTimeMillis - (ticker2.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfTickerMs)
+        return (currentTimeMillis - (ticker1.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfFirstOrderInOrderBookMs ||
+                currentTimeMillis - (ticker2.timestamp?.toEpochMilli() ?: 0L) > maxAgeOfFirstOrderInOrderBookMs)
 
     }
 

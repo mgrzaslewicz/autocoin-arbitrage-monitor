@@ -12,11 +12,14 @@ import io.undertow.util.Methods.GET
 import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_DOWN
+import java.math.RoundingMode.HALF_EVEN
 
 data class TwoLegOrderBookArbitrageOpportunityDto(
         val sellPrice: String,
-        val buyPrice: String,
+        val sellAmount: String,
         val sellAtExchange: SupportedExchange,
+        val buyPrice: String,
+        val buyAmount: String,
         val buyAtExchange: SupportedExchange,
         val relativeProfitPercent: String,
         val usdDepthUpTo: String
@@ -45,15 +48,17 @@ class ArbitrageProfitController(
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
 
-    private val minRelativeProfit = 0.003.toBigDecimal()
+    private val minRelativeProfit = 0.002.toBigDecimal()
     private val minUsd24hVolume = 1000.toBigDecimal()
 
     private fun TwoLegOrderBookArbitrageOpportunity.toDto() = TwoLegOrderBookArbitrageOpportunityDto(
-            sellPrice = sellPrice.setScale(8, HALF_DOWN).toPlainString(),
-            buyPrice = buyPrice.setScale(8, HALF_DOWN).toPlainString(),
+            sellPrice = sellPrice.setScale(8, HALF_EVEN).toPlainString(),
+            sellAmount = baseCurrencyAmountAtSellExchange.setScale(8, HALF_EVEN).toPlainString(),
+            buyPrice = buyPrice.setScale(8, HALF_EVEN).toPlainString(),
+            buyAmount = baseCurrencyAmountAtBuyExchange.setScale(8, HALF_EVEN).toPlainString(),
             sellAtExchange = sellAtExchange,
             buyAtExchange = buyAtExchange,
-            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toPlainString(),
+            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
             usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString()
     )
 
