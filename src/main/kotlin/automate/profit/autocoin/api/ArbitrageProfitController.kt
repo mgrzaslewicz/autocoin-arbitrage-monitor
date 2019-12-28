@@ -4,6 +4,8 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
+import automate.profit.autocoin.metrics.Oauth2MetricsHandlerWrapper
+import automate.profit.autocoin.metrics.countEndpointUsage
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -45,7 +47,8 @@ class ArbitrageProfitController(
         private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
         private val orderBookUsdAmountThresholds: List<BigDecimal>,
         private val objectMapper: ObjectMapper,
-        private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
+        private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper,
+        private val oauth2MetricsHandlerWrapper: Oauth2MetricsHandlerWrapper
 ) : ApiController {
 
     private val minRelativeProfit = 0.002.toBigDecimal()
@@ -78,6 +81,7 @@ class ArbitrageProfitController(
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
+
         override val httpHandler = HttpHandler {
             val profits = twoLegOrderBookArbitrageProfitCache
                     .getCurrencyPairWithExchangePairs()
@@ -96,7 +100,9 @@ class ArbitrageProfitController(
                     profits = profits
             )
             it.responseSender.send(objectMapper.writeValueAsString(result))
-        }.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
+        }
+                .countEndpointUsage(oauth2MetricsHandlerWrapper)
+                .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
     override fun apiHandlers(): List<ApiHandler> = listOf(

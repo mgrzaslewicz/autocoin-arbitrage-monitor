@@ -10,10 +10,16 @@ import okhttp3.Request
 import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class UserAccountDto(
+        val userAccountId: String
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class CheckTokenDto(
         @JsonProperty("user_name")
         val userName: String,
-        val authorities: Set<String>
+        val authorities: Set<String>,
+        val userAccount: UserAccountDto
 )
 
 class AccessTokenChecker(
