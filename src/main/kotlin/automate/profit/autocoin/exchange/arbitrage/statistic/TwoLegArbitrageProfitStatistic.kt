@@ -8,12 +8,16 @@ data class ProfitOpportunityCount(
         val count: Int
 )
 
+data class ProfitStatisticHistogramByUsdDepth(
+        val usdDepthTo: BigDecimal,
+        val profitOpportunityHistogram: List<ProfitOpportunityCount>,
+        val average: BigDecimal,
+        val min: BigDecimal,
+        val max: BigDecimal
+)
 
 data class TwoLegArbitrageProfitStatistic(
         val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        val average: BigDecimal,
-        val min: BigDecimal,
-        val max: BigDecimal,
         val minUsd24hVolume: BigDecimal,
-        val profitOpportunityHistogram: List<ProfitOpportunityCount>
+        val profitStatisticHistogramByUsdDepth: List<ProfitStatisticHistogramByUsdDepth>
 )

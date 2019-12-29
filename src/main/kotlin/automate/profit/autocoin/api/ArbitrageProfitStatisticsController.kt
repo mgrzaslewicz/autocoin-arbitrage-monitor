@@ -2,6 +2,7 @@ package automate.profit.autocoin.api
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.statistic.ProfitOpportunityCount
+import automate.profit.autocoin.exchange.arbitrage.statistic.ProfitStatisticHistogramByUsdDepth
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatistic
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
 import automate.profit.autocoin.metrics.Oauth2MetricsHandlerWrapper
@@ -19,16 +20,21 @@ data class ProfitOpportunityCountDto(
         val count: Int
 )
 
+data class ProfitStatisticHistogramByUsdDepthDto(
+        val usdDepthTo: String,
+        val profitOpportunityHistogram: List<ProfitOpportunityCountDto>,
+        val minProfitPercent: String,
+        val maxProfitPercent: String,
+        val averageProfitPercent: String
+)
+
 data class TwoLegArbitrageProfitStatisticDto(
         val baseCurrency: String,
         val counterCurrency: String,
         val firstExchange: SupportedExchange,
         val secondExchange: SupportedExchange,
-        val minProfitPercent: String,
-        val maxProfitPercent: String,
-        val averageProfitPercent: String,
         val minUsd24hVolume: String,
-        val profitOpportunityHistogram: List<ProfitOpportunityCountDto>
+        val profitStatisticHistogramByUsdDepth: List<ProfitStatisticHistogramByUsdDepthDto>
 )
 
 class ArbitrageProfitStatisticsController(
@@ -62,16 +68,21 @@ class ArbitrageProfitStatisticsController(
             count = count
     )
 
+    private fun ProfitStatisticHistogramByUsdDepth.toDto() = ProfitStatisticHistogramByUsdDepthDto(
+            usdDepthTo = usdDepthTo.with2DecimalPlaces(),
+            profitOpportunityHistogram = profitOpportunityHistogram.map { it.toDto() },
+            averageProfitPercent = average.toPercentWith2DecimalPlaces(),
+            minProfitPercent = min.toPercentWith2DecimalPlaces(),
+            maxProfitPercent = max.toPercentWith2DecimalPlaces()
+    )
+
     private fun TwoLegArbitrageProfitStatistic.toDto() = TwoLegArbitrageProfitStatisticDto(
             baseCurrency = currencyPairWithExchangePair.currencyPair.base,
             counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
             firstExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             secondExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-            minProfitPercent = min.toPercentWith2DecimalPlaces(),
-            maxProfitPercent = max.toPercentWith2DecimalPlaces(),
             minUsd24hVolume = minUsd24hVolume.with2DecimalPlaces(),
-            averageProfitPercent = average.toPercentWith2DecimalPlaces(),
-            profitOpportunityHistogram = profitOpportunityHistogram.map { it.toDto() }
+            profitStatisticHistogramByUsdDepth = profitStatisticHistogramByUsdDepth.map { it.toDto() }
     )
 
     private fun getTwoLegArbitrageProfitStatistics() = object : ApiHandler {
@@ -79,7 +90,10 @@ class ArbitrageProfitStatisticsController(
         override val urlTemplate = "/two-leg-arbitrage-profit-statistics"
         override val httpHandler = HttpHandler { serverExchange ->
             val profits = twoLegArbitrageProfitStatisticsCache.twoLegArbitrageProfitStatistics.get()
-                    .filter { it.max > minRelativeProfit && it.minUsd24hVolume > minUsd24hVolume }
+                    .filter {
+                        it.profitStatisticHistogramByUsdDepth
+                                .any { stat -> stat.max > minRelativeProfit } && it.minUsd24hVolume > minUsd24hVolume
+                    }
                     .map { it.toDto() }
             serverExchange.responseSender.send(objectMapper.writeValueAsString(profits))
         }

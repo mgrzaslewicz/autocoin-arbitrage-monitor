@@ -71,7 +71,7 @@ class AppContext(appConfig: AppConfig) {
             twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
-    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(twoLegOrderBookArbitrageProfitCalculator)
+    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(arbitrageProfitRepository, appConfig.orderBookUsdAmountThresholds)
     val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
     val arbitrageProfitStatisticsCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(twoLegArbitrageProfitStatisticCalculator, twoLegArbitrageProfitStatisticsCache, scheduledExecutorService)
 
