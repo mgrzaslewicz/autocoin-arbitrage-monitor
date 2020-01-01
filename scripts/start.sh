@@ -59,10 +59,9 @@ docker run --name ${SERVICE_NAME} -d \
     -e DOCKER_TAG=${VERSION} \
     -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
     -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
-    -e JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1" \
     -v ${LOG_PATH}:/app/log \
     -v ${APP_DATA_PATH}:/app/data \
-    --memory=200m \
+    --memory=400m \
     --restart=no \
     --network autocoin-services-admin \
     localhost:5000/autocoin-arbitrage-monitor:${VERSION}
