@@ -15,7 +15,7 @@ class OrderBookListenersProvider(
         private val statsDClient: StatsDClient,
         private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository
 ) {
-    fun createOrderBookListenersFrom(commonCurrencyPairsAtExchanges: Map<CurrencyPair, List<ExchangePair>>): List<OrderBookListener> {
+    fun createOrderBookListenersFrom(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<OrderBookListener> {
         return commonCurrencyPairsAtExchanges.flatMap {
             it.value.map { exchangePair ->
                 TwoLegOrderBookArbitrageMonitor(

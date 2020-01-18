@@ -9,6 +9,7 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
+import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrarProvider
@@ -30,39 +31,82 @@ import mu.KLogging
 import okhttp3.OkHttpClient
 import java.util.concurrent.Executors
 
-class AppContext(appConfig: AppConfig) {
+class AppContext(private val appConfig: AppConfig) {
     companion object : KLogging()
 
     val httpClientWithoutAuthorization = OkHttpClient()
     val objectMapper = ObjectMapperProvider().createObjectMapper()
-    val accessTokenProvider = ClientCredentialsAccessTokenProvider(httpClientWithoutAuthorization, objectMapper, appConfig)
+    val accessTokenProvider = ClientCredentialsAccessTokenProvider(
+            httpClient = httpClientWithoutAuthorization,
+            objectMapper = objectMapper,
+            appConfig = appConfig
+    )
     val accessTokenAuthenticator = AccessTokenAuthenticator(accessTokenProvider)
     val accessTokenInterceptor = AccessTokenInterceptor(accessTokenProvider)
     val oauth2HttpClient = OkHttpClient.Builder()
             .authenticator(accessTokenAuthenticator)
             .addInterceptor(accessTokenInterceptor)
             .build()
-    val tickerFetcher = TickerFetcher(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper)
+    val tickerFetcher = TickerFetcher(
+            tickerApiUrl = appConfig.exchangeMediatorApiUrl,
+            httpClient = oauth2HttpClient,
+            objectMapper = objectMapper
+    )
 
-    private val statsdClient = FileStatsdClient(appConfig.metricsFolder)
+    private val statsdClient = FileStatsdClient(metricsFolder = appConfig.metricsFolder)
 
-    val priceService = PriceService(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper, statsdClient)
+    val priceService = PriceService(
+            priceApiUrl = appConfig.exchangeMediatorApiUrl,
+            httpClient = oauth2HttpClient,
+            objectMapper = objectMapper,
+            statsDClient = statsdClient
+    )
 
-    val twoLegOrderBookArbitrageProfitCalculator: TwoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(priceService, tickerFetcher, appConfig.orderBookUsdAmountThresholds)
+    val twoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+            priceService = priceService,
+            tickerFetcher = tickerFetcher,
+            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
+    )
 
     val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
-    private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.exchangeMediatorApiUrl, objectMapper)
+    private val exchangeMetadataService = RestExchangeMetadataService(
+            httpClient = oauth2HttpClient,
+            exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
+            objectMapper = objectMapper
+    )
 
-    val arbitrageProfitRepository = FileOrderBookArbitrageProfitRepository(appConfig.profitsRepositoryPath, appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs, objectMapper)
-    val orderBookListenersProvider = OrderBookListenersProvider(twoLegOrderBookArbitrageProfitCache, twoLegOrderBookArbitrageProfitCalculator, statsdClient, arbitrageProfitRepository)
-    val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper, statsdClient)
+    val arbitrageProfitRepository = FileOrderBookArbitrageProfitRepository(
+            tickerRepositoryPath = appConfig.profitsRepositoryPath,
+            ageOfOldestProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs,
+            objectMapper = objectMapper
+    )
+    val orderBookListenersProvider = OrderBookListenersProvider(
+            profitCache = twoLegOrderBookArbitrageProfitCache,
+            profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
+            statsDClient = statsdClient,
+            arbitrageProfitRepository = arbitrageProfitRepository
+    )
+    val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(
+            orderBookApiUrl = appConfig.exchangeMediatorApiUrl,
+            httpClient = oauth2HttpClient,
+            objectMapper = objectMapper,
+            statsDClient = statsdClient
+    )
     val orderBookListenerRegistrars = DefaultOrderBookListenerRegistrars(
             initialTickerListenerRegistrarList = emptyList(),
             orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider
     )
-    val orderBookFetchScheduler = OrderBookFetchScheduler(orderBookListenerRegistrars, twoLegOrderBookArbitrageProfitCache, scheduledExecutorService)
-    val metricsSaveScheduler = MetricsSaveScheduler(statsdClient, scheduledExecutorService, appConfig.saveMetricsToFileEveryNSeconds)
+    val orderBookFetchScheduler = OrderBookFetchScheduler(
+            orderBookListenerRegistrars = orderBookListenerRegistrars,
+            twoLegArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+            executorService = scheduledExecutorService
+    )
+    val metricsSaveScheduler = MetricsSaveScheduler(
+            fileStatsdClient = statsdClient,
+            executorService = scheduledExecutorService,
+            saveMetricsEveryNSeconds = appConfig.saveMetricsToFileEveryNSeconds
+    )
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
@@ -71,9 +115,16 @@ class AppContext(appConfig: AppConfig) {
             twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
-    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(arbitrageProfitRepository, appConfig.orderBookUsdAmountThresholds)
+    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
+            profitRepository = arbitrageProfitRepository,
+            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
+    )
     val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
-    val arbitrageProfitStatisticsCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(twoLegArbitrageProfitStatisticCalculator, twoLegArbitrageProfitStatisticsCache, scheduledExecutorService)
+    val arbitrageProfitStatisticsCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(
+            twoLegArbitrageProfitStatisticsCalculator = twoLegArbitrageProfitStatisticCalculator,
+            twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
+            executorService = scheduledExecutorService
+    )
 
 
     val accessTokenChecker = AccessTokenChecker(httpClientWithoutAuthorization, objectMapper, appConfig)
@@ -81,8 +132,19 @@ class AppContext(appConfig: AppConfig) {
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
     val oauth2MetricsHandlerWrapper = Oauth2MetricsHandlerWrapper(statsdClient)
-    val arbitrageProfitController = ArbitrageProfitController(twoLegOrderBookArbitrageProfitCache, appConfig.orderBookUsdAmountThresholds, objectMapper, oauth2BearerTokenAuthHandlerWrapper, oauth2MetricsHandlerWrapper)
-    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(twoLegArbitrageProfitStatisticsCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper, oauth2MetricsHandlerWrapper)
+    val arbitrageProfitController = ArbitrageProfitController(
+            twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
+            objectMapper = objectMapper,
+            oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
+            oauth2MetricsHandlerWrapper = oauth2MetricsHandlerWrapper
+    )
+    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(
+            twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
+            objectMapper = objectMapper,
+            oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
+            oauth2MetricsHandlerWrapper = oauth2MetricsHandlerWrapper
+    )
 
     val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
 
@@ -90,9 +152,10 @@ class AppContext(appConfig: AppConfig) {
 
     fun start() {
         logger.info { "Fetching currency pairs from exchanges" }
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
+        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
+        logSharedCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
 
-        val orderBookListeners = orderBookListenersProvider.createOrderBookListenersFrom(commonCurrencyPairs)
+        val orderBookListeners = orderBookListenersProvider.createOrderBookListenersFrom(commonCurrencyPairs.currencyPairsToExchangePairs)
         logger.info { "Registering ${orderBookListeners.size} order book listeners" }
         orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
 
@@ -104,6 +167,19 @@ class AppContext(appConfig: AppConfig) {
         arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
         logger.info { "Starting server" }
         server.start()
+    }
+
+    private fun logSharedCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
+        appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.forEachIndexed { index, supportedExchange ->
+            for (i in index + 1 until appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.size) {
+                val exchangePair = ExchangePair(
+                        firstExchange = supportedExchange,
+                        secondExchange = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
+                )
+                val currencyPairs = exchangePairToCurrencyPairs[exchangePair]
+                logger.info { "Number of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }
+            }
+        }
     }
 
 }
