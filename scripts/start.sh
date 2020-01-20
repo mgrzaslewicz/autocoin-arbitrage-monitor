@@ -64,7 +64,7 @@ docker run --name ${SERVICE_NAME} -d \
     -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
     -v ${LOG_PATH}:/app/log \
     -v ${APP_DATA_PATH}:/app/data \
-    --memory=1000m \
+    --memory=1200m \
     --restart=no \
     --network autocoin-services-admin \
     localhost:5000/autocoin-arbitrage-monitor:${VERSION}
