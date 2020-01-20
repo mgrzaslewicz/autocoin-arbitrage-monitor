@@ -28,8 +28,8 @@ class TwoLegOrderBookArbitrageProfitCache(
         }
     }
 
-    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit {
-        return profits.getValue(currencyPairWithExchangePair)
+    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit? {
+        return profits[currencyPairWithExchangePair]
     }
 
     fun getCurrencyPairWithExchangePairs() = profits.keys.toList()
