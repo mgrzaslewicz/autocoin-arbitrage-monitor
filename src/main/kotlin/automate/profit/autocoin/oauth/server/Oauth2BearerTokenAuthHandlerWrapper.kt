@@ -1,5 +1,6 @@
 package automate.profit.autocoin.oauth.server
 
+import automate.profit.autocoin.api.HttpHandlerWrapper
 import io.undertow.security.api.AuthenticationMode
 import io.undertow.security.handlers.AuthenticationCallHandler
 import io.undertow.security.handlers.AuthenticationConstraintHandler
@@ -10,14 +11,14 @@ import io.undertow.security.idm.Credential
 import io.undertow.security.idm.IdentityManager
 import io.undertow.server.HttpHandler
 
-fun HttpHandler.authorizeWithOauth2(wrapper: Oauth2BearerTokenAuthHandlerWrapper): HttpHandler {
-    return wrapper.wrap(this)
+fun HttpHandler.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper): HttpHandler {
+    return oauth2BearerTokenAuthHandlerWrapper.wrap(this)
 }
 
 
-class Oauth2BearerTokenAuthHandlerWrapper(private val oauth2AuthenticationMechanism: Oauth2AuthenticationMechanism) {
+class Oauth2BearerTokenAuthHandlerWrapper(private val oauth2AuthenticationMechanism: Oauth2AuthenticationMechanism): HttpHandlerWrapper {
 
-    fun wrap(handler: HttpHandler): HttpHandler {
+    override fun wrap(handler: HttpHandler): HttpHandler {
         return SecurityInitialHandler(
                 AuthenticationMode.PRO_ACTIVE,
                 object : IdentityManager {

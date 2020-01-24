@@ -135,6 +135,7 @@ class AppContext(private val appConfig: AppConfig) {
     val arbitrageProfitController = ArbitrageProfitController(
             twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
             orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
+            commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
             objectMapper = objectMapper,
             oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
             oauth2MetricsHandlerWrapper = oauth2MetricsHandlerWrapper

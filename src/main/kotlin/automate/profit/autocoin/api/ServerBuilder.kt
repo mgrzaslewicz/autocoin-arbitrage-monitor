@@ -6,7 +6,7 @@ import io.undertow.server.RoutingHandler
 import io.undertow.util.HttpString.tryFromString
 
 class ServerBuilder(
-        private val appServerPort: Int,
+        val appServerPort: Int,
         private val apiControllers: List<ApiController>
 ) {
     fun build(): Undertow {
