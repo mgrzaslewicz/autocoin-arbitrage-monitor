@@ -1,4 +1,6 @@
 #!/bin/bash
+# turn on debug mode
+set -x
 
 cd ..
 

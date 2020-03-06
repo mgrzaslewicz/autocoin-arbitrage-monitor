@@ -1,4 +1,6 @@
 #!/bin/bash
+# turn on debug mode
+set -x
 
 cd ..
 # git.commit.id.describe set to 'local' to have consistent version of docker image in local builds
