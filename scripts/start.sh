@@ -12,7 +12,6 @@ preconditions() {
     "APP_DATA_PATH"
     "APP_OAUTH_CLIENT_ID"
     "APP_OAUTH_CLIENT_SECRET"
-    "APP_PORT_ON_HOST"
     "DOCKER_PORT"
     "HOST_PORT"
     "LOG_PATH"
