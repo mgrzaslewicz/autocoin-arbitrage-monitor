@@ -13,6 +13,8 @@ preconditions() {
     "APP_OAUTH_CLIENT_ID"
     "APP_OAUTH_CLIENT_SECRET"
     "APP_PORT_ON_HOST"
+    "DOCKER_PORT"
+    "HOST_PORT"
     "LOG_PATH"
     "SERVICE_NAME"
   )
@@ -24,7 +26,6 @@ preconditions() {
     fi
   done
 
-
 }
 
 preconditions
@@ -33,12 +34,12 @@ VERSION_TAG="${SERVICE_NAME}-${VERSION}"
 
 # Run new container
 echo "Starting new version of container. Using version: ${VERSION}"
-echo "Using port: ${APP_PORT_ON_HOST}"
+echo "Exposing docker port ${DOCKER_PORT} to host port ${HOST_PORT}"
 
 # Use JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" to prevent from running when any of threads runs of out memory and dies
 
 docker run --name ${SERVICE_NAME} -d \
--p ${APP_PORT_ON_HOST}:10021 \
+-p ${HOST_PORT}:${DOCKER_PORT} \
 -e BASIC_PASS=${BASIC_PASS} \
 -e DOCKER_TAG=${VERSION_TAG} \
 -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
