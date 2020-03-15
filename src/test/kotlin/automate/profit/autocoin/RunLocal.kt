@@ -9,6 +9,7 @@ import java.time.temporal.ChronoUnit
  * Add limits when running process
 -Xmx200M
 -XX:+ExitOnOutOfMemoryError
+-XX:+HeapDumpOnOutOfMemoryError
  */
 fun main() {
 //     setProperty("OAUTH2_SERVER_URL", "http://localhost:9002")
