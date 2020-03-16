@@ -8,12 +8,14 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import com.timgroup.statsd.StatsDClient
+import java.util.concurrent.ExecutorService
 
 class OrderBookListenersProvider(
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
         private val statsDClient: StatsDClient,
-        private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository
+        private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository,
+        private val executorService: ExecutorService
 ) {
     fun createOrderBookListenersFrom(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<OrderBookListener> {
         return commonCurrencyPairsAtExchanges.flatMap {
@@ -23,7 +25,8 @@ class OrderBookListenersProvider(
                         profitCache = profitCache,
                         profitCalculator = profitCalculator,
                         statsDClient = statsDClient,
-                        arbitrageProfitRepository = arbitrageProfitRepository
+                        arbitrageProfitRepository = arbitrageProfitRepository,
+                        executorService = executorService
                 )
             }
         }.flatMap {

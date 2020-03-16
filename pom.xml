@@ -28,7 +28,7 @@
         <dependency>
             <groupId>automate.profit</groupId>
             <artifactId>autocoin-exchange-api-rest</artifactId>
-            <version>1.0.54</version>
+            <version>1.0.55</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
