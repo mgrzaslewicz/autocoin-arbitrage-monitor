@@ -56,7 +56,7 @@ class AppContext(private val appConfig: AppConfig) {
     )
 
     val statsdClient = if (appConfig.useMetrics) {
-        NonBlockingStatsDClient(appConfig.serviceName, "telegraf", 8125)
+        NonBlockingStatsDClient(appConfig.serviceName, appConfig.telegrafHostname, 8125)
     } else {
         NoOpStatsDClient()
     }
