@@ -1,9 +1,9 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.metrics.MetricsService
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import com.timgroup.statsd.StatsDClient
 import mu.KLogging
 import java.util.concurrent.ExecutorService
 import kotlin.system.measureTimeMillis
@@ -15,7 +15,7 @@ class TwoLegOrderBookArbitrageMonitor(
         private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
-        private val statsDClient: StatsDClient,
+        private val metricsService: MetricsService,
         private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository,
         private val executorService: ExecutorService
 ) {
@@ -23,15 +23,13 @@ class TwoLegOrderBookArbitrageMonitor(
 
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
-    private val currencyPairMetricsTag = currencyPair.toString()
-    private val exchangeMetricsTag = "${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
+    private val commonTags = "$currencyPair=$currencyPair,exchanges=${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
     private var firstExchangeOrderBook: OrderBook? = null
     private var secondExchangeOrderBook: OrderBook? = null
 
     private fun onFirstExchangeOrderBook(orderBook: OrderBook) {
         firstExchangeOrderBook = orderBook
-        statsDClient.gauge("buy.orderbook.size", orderBook.buyOrders.size.toLong(), currencyPairMetricsTag, exchangeMetricsTag)
-        statsDClient.gauge("sell.orderbook.size", orderBook.sellOrders.size.toLong(), currencyPairMetricsTag, exchangeMetricsTag)
+        metricsService.recordArbitrageOrderbooksSize(orderBook.buyOrders.size.toLong(), orderBook.sellOrders.size.toLong(), commonTags)
         onOrderBooks()
     }
 
@@ -54,7 +52,7 @@ class TwoLegOrderBookArbitrageMonitor(
                         executorService.submit { arbitrageProfitRepository.addAll(currencyPairWithExchangePair, listOf(profit)) }
                     }
                 }
-                statsDClient.recordExecutionTime("calculateArbitrageProfits", millis, currencyPairMetricsTag, exchangeMetricsTag)
+                metricsService.recordArbitrageProfitCalculationTime(millis, commonTags)
 
             } else {
                 logger.debug { "Null secondOrderBook for $currencyPairWithExchangePair" }

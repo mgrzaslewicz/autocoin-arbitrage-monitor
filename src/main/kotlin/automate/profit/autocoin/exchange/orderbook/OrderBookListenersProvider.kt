@@ -7,13 +7,13 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import com.timgroup.statsd.StatsDClient
+import automate.profit.autocoin.metrics.MetricsService
 import java.util.concurrent.ExecutorService
 
 class OrderBookListenersProvider(
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
-        private val statsDClient: StatsDClient,
+        private val metricsService: MetricsService,
         private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository,
         private val executorService: ExecutorService
 ) {
@@ -24,7 +24,7 @@ class OrderBookListenersProvider(
                         currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
                         profitCache = profitCache,
                         profitCalculator = profitCalculator,
-                        statsDClient = statsDClient,
+                        metricsService = metricsService,
                         arbitrageProfitRepository = arbitrageProfitRepository,
                         executorService = executorService
                 )

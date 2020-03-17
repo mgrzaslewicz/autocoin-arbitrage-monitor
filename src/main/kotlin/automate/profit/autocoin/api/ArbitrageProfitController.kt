@@ -5,7 +5,6 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
-import automate.profit.autocoin.metrics.countEndpointUsage
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.server.HttpHandler
@@ -52,8 +51,7 @@ class ArbitrageProfitController(
         private val orderBookUsdAmountThresholds: List<BigDecimal>,
         private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
         private val objectMapper: ObjectMapper,
-        private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper,
-        private val oauth2MetricsHandlerWrapper: HttpHandlerWrapper
+        private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper
 ) : ApiController {
 
     private val minRelativeProfit = 0.002.toBigDecimal()
@@ -108,7 +106,6 @@ class ArbitrageProfitController(
             )
             it.responseSender.send(objectMapper.writeValueAsString(result))
         }
-                .countEndpointUsage(oauth2MetricsHandlerWrapper)
                 .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
@@ -128,7 +125,6 @@ class ArbitrageProfitController(
             )
             httpServerExchange.responseSender.send(objectMapper.writeValueAsString(response))
         }
-                .countEndpointUsage(oauth2MetricsHandlerWrapper)
                 .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
