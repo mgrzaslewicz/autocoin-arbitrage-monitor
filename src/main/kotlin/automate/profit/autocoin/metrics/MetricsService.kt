@@ -14,4 +14,8 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         statsDClient.recordExecutionTime("profit,$commonTags", millis)
     }
 
+    fun recordFetchPriceTime(millis: Long, tags: String) {
+        statsDClient.recordExecutionTime("fetchPrice,$tags", millis)
+    }
+
 }

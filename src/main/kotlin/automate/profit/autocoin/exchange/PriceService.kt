@@ -1,5 +1,6 @@
 package automate.profit.autocoin.exchange
 
+import automate.profit.autocoin.metrics.MetricsService
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -21,6 +22,7 @@ class PriceService(private val priceApiUrl: String,
                    private val httpClient: OkHttpClient,
                    private val objectMapper: ObjectMapper,
                    private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
+                   private val metricsService: MetricsService,
                    private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
 
     private data class ValueWithTimestamp(
@@ -42,23 +44,19 @@ class PriceService(private val priceApiUrl: String,
 
     private fun fetchPrice(currencyCode: String) {
         synchronized(priceCache) {
-            val millis = measureTimeMillis {
-                if (priceCache.containsKey(currencyCode)) {
-                    val valueWithTimestamp = priceCache[currencyCode]!!
-                    if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
-                        priceCache.remove(currencyCode)
-                    }
-                }
-
-                priceCache.computeIfAbsent(currencyCode) {
-                    ValueWithTimestamp(
-                            calculatedAtMillis = currentTimeMillis(),
-                            value = fetchUsdPrice(currencyCode)
-                    )
+            if (priceCache.containsKey(currencyCode)) {
+                val valueWithTimestamp = priceCache[currencyCode]!!
+                if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
+                    priceCache.remove(currencyCode)
                 }
             }
-            // TODO do we really need this? State a case or remove
-            //statsDClient.recordExecutionTime("fetchPrice", millis, currencyCode)
+
+            priceCache.computeIfAbsent(currencyCode) {
+                ValueWithTimestamp(
+                        calculatedAtMillis = currentTimeMillis(),
+                        value = fetchUsdPrice(currencyCode)
+                )
+            }
         }
     }
 
@@ -78,12 +76,14 @@ class PriceService(private val priceApiUrl: String,
 
     private fun fetchUsdPrice(currencyCode: String): BigDecimal {
         logger.info { "Fetching price for $currencyCode" }
+        val millisBefore = currentTimeMillis()
         val request = Request.Builder()
                 .url("$priceApiUrl/prices/USD?currencyCodes=${currencyCode}")
                 .get()
                 .build()
         val priceResponse = httpClient.newCall(request).execute()
         priceResponse.use {
+            metricsService.recordFetchPriceTime(currentTimeMillis() - millisBefore, "currencyCode=$currencyCode,statusCode=${priceResponse.code}")
             check(priceResponse.code == 200) { "Could not get price for $currencyCode/USD, code=${priceResponse.code}" }
             val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<CurrencyPriceDto>::class.java)
             check(priceDto.size == 1) { "No required price in response for $currencyCode" }
