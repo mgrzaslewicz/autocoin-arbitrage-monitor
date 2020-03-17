@@ -43,9 +43,13 @@ docker run --name ${SERVICE_NAME} -d \
 -e DOCKER_TAG=${VERSION_TAG} \
 -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
 -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
+-e SERVICE_NAME=${SERVICE_NAME} \
 -v ${LOG_PATH}:/app/log \
 -v ${APP_DATA_PATH}:/app/data \
 --memory=1400m \
 --restart=no \
---network autocoin-services-admin \
 localhost:5000/${SERVICE_NAME}:${VERSION_TAG}
+
+docker network connect autocoin-tig-monitoring ${SERVICE_NAME}
+docker network connect autocoin-services-admin ${SERVICE_NAME}
+echo "Connected to networks:$(docker inspect ${SERVICE_NAME} --format='{{range $k,$v := .NetworkSettings.Networks}} {{$k}} {{end}}')"
