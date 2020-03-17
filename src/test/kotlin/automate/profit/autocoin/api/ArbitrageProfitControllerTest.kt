@@ -10,6 +10,7 @@ import automate.profit.autocoin.metrics.MetricsService
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import io.undertow.server.HttpHandler
+import me.alexpanov.net.FreePortFinder
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
@@ -19,7 +20,7 @@ import java.net.ServerSocket
 
 class ArbitrageProfitControllerTest {
 
-    private fun getFreePort() = ServerSocket(0).localPort
+    private fun getFreePort() = FreePortFinder.findFreeLocalPort()
     private val httpClientWithoutAuthorization = OkHttpClient()
     private val objectMapper = ObjectMapperProvider().createObjectMapper()
 
