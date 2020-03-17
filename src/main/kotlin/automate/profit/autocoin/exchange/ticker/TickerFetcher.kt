@@ -30,17 +30,14 @@ class TickerFetcher(
 
     fun fetchTicker(supportedExchange: SupportedExchange, currencyPair: CurrencyPair): Ticker {
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
-        logger.debug { "Requesting $supportedExchange-$currencyPair" }
         val request = Request.Builder()
                 .url("$tickerApiUrl/ticker/${supportedExchange.exchangeName}/${currencyPair.base}/${currencyPair.counter}")
                 .get()
                 .build()
-        val tickerResponse = httpClient.newCall(request).execute()
-        tickerResponse.use {
-            check(tickerResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair, code = ${tickerResponse.code}" }
+        httpClient.newCall(request).execute().use { tickerResponse ->
+            check(tickerResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair (code=${tickerResponse.code})" }
 
             val tickerDto = objectMapper.readValue(tickerResponse.body?.string(), TickerDto::class.java)
-            tickerResponse.body?.close()
             val ticker = tickerDto.toTicker()
             return if (ticker.hasTimestamp()) {
                 ticker
