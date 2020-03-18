@@ -6,16 +6,19 @@ import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.math.BigDecimal
 import java.util.*
 
 class FileOrderBookArbitrageProfitRepositoryTest {
-    private val tempFolder = TemporaryFolder()
+
+    companion object {
+        @JvmStatic
+        var tempFolder: File? = null
+    }
+
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(BITTREX, BINANCE)
     private val objectMapper = ObjectMapperProvider().createObjectMapper()
@@ -58,14 +61,8 @@ class FileOrderBookArbitrageProfitRepositoryTest {
 
     @BeforeEach
     fun setup() {
-        tempFolder.create()
-        profitsFolder = tempFolder.newFolder()
+        profitsFolder = createTempDir(directory = tempFolder)
         arbitrageProfitRepository = FileOrderBookArbitrageProfitRepository(profitsFolder.absolutePath, 100L, objectMapper) { 1L }
-    }
-
-    @AfterEach
-    fun cleanup() {
-        tempFolder.delete()
     }
 
     @Test
