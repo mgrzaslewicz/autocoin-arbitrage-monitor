@@ -23,4 +23,4 @@ preconditions() {
 
 preconditions
 
-docker ps | grep ${SERVICE_NAME}r
+docker ps | grep ${SERVICE_NAME}
