@@ -1,11 +1,10 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.metrics.MetricsService
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
-import java.util.concurrent.ExecutorService
 import kotlin.system.measureTimeMillis
 
 /**
@@ -15,9 +14,7 @@ class TwoLegOrderBookArbitrageMonitor(
         private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
-        private val metricsService: MetricsService,
-        private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository,
-        private val executorService: ExecutorService
+        private val metricsService: MetricsService
 ) {
     private companion object : KLogging()
 
@@ -49,7 +46,6 @@ class TwoLegOrderBookArbitrageMonitor(
                         profitCache.removeProfit(currencyPairWithExchangePair)
                     } else {
                         profitCache.setProfit(profit)
-                        executorService.submit { arbitrageProfitRepository.addAll(currencyPairWithExchangePair, listOf(profit)) }
                     }
                 }
                 metricsService.recordArbitrageProfitCalculationTime(millis, commonTags)
