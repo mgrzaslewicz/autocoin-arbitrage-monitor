@@ -182,10 +182,10 @@ class AppContext(private val appConfig: AppConfig) {
         orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
 
         logger.info { "Scheduling jobs" }
-//        orderBookFetchScheduler.scheduleFetchingOrderBooks()
+        orderBookFetchScheduler.scheduleFetchingOrderBooks()
 
         logger.info { "Scheduling calculating arbitrage profit statistics" }
-//        arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
+        arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
 
         logger.info { "Scheduling periodic metrics collection: health, memory and descriptors" }
         metricsScheduler.reportHealth()
