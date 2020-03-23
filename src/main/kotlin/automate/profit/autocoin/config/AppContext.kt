@@ -33,7 +33,6 @@ import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
-import okhttp3.sse.EventSource
 import okhttp3.sse.EventSources
 import java.net.SocketAddress
 import java.time.Duration
@@ -132,7 +131,6 @@ class AppContext(private val appConfig: AppConfig) {
     val orderBookSseStreamService = OrderBookSseStreamService(
             orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = sseHttpClient,
-            eventSourceFactory = sseEventSourceFactory,
             objectMapper = objectMapper
     )
 
