@@ -180,14 +180,14 @@ class AppContext(private val appConfig: AppConfig) {
 
         val orderBookListeners = orderBookListenersProvider.createOrderBookListenersFrom(commonCurrencyPairs.currencyPairsToExchangePairs)
         orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
-//        logger.info { "Registering ${orderBookListeners.size} order book listeners" }
-//        orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
-//
-//        logger.info { "Scheduling jobs" }
-//        orderBookFetchScheduler.scheduleFetchingOrderBooks()
-//
-//        logger.info { "Scheduling calculating arbitrage profit statistics" }
-//        arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
+        logger.info { "Registering ${orderBookListeners.size} order book listeners" }
+        orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
+
+        logger.info { "Scheduling jobs" }
+        orderBookFetchScheduler.scheduleFetchingOrderBooks()
+
+        logger.info { "Scheduling calculating arbitrage profit statistics" }
+        arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
 
         logger.info { "Scheduling periodic metrics collection: health, memory and descriptors" }
         metricsScheduler.reportHealth()
