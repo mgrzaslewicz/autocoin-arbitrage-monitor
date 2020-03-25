@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange.orderbook
+package automate.profit.autocoin.exchange.orderbookstream
 
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -9,20 +9,35 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Semaphore
 
+/** TODO move it back to orderbook package after synchronous model removed and change orderbook logging to INFO
+ * as it currently collide with xchange-engine package name and excessive logging
+ */
 class OrderBookSseStreamService(
         private val orderBookApiBaseUrl: String,
         private val httpClient: OkHttpClient,
         private val eventSourceFactory: EventSource.Factory,
-        private val objectMapper: ObjectMapper
+        private val objectMapper: ObjectMapper,
+        private val executorForReconnecting: ExecutorService,
+        private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
 
+    fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
+        logger.info { "Scheduling reconnecting order book stream on failure" }
+        executorForReconnecting.submit {
+            while (true) {
+                startListeningOrderBookStream(commonExchangeCurrencyPairs)
+                Thread.sleep(500)
+            }
+        }
+    }
+
     fun startListeningOrderBookStream(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
+        lock.acquire()
         logger.info { "Requesting order book SSE stream" }
-        val countDownLatch = CountDownLatch(1)
 
         val request = Request.Builder()
                 .url("$orderBookApiBaseUrl/order-book-sse-stream")
@@ -35,22 +50,19 @@ class OrderBookSseStreamService(
 
             override fun onOpen(eventSource: EventSource, response: Response) {
                 logger.info { "Order book SSE stream opened" }
-                if (registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
-                    countDownLatch.countDown()
+                if (!registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
+                    throw RuntimeException("Could not register for getting order books")
                 }
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                // TODO figure out why there is java.net.SocketTimeoutException: timeout after opening stream
-                val message = "Could not request order book stream, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
+                val message = "Order book stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
                 eventSource.cancel()
                 logger.error(t) { message }
+                lock.release()
             }
         })
-        if (!countDownLatch.await(5, TimeUnit.SECONDS)) {
-            logger.error { "Registering for order book stream failed" }
-//            throw RuntimeException("Registering for order book stream failed")
-        }
+
     }
 
     private fun registerForGettingOrderBooks(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs): Boolean {
