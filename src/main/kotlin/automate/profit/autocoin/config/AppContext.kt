@@ -13,7 +13,7 @@ import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.orderbook.*
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerFetcher
@@ -33,6 +33,7 @@ import okhttp3.OkHttpClient
 import okhttp3.sse.EventSources
 import java.net.SocketAddress
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 
 class AppContext(private val appConfig: AppConfig) {
@@ -91,7 +92,26 @@ class AppContext(private val appConfig: AppConfig) {
             objectMapper = objectMapper
     )
 
-    private val cachedThreadPool = Executors.newCachedThreadPool()
+    // TODO remove after switching to order books SSE -->
+    val orderBookFetcher = OrderBookFetcher(
+            orderBookApiUrl = appConfig.exchangeMediatorApiUrl,
+            httpClient = oauth2HttpClient,
+            objectMapper = objectMapper
+    )
+    val deprecatedOrderBookListeners = DefaultOrderBookListeners(scheduledExecutorService)
+    val deprecatedOrderBookFetchScheduler = DefaultOrderBookFetchScheduler(
+            allowedExchangeFetchFrequency = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.map { it to Duration.of(10, ChronoUnit.SECONDS) }.toMap(),
+            exchangeOrderBookService = orderBookFetcher,
+            orderBookListeners = deprecatedOrderBookListeners,
+            executorService = Executors.newWorkStealingPool(),
+            scheduledExecutorService = scheduledExecutorService
+    )
+    val deprecatedOrderBookListenersProvider = DeprecatedOrderBookListenersProvider(
+            profitCache = twoLegOrderBookArbitrageProfitCache,
+            profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
+            metricsService = metricsService
+    )
+    // <--- TODO remove after switching to order books SSE
 
     val orderBookListenersProvider = OrderBookListenersProvider(
             profitCache = twoLegOrderBookArbitrageProfitCache,
@@ -165,11 +185,23 @@ class AppContext(private val appConfig: AppConfig) {
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
         logCommonCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
 
-        orderBookListenersProvider.prepareOrderBookListeners(commonCurrencyPairs.currencyPairsToExchangePairs)
-        orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
+        if (appConfig.isUsingOrderBookSSE) {
+            logger.info { "Using order books SSE" }
+            orderBookListenersProvider.prepareOrderBookListeners(commonCurrencyPairs.currencyPairsToExchangePairs)
+            orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
 
+        } else {
+            logger.warn { "Using deprecated synchronous fetching order books" }
+            val deprecatedOrderBookListeners = deprecatedOrderBookListenersProvider.createOrderBookListenersFrom(commonCurrencyPairs.currencyPairsToExchangePairs)
+            this.deprecatedOrderBookListeners.addOrderBookRegistrationListener(deprecatedOrderBookFetchScheduler)
+            deprecatedOrderBookListeners.forEach {
+                this.deprecatedOrderBookListeners.addOrderBookListener(it.exchange(), it.currencyPair(), it)
+            }
+        }
         logger.info { "Scheduling jobs" }
-        orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
+        if (appConfig.isUsingOrderBookSSE) {
+            orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
+        }
         arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
         metricsScheduler.scheduleSendingMetrics()
 
