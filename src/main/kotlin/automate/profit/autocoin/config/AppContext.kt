@@ -13,8 +13,6 @@ import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
-import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrarProvider
-import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrars
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
@@ -28,7 +26,6 @@ import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
 import automate.profit.autocoin.scheduled.MetricsScheduler
-import automate.profit.autocoin.scheduled.OrderBookFetchScheduler
 import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
@@ -101,21 +98,6 @@ class AppContext(private val appConfig: AppConfig) {
             metricsService = metricsService
     )
 
-    val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(
-            orderBookApiUrl = appConfig.exchangeMediatorApiUrl,
-            httpClient = oauth2HttpClient,
-            objectMapper = objectMapper
-    )
-    val orderBookListenerRegistrars = DefaultOrderBookListenerRegistrars(
-            initialTickerListenerRegistrarList = emptyList(),
-            orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider,
-            executorService = cachedThreadPool
-    )
-    val orderBookFetchScheduler = OrderBookFetchScheduler(
-            orderBookListenerRegistrars = orderBookListenerRegistrars,
-            twoLegArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
-            executorService = scheduledExecutorService
-    )
     val metricsScheduler = MetricsScheduler(
             metricsService = metricsService,
             executorService = scheduledExecutorService
@@ -134,6 +116,7 @@ class AppContext(private val appConfig: AppConfig) {
             orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = sseHttpClient,
             eventSourceFactory = sseEventSourceFactory,
+            orderBookListenersProvider = orderBookListenersProvider,
             objectMapper = objectMapper,
             executorForReconnecting = threadForOrderStreamReconnecting
     )
@@ -179,32 +162,22 @@ class AppContext(private val appConfig: AppConfig) {
     fun start(): SocketAddress {
         logger.info { "Fetching currency pairs from exchanges" }
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
-        logSharedCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
+        logCommonCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
 
-        val orderBookListeners = orderBookListenersProvider.createOrderBookListenersFrom(commonCurrencyPairs.currencyPairsToExchangePairs)
+        orderBookListenersProvider.prepareOrderBookListeners(commonCurrencyPairs.currencyPairsToExchangePairs)
         orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
-        logger.info { "Registering ${orderBookListeners.size} order book listeners" }
-        orderBookListeners.forEach { orderBookListenerRegistrars.registerOrderBookListener(it) }
 
         logger.info { "Scheduling jobs" }
-        orderBookFetchScheduler.scheduleFetchingOrderBooks()
         orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
-
-        logger.info { "Scheduling calculating arbitrage profit statistics" }
         arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
-
-        logger.info { "Scheduling periodic metrics collection: health, memory and descriptors" }
-        metricsScheduler.reportHealth()
-        metricsScheduler.reportMemoryUsage()
-        metricsScheduler.reportDescriptorsUsage()
-        metricsScheduler.reportThreadsUsage()
+        metricsScheduler.scheduleSendingMetrics()
 
         logger.info { "Starting server" }
         server.start()
         return server.listenerInfo[0].address
     }
 
-    private fun logSharedCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
+    private fun logCommonCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
         appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.forEachIndexed { index, supportedExchange ->
             for (i in index + 1 until appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.size) {
                 val exchangePair = ExchangePair(
@@ -212,7 +185,7 @@ class AppContext(private val appConfig: AppConfig) {
                         secondExchange = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
                 )
                 val currencyPairs = exchangePairToCurrencyPairs[exchangePair]
-                logger.info { "Number of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }
+                logger.info { "Number common of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }
             }
         }
     }

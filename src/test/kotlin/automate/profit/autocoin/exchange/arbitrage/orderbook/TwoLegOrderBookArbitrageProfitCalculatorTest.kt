@@ -68,7 +68,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             exchangeName = "exchangeB"
     )
     private val sellOrderExchangeB = buyOrderExchangeB.copy(type = ExchangeOrderType.ASK_SELL)
-    private val orderListDoesNotMatter:List<OrderBookExchangeOrder> = listOf(buyOrderExchangeA)
+    private val orderListDoesNotMatter: List<OrderBookExchangeOrder> = listOf(buyOrderExchangeA)
 
     @Test
     fun shouldFindNoProfitWhenOrderTooOld() {
@@ -140,7 +140,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
         // then
         assertThat(profit).isNotNull
-        with (profit!!) {
+        with(profit!!) {
             assertThat(currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
             assertThat(usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
             assertThat(usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)

@@ -1,8 +1,6 @@
 package automate.profit.autocoin
 
 import java.lang.System.setProperty
-import java.time.Duration
-import java.time.temporal.ChronoUnit
 
 /**
  * Copy this file to src/main and provide settings to run

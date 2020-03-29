@@ -12,26 +12,34 @@ class MetricsScheduler(
     companion object : KLogging()
 
     fun reportMemoryUsage() {
-        val interval = 60L
-        logger.info { "Will record memory usage metrics every $interval seconds" }
-        executorService.scheduleAtFixedRate({ metricsService.recordMemory() }, 0, interval, TimeUnit.SECONDS)
+        metricsService.recordMemory()
     }
 
     fun reportHealth() {
-        val interval = 60L
-        logger.info { "Will record health status metrics every $interval seconds" }
-        executorService.scheduleAtFixedRate({ metricsService.recordHealth(true) }, 0, interval, TimeUnit.SECONDS)
+        metricsService.recordHealth(true)
     }
 
     fun reportDescriptorsUsage() {
-        val interval = 60L
-        logger.info { "Will record descriptor usage metrics every $interval seconds" }
-        executorService.scheduleAtFixedRate({ metricsService.recordDescriptors() }, 0, interval, TimeUnit.SECONDS)
+        metricsService.recordDescriptors()
     }
 
     fun reportThreadsUsage() {
+        metricsService.recordThreadCount()
+    }
+
+    fun scheduleSendingMetrics() {
         val interval = 60L
-        logger.info { "Will record threads usage metrics every $interval seconds" }
-        executorService.scheduleAtFixedRate({ metricsService.recordThreadCount() }, 0, interval, TimeUnit.SECONDS)
+        logger.info { "Scheduling sending metrics every ${interval}s: health, memory usage, threads count, open files count" }
+        executorService.scheduleAtFixedRate({
+            try {
+                reportHealth()
+                reportMemoryUsage()
+                reportThreadsUsage()
+                reportDescriptorsUsage()
+            } catch (e: Exception) {
+                logger.error(e) { "Something went wrong when sending metrics" }
+            }
+        }, 0, interval, TimeUnit.SECONDS)
+
     }
 }

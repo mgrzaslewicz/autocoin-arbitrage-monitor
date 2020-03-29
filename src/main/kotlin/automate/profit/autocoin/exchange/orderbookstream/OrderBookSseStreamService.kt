@@ -1,6 +1,10 @@
 package automate.profit.autocoin.exchange.orderbookstream
 
+import automate.profit.autocoin.exchange.SupportedExchange
+import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
+import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.order.OrderBookResponseDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -19,6 +23,7 @@ class OrderBookSseStreamService(
         private val orderBookApiBaseUrl: String,
         private val httpClient: OkHttpClient,
         private val eventSourceFactory: EventSource.Factory,
+        private val orderBookListenersProvider: OrderBookListenersProvider,
         private val objectMapper: ObjectMapper,
         private val executorForReconnecting: ExecutorService,
         private val lock: Semaphore = Semaphore(1)
@@ -45,14 +50,25 @@ class OrderBookSseStreamService(
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-                logger.info { "New event: type=$type, data=$data" }
+                logger.debug { "onEvent: type=$type, data=$data" }
+                if (type == "start") {
+                    logger.info { "Start event received" }
+                    if (!registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
+                        throw RuntimeException("Could not register for getting order books")
+                    }
+                } else {
+                    val orderBookDto = objectMapper.readValue(data, OrderBookResponseDto::class.java)
+                    val orderBook = orderBookDto.toOrderBook()
+                    val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
+                    val currencyPair = CurrencyPair.of(orderBookDto.currencyPair)
+                    val orderBookListener = orderBookListenersProvider.getOrderBookListener(exchange, currencyPair)
+                    orderBookListener.onOrderBook(exchange, currencyPair, orderBook)
+                }
             }
 
             override fun onOpen(eventSource: EventSource, response: Response) {
+                // on open seems to not work until there is first event sent from producer
                 logger.info { "Order book SSE stream opened" }
-                if (!registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
-                    throw RuntimeException("Could not register for getting order books")
-                }
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
@@ -66,9 +82,9 @@ class OrderBookSseStreamService(
     }
 
     private fun registerForGettingOrderBooks(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs): Boolean {
-        logger.info { "Registering for order books" }
+        logger.info { "Registering for order book events" }
         val exchangesWithCurrencyPairs = mutableMapOf<String, List<String>>()
-        commonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.forEach { exchangePair, currencyPairs ->
+        commonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.forEach { (exchangePair, currencyPairs) ->
             val currencyPairStringList = currencyPairs.map { it.toString() }
             exchangesWithCurrencyPairs[exchangePair.firstExchange.exchangeName] = currencyPairStringList
             exchangesWithCurrencyPairs[exchangePair.secondExchange.exchangeName] = currencyPairStringList
@@ -81,9 +97,10 @@ class OrderBookSseStreamService(
         return try {
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
+                logger.info { "Registered for order book events" }
                 true
             } else {
-                logger.error { "Could not register for order books, code=${response.code}" }
+                logger.error { "Could not register for order books, code=${response.code}, message=${response.body?.string()}" }
                 false
             }
         } catch (e: Exception) {
