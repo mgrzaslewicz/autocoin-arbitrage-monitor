@@ -79,7 +79,7 @@ data class AppConfig(
         val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits",
         val useMetrics: Boolean = getPropertyThenEnv("USE_METRICS", "true").toBoolean(),
         val telegrafHostname: String = getPropertyThenEnv("TELEGRAF_HOSTNAME", "telegraf"),
-        val isUsingOrderBookSSE: Boolean = getPropertyThenEnv("USE_ORDER_BOOK_SSE", "false").toBoolean()
+        val isUsingOrderBookSSE: Boolean = getPropertyThenEnv("USE_ORDER_BOOK_SSE", "true").toBoolean()
 )
 
 fun loadConfig(): AppConfig {
