@@ -23,7 +23,7 @@ class OrderBookFetcher(
                 .build()
         val orderBookResponse = httpClient.newCall(request).execute()
         orderBookResponse.use {
-            check(orderBookResponse.code == 200) { "[$exchangeName-$currencyPair] Could not get order book" }
+            check(orderBookResponse.isSuccessful) { "[$exchangeName-$currencyPair] Could not get order book" }
 
             val orderBookDto = objectMapper.readValue(orderBookResponse.body?.string(), OrderBookResponseDto::class.java)
             orderBookResponse.body?.close()
