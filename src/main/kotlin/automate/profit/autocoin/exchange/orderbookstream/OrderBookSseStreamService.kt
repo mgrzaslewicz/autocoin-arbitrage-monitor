@@ -15,6 +15,7 @@ import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** TODO move it back to orderbook package after synchronous model removed and change orderbook logging to INFO
  * as it currently collide with xchange-engine package name and excessive logging
@@ -29,6 +30,8 @@ class OrderBookSseStreamService(
         private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
+
+    private val isConnected = AtomicBoolean(false)
 
     fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
         logger.info { "Scheduling reconnecting order book stream on failure" }
@@ -50,10 +53,13 @@ class OrderBookSseStreamService(
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-                logger.debug { "onEvent: type=$type, data=$data" }
+//                logger.debug { "onEvent: type=$type, data=$data" }
                 if (type == "start") {
                     logger.info { "Start event received" }
-                    if (!registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
+                    if (registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
+                        isConnected.set(true)
+                    } else {
+                        isConnected.set(false)
                         throw RuntimeException("Could not register for getting order books")
                     }
                 } else {
@@ -73,6 +79,7 @@ class OrderBookSseStreamService(
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
                 val message = "Order book stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
+                isConnected.set(false)
                 eventSource.cancel()
                 logger.error(t) { message }
                 lock.release()
@@ -108,4 +115,6 @@ class OrderBookSseStreamService(
             false
         }
     }
+
+    fun isConnected() = isConnected.get()
 }
