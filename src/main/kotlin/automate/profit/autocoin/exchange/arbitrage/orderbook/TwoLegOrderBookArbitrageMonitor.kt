@@ -2,8 +2,8 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.orderbook.DeprecatedOrderBookListener
 import automate.profit.autocoin.exchange.orderbook.OrderBook
+import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
@@ -62,11 +62,8 @@ class TwoLegOrderBookArbitrageMonitor(
         }
     }
 
-    fun getOrderBookListeners(): Pair<DeprecatedOrderBookListener, DeprecatedOrderBookListener> = Pair(
-            object : DeprecatedOrderBookListener {
-                override fun currencyPair() = currencyPair
-                override fun exchange() = exchangePair.firstExchange
-
+    fun getOrderBookListeners(): Pair<OrderBookListener, OrderBookListener> = Pair(
+            object : OrderBookListener {
                 override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                     if (orderBook != null) onFirstExchangeOrderBook(orderBook)
                 }
@@ -75,10 +72,7 @@ class TwoLegOrderBookArbitrageMonitor(
                     onFirstExchangeOrderBook(orderBook)
                 }
             },
-            object : DeprecatedOrderBookListener {
-                override fun currencyPair() = currencyPair
-                override fun exchange() = exchangePair.secondExchange
-
+            object : OrderBookListener {
                 override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                     if (orderBook != null) onSecondExchangeOrderBook(orderBook)
                 }
