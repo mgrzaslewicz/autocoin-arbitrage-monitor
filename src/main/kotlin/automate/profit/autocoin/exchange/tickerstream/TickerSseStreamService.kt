@@ -28,6 +28,7 @@ class TickerSseStreamService(
     private companion object : KLogging()
 
     private val isConnected = AtomicBoolean(false)
+    private val isFirstOrderBookLoggedAfterConnect = AtomicBoolean(false)
 
     fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
         logger.info { "Scheduling reconnecting ticker stream on failure" }
@@ -40,7 +41,11 @@ class TickerSseStreamService(
     }
 
     private fun onTickerEvent(tickerJson: String) {
-        logger.debug { "onEvent ticker=$tickerJson" }
+        if (!isFirstOrderBookLoggedAfterConnect.compareAndExchange(false, true)) {
+            logger.info { "First Ticker event since starting the stream, ticker=$tickerJson" }
+        } else {
+            logger.debug { "Ticker event=$tickerJson" }
+        }
         val tickerDto = objectMapper.readValue(tickerJson, TickerDto::class.java)
         val ticker = tickerDto.toTicker()
         val exchange = SupportedExchange.fromExchangeName(tickerDto.exchange)
@@ -70,6 +75,7 @@ class TickerSseStreamService(
                         isConnected.set(true)
                     } else {
                         isConnected.set(false)
+                        isFirstOrderBookLoggedAfterConnect.set(false)
                         throw RuntimeException("Could not register for getting tickers")
                     }
                 } else {
@@ -89,6 +95,7 @@ class TickerSseStreamService(
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
                 val message = "Ticker stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
                 isConnected.set(false)
+                isFirstOrderBookLoggedAfterConnect.set(false)
                 eventSource.cancel()
                 logger.error(t) { message }
                 lock.release()
