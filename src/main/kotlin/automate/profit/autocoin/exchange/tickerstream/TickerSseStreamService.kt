@@ -1,10 +1,9 @@
-package automate.profit.autocoin.exchange.orderbookstream
+package automate.profit.autocoin.exchange.tickerstream
 
 import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
-import automate.profit.autocoin.order.OrderBookResponseDto
+import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.ticker.TickerDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -17,11 +16,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 
-class OrderBookSseStreamService(
-        private val orderBookApiBaseUrl: String,
+class TickerSseStreamService(
+        private val tickerApiBaseUrl: String,
         private val httpClient: OkHttpClient,
         private val eventSourceFactory: EventSource.Factory,
-        private val orderBookListenersProvider: OrderBookListenersProvider,
+        private val tickerListenersProvider: TickerListenersProvider,
         private val objectMapper: ObjectMapper,
         private val executorForReconnecting: ExecutorService,
         private val lock: Semaphore = Semaphore(1)
@@ -31,65 +30,64 @@ class OrderBookSseStreamService(
     private val isConnected = AtomicBoolean(false)
 
     fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
-        logger.info { "Scheduling reconnecting order book stream on failure" }
+        logger.info { "Scheduling reconnecting ticker stream on failure" }
         executorForReconnecting.submit {
             while (true) {
-                startListeningOrderBookStream(commonExchangeCurrencyPairs)
+                startListeningTickerStream(commonExchangeCurrencyPairs)
                 Thread.sleep(500)
             }
         }
     }
 
-    private fun onOrderBookEvent(orderBookJson: String) {
-        logger.debug { "onEvent orderBook=$orderBookJson" }
-        val orderBookDto = objectMapper.readValue(orderBookJson, OrderBookResponseDto::class.java)
-        val orderBook = orderBookDto.toOrderBook()
-        val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
-        val currencyPair = CurrencyPair.of(orderBookDto.currencyPair)
-        val orderBookListener = orderBookListenersProvider.getOrderBookListeners(exchange, currencyPair)
-        orderBookListener.forEach {
+    private fun onTickerEvent(tickerJson: String) {
+        logger.debug { "onEvent ticker=$tickerJson" }
+        val tickerDto = objectMapper.readValue(tickerJson, TickerDto::class.java)
+        val ticker = tickerDto.toTicker()
+        val exchange = SupportedExchange.fromExchangeName(tickerDto.exchange)
+        val tickerListener = tickerListenersProvider.getTickerListeners(exchange, ticker.currencyPair)
+        tickerListener.forEach {
             try {
-                it.onOrderBook(exchange, currencyPair, orderBook)
+                it.onTicker(exchange, ticker.currencyPair, ticker)
             } catch (e: Exception) {
-                logger.error(e) { "[$exchange-$currencyPair] Error during onOrderBook" }
+                logger.error(e) { "[$exchange-${ticker.currencyPair}] Error during notifying ticker listener" }
             }
         }
     }
 
-    fun startListeningOrderBookStream(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
+    fun startListeningTickerStream(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
         lock.acquire()
-        logger.info { "Requesting order book SSE stream" }
+        logger.info { "Requesting ticker SSE stream" }
 
         val request = Request.Builder()
-                .url("$orderBookApiBaseUrl/order-book-sse-stream")
+                .url("$tickerApiBaseUrl/ticker-sse-stream")
                 .build()
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
-            override fun onEvent(eventSource: EventSource, id: String?, type: String?, orderBookJson: String) {
+            override fun onEvent(eventSource: EventSource, id: String?, type: String?, tickerJson: String) {
                 if (type == "start") {
-                    logger.info { "Order book start event received" }
-                    if (registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
+                    logger.info { "Ticker start event received" }
+                    if (registerForGettingTickers(commonExchangeCurrencyPairs)) {
                         isConnected.set(true)
                     } else {
                         isConnected.set(false)
-                        throw RuntimeException("Could not register for getting order books")
+                        throw RuntimeException("Could not register for getting tickers")
                     }
                 } else {
                     try {
-                        onOrderBookEvent(orderBookJson)
+                        onTickerEvent(tickerJson)
                     } catch (e: Exception) {
-                        logger.error(e) { "Error during handling order book event" }
+                        logger.error(e) { "Error during handling ticker event" }
                     }
                 }
             }
 
             override fun onOpen(eventSource: EventSource, response: Response) {
                 // on open seems to not work until there is first event sent from producer
-                logger.info { "Order book SSE stream opened" }
+                logger.info { "Ticker SSE stream opened" }
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                val message = "Order book stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
+                val message = "Ticker stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
                 isConnected.set(false)
                 eventSource.cancel()
                 logger.error(t) { message }
@@ -99,8 +97,8 @@ class OrderBookSseStreamService(
 
     }
 
-    private fun registerForGettingOrderBooks(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs): Boolean {
-        logger.info { "Registering for order book events" }
+    private fun registerForGettingTickers(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs): Boolean {
+        logger.info { "Registering for ticker events" }
         val exchangesWithCurrencyPairs = mutableMapOf<String, List<String>>()
         commonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.forEach { (exchangePair, currencyPairs) ->
             val currencyPairStringList = currencyPairs.map { it.toString() }
@@ -108,21 +106,21 @@ class OrderBookSseStreamService(
             exchangesWithCurrencyPairs[exchangePair.secondExchange.exchangeName] = currencyPairStringList
         }
         val request = Request.Builder()
-                .url("$orderBookApiBaseUrl/listener/order-books")
+                .url("$tickerApiBaseUrl/listener/tickers")
                 .header("Content-Type", "application/json")
                 .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
                 .build()
         return try {
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
-                logger.info { "Registered for order book events" }
+                logger.info { "Registered for ticker events" }
                 true
             } else {
-                logger.error { "Could not register for order books, code=${response.code}, message=${response.body?.string()}" }
+                logger.error { "Could not register for ticker events, code=${response.code}, message=${response.body?.string()}" }
                 false
             }
         } catch (e: Exception) {
-            logger.error(e) { "Could not register for order books" }
+            logger.error(e) { "Could not register for ticker events" }
             false
         }
     }

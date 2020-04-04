@@ -4,7 +4,7 @@ import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.orderbook.OrderBookExchangeOrder
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerFetcher
+import automate.profit.autocoin.exchange.ticker.TickerPair
 import mu.KLogging
 import java.math.BigDecimal
 import java.math.BigDecimal.ONE
@@ -15,7 +15,6 @@ import java.time.temporal.ChronoUnit
 
 class TwoLegOrderBookArbitrageProfitCalculator(
         private val priceService: PriceService,
-        private val tickerFetcher: TickerFetcher,
         private val orderBookUsdAmountThresholds: List<BigDecimal>,
         private val currentTimeMillis: () -> Long = System::currentTimeMillis,
         private val maxAgeOfFirstOrderInOrderBookMs: Long = Duration.of(2, ChronoUnit.HOURS).toMillis()
@@ -26,12 +25,12 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val minimum = Int.MIN_VALUE.toBigDecimal()
     private val maximum = Int.MAX_VALUE.toBigDecimal()
 
-    fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, orderBookPair: OrderBookPair): TwoLegOrderBookArbitrageProfit? {
+    fun calculateProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair, orderBookPair: OrderBookPair, tickerPair: TickerPair): TwoLegOrderBookArbitrageProfit? {
         logger.debug { "Calculating profit for $currencyPairWithExchangePair" }
         val currentTimeMillis = currentTimeMillis()
 
-        val firstExchangeTicker = tickerFetcher.getCachedOrFetchTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)
-        val secondExchangeTicker = tickerFetcher.getCachedOrFetchTicker(currencyPairWithExchangePair.exchangePair.secondExchange, currencyPairWithExchangePair.currencyPair)
+        val firstExchangeTicker = tickerPair.first
+        val secondExchangeTicker = tickerPair.second
         if (oneOfTickersIsTooOld(firstExchangeTicker, secondExchangeTicker, currentTimeMillis)) {
             return null
         }
@@ -105,8 +104,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 return null
             }
 
-            val usd24hVolumeAtFirstExchange = priceService.getUsdValue(firstExchangeTicker.currencyPair.counter, firstExchangeTicker.counterCurrency24hVolume)
-            val usd24hVolumeAtSecondExchange = priceService.getUsdValue(secondExchangeTicker.currencyPair.counter, secondExchangeTicker.counterCurrency24hVolume)
+            val usd24hVolumeAtFirstExchange = priceService.getUsdValue(tickerPair.first.currencyPair.counter, firstExchangeTicker.counterCurrency24hVolume)
+            val usd24hVolumeAtSecondExchange = priceService.getUsdValue(tickerPair.second.currencyPair.counter, secondExchangeTicker.counterCurrency24hVolume)
 
             return TwoLegOrderBookArbitrageProfit(
                     currencyPairWithExchangePair = currencyPairWithExchangePair,
