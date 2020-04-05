@@ -45,7 +45,9 @@ class AppContext(private val appConfig: AppConfig) {
     val accessTokenProvider = ClientCredentialsAccessTokenProvider(
             httpClient = httpClientWithoutAuthorization,
             objectMapper = objectMapper,
-            appConfig = appConfig
+            oauth2ServerUrl = appConfig.oauth2ServerUrl,
+            oauthClientId = appConfig.arbitrageMonitorOauth2ClientId,
+            oauthClientSecret = appConfig.arbitrageMonitorOauth2ClientSecret
     )
     val accessTokenAuthenticator = AccessTokenAuthenticator(accessTokenProvider)
     val accessTokenInterceptor = AccessTokenInterceptor(accessTokenProvider)
