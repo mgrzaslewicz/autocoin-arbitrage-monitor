@@ -2,6 +2,7 @@ package automate.profit.autocoin.config
 
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.KeyDeserializer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -16,7 +17,8 @@ class CurrencyPairDeserializer : KeyDeserializer() {
 class ObjectMapperProvider {
     fun createObjectMapper(): ObjectMapper {
         return ObjectMapper()
-                .registerModule(KotlinModule.Builder().build())
-                .registerModule(SimpleModule().addKeyDeserializer(CurrencyPair::class.java, CurrencyPairDeserializer()))
+            .registerModule(KotlinModule.Builder().build())
+            .registerModule(SimpleModule().addKeyDeserializer(CurrencyPair::class.java, CurrencyPairDeserializer()))
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 }
