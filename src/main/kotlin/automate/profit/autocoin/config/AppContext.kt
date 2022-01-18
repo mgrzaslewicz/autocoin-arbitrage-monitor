@@ -43,21 +43,21 @@ class AppContext(private val appConfig: AppConfig) {
     val httpClientWithoutAuthorization = OkHttpClient()
     val objectMapper = ObjectMapperProvider().createObjectMapper()
     val accessTokenProvider = ClientCredentialsAccessTokenProvider(
-            httpClient = httpClientWithoutAuthorization,
-            objectMapper = objectMapper,
-            oauth2ServerUrl = appConfig.oauth2ServerUrl,
-            oauthClientId = appConfig.arbitrageMonitorOauth2ClientId,
-            oauthClientSecret = appConfig.arbitrageMonitorOauth2ClientSecret
+        httpClient = httpClientWithoutAuthorization,
+        objectMapper = objectMapper,
+        oauth2ServerUrl = appConfig.oauth2ServerUrl,
+        oauthClientId = appConfig.arbitrageMonitorOauth2ClientId,
+        oauthClientSecret = appConfig.arbitrageMonitorOauth2ClientSecret
     )
     val accessTokenAuthenticator = AccessTokenAuthenticator(accessTokenProvider)
     val accessTokenInterceptor = AccessTokenInterceptor(accessTokenProvider)
     val oauth2HttpClient = OkHttpClient.Builder()
-            .authenticator(accessTokenAuthenticator)
-            .addInterceptor(accessTokenInterceptor)
-            .build()
+        .authenticator(accessTokenAuthenticator)
+        .addInterceptor(accessTokenInterceptor)
+        .build()
     val sseHttpClient = oauth2HttpClient.newBuilder()
-            .readTimeout(Duration.ofMillis(0L))
-            .build()
+        .readTimeout(Duration.ofMillis(0L))
+        .build()
     val sseEventSourceFactory = EventSources.createFactory(sseHttpClient)
 
     val statsdClient = if (appConfig.useMetrics) {
@@ -69,78 +69,78 @@ class AppContext(private val appConfig: AppConfig) {
     val metricsService: MetricsService = MetricsService(statsdClient)
 
     val priceService = PriceService(
-            priceApiUrl = appConfig.exchangeMediatorApiUrl,
-            httpClient = oauth2HttpClient,
-            metricsService = metricsService,
-            objectMapper = objectMapper
+        priceApiUrl = appConfig.exchangeMediatorApiUrl,
+        httpClient = oauth2HttpClient,
+        metricsService = metricsService,
+        objectMapper = objectMapper
     )
 
     val twoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
-            priceService = priceService,
-            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
+        priceService = priceService,
+        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
     )
 
     val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
     val exchangeMetadataService = RestExchangeMetadataService(
-            httpClient = oauth2HttpClient,
-            exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
-            objectMapper = objectMapper
+        httpClient = oauth2HttpClient,
+        exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
+        objectMapper = objectMapper
     )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
     val tickerListenersProvider = TickerListenersProvider()
     val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
-            profitCache = twoLegOrderBookArbitrageProfitCache,
-            profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
-            metricsService = metricsService
+        profitCache = twoLegOrderBookArbitrageProfitCache,
+        profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
+        metricsService = metricsService
     )
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
-            exchangeMetadataService = exchangeMetadataService,
-            exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
-            currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
-            twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
+        exchangeMetadataService = exchangeMetadataService,
+        exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
+        currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
+        twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
 
     val orderBookSseStreamService = OrderBookSseStreamService(
-            orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
-            httpClient = sseHttpClient,
-            eventSourceFactory = sseEventSourceFactory,
-            orderBookListenersProvider = orderBookListenersProvider,
-            objectMapper = objectMapper,
-            executorForReconnecting = threadForStreamReconnecting
+        orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
+        httpClient = sseHttpClient,
+        eventSourceFactory = sseEventSourceFactory,
+        orderBookListenersProvider = orderBookListenersProvider,
+        objectMapper = objectMapper,
+        executorForReconnecting = threadForStreamReconnecting
     )
     val tickerSseStreamService = TickerSseStreamService(
-            tickerApiBaseUrl = appConfig.exchangeMediatorApiUrl,
-            httpClient = sseHttpClient,
-            eventSourceFactory = sseEventSourceFactory,
-            tickerListenersProvider = tickerListenersProvider,
-            objectMapper = objectMapper,
-            executorForReconnecting = threadForStreamReconnecting
+        tickerApiBaseUrl = appConfig.exchangeMediatorApiUrl,
+        httpClient = sseHttpClient,
+        eventSourceFactory = sseEventSourceFactory,
+        tickerListenersProvider = tickerListenersProvider,
+        objectMapper = objectMapper,
+        executorForReconnecting = threadForStreamReconnecting
     )
 
     val metricsScheduler = MetricsScheduler(
-            orderBookSseStreamService = orderBookSseStreamService,
-            metricsService = metricsService,
-            executorService = scheduledExecutorService
+        orderBookSseStreamService = orderBookSseStreamService,
+        metricsService = metricsService,
+        executorService = scheduledExecutorService
     )
 
     val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
-            profitRepository = object : OrderBookArbitrageProfitRepository {
-                // dummy implementation, it's not a priority right now
-                override fun getAllCurrencyPairsWithExchangePairs(): List<CurrencyPairWithExchangePair> = emptyList()
-                override fun getProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TwoLegOrderBookArbitrageProfit> = emptyList()
-            },
-            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
+        profitRepository = object : OrderBookArbitrageProfitRepository {
+            // dummy implementation, it's not a priority right now
+            override fun getAllCurrencyPairsWithExchangePairs(): List<CurrencyPairWithExchangePair> = emptyList()
+            override fun getProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TwoLegOrderBookArbitrageProfit> = emptyList()
+        },
+        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
     )
     val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
     val arbitrageProfitStatisticsCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(
-            twoLegArbitrageProfitStatisticsCalculator = twoLegArbitrageProfitStatisticCalculator,
-            twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
-            executorService = scheduledExecutorService
+        twoLegArbitrageProfitStatisticsCalculator = twoLegArbitrageProfitStatisticCalculator,
+        twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
+        executorService = scheduledExecutorService
     )
 
 
@@ -149,16 +149,16 @@ class AppContext(private val appConfig: AppConfig) {
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
     val arbitrageProfitController = ArbitrageProfitController(
-            twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
-            orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
-            commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
-            objectMapper = objectMapper,
-            oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
+        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
+        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
+        objectMapper = objectMapper,
+        oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
     )
     val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(
-            twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
-            objectMapper = objectMapper,
-            oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
+        twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
+        objectMapper = objectMapper,
+        oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
     )
 
     val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
@@ -193,8 +193,8 @@ class AppContext(private val appConfig: AppConfig) {
         appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.forEachIndexed { index, supportedExchange ->
             for (i in index + 1 until appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.size) {
                 val exchangePair = ExchangePair(
-                        firstExchange = supportedExchange,
-                        secondExchange = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
+                    firstExchange = supportedExchange,
+                    secondExchange = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
                 )
                 val currencyPairs = exchangePairToCurrencyPairs[exchangePair]
                 logger.info { "Number common of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }
