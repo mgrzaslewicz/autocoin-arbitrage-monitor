@@ -42,7 +42,7 @@ class ArbitrageProfitControllerTest {
                     )
             )
         }
-        val arbitageProfitController = ArbitrageProfitController(
+        val arbitrageProfitController = ArbitrageProfitController(
                 twoLegOrderBookArbitrageProfitCache = mock(),
                 orderBookUsdAmountThresholds = listOf(),
                 objectMapper = objectMapper,
@@ -51,7 +51,7 @@ class ArbitrageProfitControllerTest {
         )
         val serverBuilder = ServerBuilder(
                 appServerPort = getFreePort(),
-                apiControllers = listOf(arbitageProfitController),
+                apiControllers = listOf(arbitrageProfitController),
                 metricsService = mock()
         )
         val server = serverBuilder.build()

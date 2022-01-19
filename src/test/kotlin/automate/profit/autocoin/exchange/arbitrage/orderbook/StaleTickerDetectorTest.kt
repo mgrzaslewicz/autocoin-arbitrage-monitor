@@ -20,7 +20,7 @@ class StaleTickerDetectorTest {
             first = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
             second = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
         )
-        val tested = StaleTickerDetector(currentTimeMillis = { maxAgeOfFirstTicker.toMillis() + 2 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
+        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 2 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
         // when
         val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
         // then
@@ -35,7 +35,7 @@ class StaleTickerDetectorTest {
             first = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
             second = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
         )
-        val tested = StaleTickerDetector(currentTimeMillis = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
+        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
         // when
         val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
         // then
@@ -47,7 +47,7 @@ class StaleTickerDetectorTest {
         // given
         val maxAgeOfFirstTicker = Duration.of(1L, ChronoUnit.HOURS)
         val tickerPairWithTooOldOrders = TickerPair(first = mock(), second = mock())
-        val tested = StaleTickerDetector(currentTimeMillis = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
+        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
         // when
         val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
         // then

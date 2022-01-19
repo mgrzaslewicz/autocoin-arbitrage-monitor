@@ -5,10 +5,7 @@ import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
-import automate.profit.autocoin.exchange.arbitrage.orderbook.OrderBookArbitrageProfitRepository
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
+import automate.profit.autocoin.exchange.arbitrage.orderbook.*
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
@@ -75,9 +72,10 @@ class AppContext(private val appConfig: AppConfig) {
         objectMapper = objectMapper
     )
 
-    val twoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+    val twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata = TwoLegOrderBookArbitrageProfitCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
+        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata()
     )
 
     val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
@@ -92,7 +90,7 @@ class AppContext(private val appConfig: AppConfig) {
     val tickerListenersProvider = TickerListenersProvider()
     val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
         profitCache = twoLegOrderBookArbitrageProfitCache,
-        profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
+        profitCalculator = twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata,
         metricsService = metricsService
     )
 

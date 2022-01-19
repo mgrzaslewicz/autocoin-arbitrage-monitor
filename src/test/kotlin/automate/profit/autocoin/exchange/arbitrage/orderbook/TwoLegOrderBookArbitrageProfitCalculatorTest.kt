@@ -18,9 +18,7 @@ import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val currencyPair = CurrencyPair.of("X/Y")
@@ -54,7 +52,11 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val tickerPair = TickerPair(first = exchangeATicker, second = exchangeBTicker)
 
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
-    private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(pricesService, orderBookUsdAmountThresholds)
+    private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+        priceService = pricesService,
+        orderBookUsdAmountThresholds = orderBookUsdAmountThresholds,
+        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata()
+    )
     private val buyOrderExchangeA = OrderBookExchangeOrder(
         exchangeName = "exchangeA",
         type = ExchangeOrderType.BID_BUY,
@@ -76,7 +78,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(true) },
-            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(false) }
+            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(false) },
+            relativeProfitCalculator = mock()
         )
         // then
         assertThat(twoLegArbitrageProfitCalculator.calculateProfit(
@@ -92,7 +95,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(false) },
-            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(true) }
+            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(true) },
+            relativeProfitCalculator = mock()
         )
         // then
         assertThat(twoLegArbitrageProfitCalculator.calculateProfit(

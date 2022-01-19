@@ -6,13 +6,13 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 class StaleTickerDetector(
-    private val currentTimeMillis: () -> Long = System::currentTimeMillis,
+    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
     maxAgeOfFirstTicker: Duration = Duration.of(2, ChronoUnit.HOURS),
 ) {
     private val maxAgeOfFirstTickerMs = maxAgeOfFirstTicker.toMillis()
 
     fun oneOfTickersIsTooOld(tickerPair: TickerPair): Boolean {
-        return oneOfTickersIsTooOld(tickerPair.first, tickerPair.second, currentTimeMillis())
+        return oneOfTickersIsTooOld(tickerPair.first, tickerPair.second, currentTimeMillisFunction())
     }
 
     private fun oneOfTickersIsTooOld(ticker1: Ticker, ticker2: Ticker, currentTimeMillis: Long): Boolean {
