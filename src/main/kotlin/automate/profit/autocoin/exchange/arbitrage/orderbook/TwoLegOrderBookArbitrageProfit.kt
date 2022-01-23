@@ -20,7 +20,7 @@ data class TwoLegOrderBookArbitrageProfit(
         val usd24hVolumeAtFirstExchange: BigDecimal,
         val usd24hVolumeAtSecondExchange: BigDecimal,
         val orderBookArbitrageProfitHistogram: List<TwoLegOrderBookArbitrageOpportunity?>,
-        val calculatedAtMillis: Long
+        val calculatedAtMillis: Long,
 ) {
 
     val minUsd24hVolumeOfBothExchanges = usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)
