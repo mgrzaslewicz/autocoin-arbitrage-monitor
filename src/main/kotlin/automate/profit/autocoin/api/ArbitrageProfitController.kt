@@ -8,7 +8,9 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.undertow.security.api.SecurityContext
 import io.undertow.server.HttpHandler
+import io.undertow.server.HttpServerExchange
 import io.undertow.util.Methods.GET
 import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
@@ -82,12 +84,22 @@ class ArbitrageProfitController(
         calculatedAtMillis = calculatedAtMillis
     )
 
+    private fun SecurityContext.authenticatedUserHasRole(roleName: String) = this.authenticatedAccount.roles.contains(roleName)
+
+    private fun getProfitGroupForUser(httpServerExchange: HttpServerExchange): TwoLegArbitrageRelativeProfitGroup {
+        return when {
+            httpServerExchange.securityContext.authenticatedUserHasRole("ROLE_DETAILED_ARBITRAGE_USER") ->
+                TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA
+            else -> TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
+        }
+    }
+
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
 
-        override val httpHandler = HttpHandler {
-            val profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA // TODO provide auth context to decide what to send to user
+        override val httpHandler = HttpHandler { httpServerExchange ->
+            val profitGroup = getProfitGroupForUser(httpServerExchange)
             val profits = twoLegOrderBookArbitrageProfitCache
                 .getCurrencyPairWithExchangePairs(profitGroup)
                 .asSequence()
@@ -108,7 +120,7 @@ class ArbitrageProfitController(
                 usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
                 profits = profits
             )
-            it.responseSender.send(objectMapper.writeValueAsString(result))
+            httpServerExchange.responseSender.send(objectMapper.writeValueAsString(result))
         }
             .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
