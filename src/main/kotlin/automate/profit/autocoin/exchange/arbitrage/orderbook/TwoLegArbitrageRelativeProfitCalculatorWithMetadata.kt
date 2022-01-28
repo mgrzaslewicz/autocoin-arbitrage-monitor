@@ -117,20 +117,4 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             .minus(BigDecimal.ONE)
     }
 
-    override fun shouldBuyAtFirstExchangeAndSellAtSecond(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookSellPrice: OrderBookAveragePrice,
-        secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): Boolean {
-        return secondOrderBookBuyPrice.averagePrice > firstOrderBookSellPrice.averagePrice
-    }
-
-    override fun shouldBuyAtSecondExchangeAndSellAtFirst(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookBuyPrice: OrderBookAveragePrice,
-        secondOrderBookSellPrice: OrderBookAveragePrice
-    ): Boolean {
-        return firstOrderBookBuyPrice.averagePrice > secondOrderBookSellPrice.averagePrice
-    }
-
 }
