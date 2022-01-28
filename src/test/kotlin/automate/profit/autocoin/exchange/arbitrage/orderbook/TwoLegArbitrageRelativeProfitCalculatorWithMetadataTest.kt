@@ -12,6 +12,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.math.BigDecimal
 
 class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
@@ -75,14 +77,17 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
         )
         // then
-        assertThat(profit.compareTo("0.03".toBigDecimal())).isEqualTo(0)
+        assertThat(profit.compareTo("0.03".toBigDecimal())).isZero
     }
 
-    @Test
-    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange() {
+    @ParameterizedTest
+    @CsvSource(
+        // transactionFeeRatio, withdrawalFeeAmount, expectedRelativeProfit
+        "0.008,0.02,0.07819118",
+        "0.008,1.50,-0.23847078"
+    )
+    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange(transactionFeeRatio: BigDecimal, withdrawalFeeAmount: BigDecimal, expectedRelativeProfit: BigDecimal) {
         // given
-        val transactionFeeRatio = "0.008".toBigDecimal()
-        val withdrawalFeeAmount = "0.02".toBigDecimal()
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
         val metadataService: ExchangeMetadataService = mock<ExchangeMetadataService>().apply {
@@ -124,15 +129,15 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
             firstOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = "10.00".toBigDecimal(),
-                baseCurrencyAmount = "0.1".toBigDecimal()
+                baseCurrencyAmount = "5.1".toBigDecimal()
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = "11.0".toBigDecimal(),
-                baseCurrencyAmount = "0.1".toBigDecimal()
+                baseCurrencyAmount = "5.1".toBigDecimal()
             ),
         )
         // then
-        assertThat(profit.compareTo("0.07856640".toBigDecimal())).isEqualTo(0)
+        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
     }
 
     @Test
@@ -187,14 +192,17 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
         )
         // then
-        assertThat(profit.compareTo("0.03".toBigDecimal())).isEqualTo(0)
+        assertThat(profit.compareTo("0.03".toBigDecimal())).isZero
     }
 
-    @Test
-    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange() {
+    @ParameterizedTest
+    @CsvSource(
+        // transactionFeeRatio, withdrawalFeeAmount, expectedRelativeProfit
+        "0.005,0.01,0.018749702",
+        "0.005,1.00,-0.077879012"
+    )
+    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange(transactionFeeRatio: BigDecimal, withdrawalFeeAmount: BigDecimal, expectedRelativeProfit: BigDecimal) {
         // given
-        val transactionFeeRatio = "0.005".toBigDecimal()
-        val withdrawalFeeAmount = "0.01".toBigDecimal()
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
         val metadataService: ExchangeMetadataService = mock<ExchangeMetadataService>().apply {
@@ -244,6 +252,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
         )
         // then
-        assertThat(profit.compareTo("0.029672321".toBigDecimal())).isEqualTo(0)
+        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
     }
+
 }
