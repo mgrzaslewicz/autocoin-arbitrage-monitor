@@ -77,11 +77,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                         TwoLegOrderBookArbitrageOpportunity(
                             sellPrice = firstOrderBookBuyPrice.averagePrice,
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                            baseCurrencyAmountAtSellExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
+                            baseCurrencyAmountAtSellExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountAfterTransfer,
 
                             buyPrice = secondOrderBookSellPrice.averagePrice,
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                            baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountAfterTransfer,
+                            baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
 
                             relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
                             usdDepthUpTo = usdDepthTo
@@ -92,11 +92,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             TwoLegOrderBookArbitrageOpportunity(
                                 sellPrice = secondOrderBookBuyPrice.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                                baseCurrencyAmountAtSellExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountBeforeTransfer,
+                                baseCurrencyAmountAtSellExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountAfterTransfer,
 
                                 buyPrice = firstOrderBookSellPrice.averagePrice,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                                baseCurrencyAmountAtBuyExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountAfterTransfer,
+                                baseCurrencyAmountAtBuyExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountBeforeTransfer,
 
                                 relativeProfit = profitBuyAtFirstSellAtSecond.relativeProfit,
                                 usdDepthUpTo = usdDepthTo
