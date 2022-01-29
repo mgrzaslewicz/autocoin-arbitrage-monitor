@@ -12,45 +12,63 @@ class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadataTest {
 
     @ParameterizedTest
     @CsvSource(
-        "18.0,20.0,0.1",
-        "20.0,18.0,-0.1",
+        "101.0,102.0,18.0,20.0,0.1,101.0",
+        "102.0,102.5,20.0,18.0,-0.1,102.0",
     )
-    fun shouldCalculateProfitWhenBuyAtFirstExchange(firstOrderBookAverageSellPrice: BigDecimal, secondOrderBookAverageBuyPrice: BigDecimal, expectedRelativeProfit: BigDecimal) {
+    fun shouldCalculateProfitWhenBuyAtFirstExchange(
+        firstOrderBookBaseCurrencyAmount: BigDecimal,
+        secondOrderBookBaseCurrencyAmount: BigDecimal,
+        firstOrderBookAverageSellPrice: BigDecimal,
+        secondOrderBookAverageBuyPrice: BigDecimal,
+        expectedRelativeProfit: BigDecimal,
+        expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
+    ) {
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = mock(),
             firstOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageSellPrice,
-                baseCurrencyAmount = mock()
+                baseCurrencyAmount = firstOrderBookBaseCurrencyAmount
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = secondOrderBookAverageBuyPrice,
-                baseCurrencyAmount = mock()
+                baseCurrencyAmount = secondOrderBookBaseCurrencyAmount
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(profit.baseCurrencyAmountBeforeTransfer)
     }
 
     @ParameterizedTest
     @CsvSource(
-        "10.0,8.0,0.2",
-        "8.0,10.0,-0.2",
+        "1000.5,1001.0,10.0,8.0,0.2,1000.5",
+        "1001.5,1001.3,8.0,10.0,-0.2,1001.3",
     )
-    fun shouldCalculateProfitWhenBuyAtSecondExchange(firstOrderBookAverageBuyPrice: BigDecimal, secondOrderBookAverageSellPrice: BigDecimal, expectedRelativeProfit: BigDecimal) {
+    fun shouldCalculateProfitWhenBuyAtSecondExchange(
+        firstOrderBookBaseCurrencyAmount: BigDecimal,
+        secondOrderBookBaseCurrencyAmount: BigDecimal,
+        firstOrderBookAverageBuyPrice: BigDecimal,
+        secondOrderBookAverageSellPrice: BigDecimal,
+        expectedRelativeProfit: BigDecimal,
+        expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
+    ) {
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = mock(),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageBuyPrice,
-                baseCurrencyAmount = mock()
+                baseCurrencyAmount = firstOrderBookBaseCurrencyAmount,
             ),
             secondOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = secondOrderBookAverageSellPrice,
-                baseCurrencyAmount = mock()
+                baseCurrencyAmount = secondOrderBookBaseCurrencyAmount,
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(profit.baseCurrencyAmountBeforeTransfer)
     }
 }

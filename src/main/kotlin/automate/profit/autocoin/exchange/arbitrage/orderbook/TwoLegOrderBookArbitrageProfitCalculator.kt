@@ -7,6 +7,11 @@ import automate.profit.autocoin.exchange.ticker.TickerPair
 import mu.KLogging
 import java.math.BigDecimal
 
+data class TwoLegArbitrageRelativeProfit(
+    val relativeProfit: BigDecimal,
+    val baseCurrencyAmountBeforeTransfer: BigDecimal,
+    val baseCurrencyAmountAfterTransfer: BigDecimal,
+)
 
 interface TwoLegArbitrageRelativeProfitCalculator {
 
@@ -14,13 +19,13 @@ interface TwoLegArbitrageRelativeProfitCalculator {
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
-    ): BigDecimal
+    ): TwoLegArbitrageRelativeProfit
 
     fun getProfitBuyAtFirstExchangeSellAtSecond(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookSellPrice: OrderBookAveragePrice,
         secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): BigDecimal
+    ): TwoLegArbitrageRelativeProfit
 
 }
 
@@ -68,32 +73,32 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 } else {
                     val profitBuyAtSecondSellAtFirst =
                         relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(currencyPairWithExchangePair, firstOrderBookBuyPrice, secondOrderBookSellPrice)
-                    if (profitBuyAtSecondSellAtFirst > BigDecimal.ZERO) {
+                    if (profitBuyAtSecondSellAtFirst.relativeProfit > BigDecimal.ZERO) {
                         TwoLegOrderBookArbitrageOpportunity(
                             sellPrice = firstOrderBookBuyPrice.averagePrice,
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                            baseCurrencyAmountAtSellExchange = firstOrderBookBuyPrice.baseCurrencyAmount,
+                            baseCurrencyAmountAtSellExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
 
                             buyPrice = secondOrderBookSellPrice.averagePrice,
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                            baseCurrencyAmountAtBuyExchange = secondOrderBookSellPrice.baseCurrencyAmount,
+                            baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountAfterTransfer,
 
-                            relativeProfit = profitBuyAtSecondSellAtFirst,
+                            relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
                             usdDepthUpTo = usdDepthTo
                         )
                     } else {
                        val profitBuyAtFirstSellAtSecond = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice)
-                        if (profitBuyAtFirstSellAtSecond > BigDecimal.ZERO) {
+                        if (profitBuyAtFirstSellAtSecond.relativeProfit > BigDecimal.ZERO) {
                             TwoLegOrderBookArbitrageOpportunity(
                                 sellPrice = secondOrderBookBuyPrice.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                                baseCurrencyAmountAtSellExchange = secondOrderBookBuyPrice.baseCurrencyAmount,
+                                baseCurrencyAmountAtSellExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountBeforeTransfer,
 
                                 buyPrice = firstOrderBookSellPrice.averagePrice,
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                                baseCurrencyAmountAtBuyExchange = firstOrderBookSellPrice.baseCurrencyAmount,
+                                baseCurrencyAmountAtBuyExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountAfterTransfer,
 
-                                relativeProfit = profitBuyAtFirstSellAtSecond,
+                                relativeProfit = profitBuyAtFirstSellAtSecond.relativeProfit,
                                 usdDepthUpTo = usdDepthTo
                             )
                         } else {

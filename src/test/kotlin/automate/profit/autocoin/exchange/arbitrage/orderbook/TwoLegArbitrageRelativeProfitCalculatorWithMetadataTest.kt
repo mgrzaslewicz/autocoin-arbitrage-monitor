@@ -46,26 +46,34 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = "9.85".toBigDecimal(),
-                baseCurrencyAmount = "10.5".toBigDecimal()
+                baseCurrencyAmount = "10.51".toBigDecimal()
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo("0.03".toBigDecimal())
+        assertThat(profit.relativeProfit).isEqualByComparingTo("0.03".toBigDecimal())
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo("10.5".toBigDecimal())
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo("10.5".toBigDecimal())
     }
 
     @ParameterizedTest
     @CsvSource(
-        "5.0,10.0,11.0,0.1,0.0,-0.1090", // transaction fee eating profit that was initially 10%
-        "5.0,10.0,11.0,0.0,1.0,-0.1200", // withdrawal fee eating profit that was initially 10%
-        "5.0,10.0,11.0,0.1,1.0,-0.3070", // both transaction and withdrawal fee eating profit that was initially 10%
+        "5.01,5.0,10.0,11.0,0.005,0.01,0.08902750,5.0,4.9850",
+        "1001.0,1000.0,10.0,11.0,0.02,20.0,0.035958,1000.0,981.000",
+        "1000.5,1000.0,10.0,11.0,0.02,20.0,0.035419,1000.0,980.500",
+        "4.99,5.0,10.0,11.0,0.1,0.0,-0.1090,4.99,4.491", // transaction fee eating profit that was initially 10%
+        "4.99,5.0,10.0,11.0,0.0,1.0,-0.12044,4.99,4.99", // withdrawal fee eating profit that was initially 10%
+        "4.99,5.0,10.0,11.0,0.1,1.0,-0.30740,4.99,4.491", // both transaction and withdrawal fee eating profit that was initially 10%
     )
     fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange(
-        baseCurrencyAmount: BigDecimal,
+        firstOrderBookBaseCurrencyAmount: BigDecimal,
+        secondOrderBookBaseCurrencyAmount: BigDecimal,
         firstOrderBookAverageSellPrice: BigDecimal,
         secondOrderBookAverageBuyPrice: BigDecimal,
         transactionFeeRatio: BigDecimal,
         withdrawalFeeAmount: BigDecimal,
-        expectedRelativeProfit: BigDecimal
+        expectedRelativeProfit: BigDecimal,
+        expectedBaseCurrencyAmountBeforeTransfer: BigDecimal,
+        expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
     ) {
         // given
         val intValueWhichDoesNotMatter = 0
@@ -109,15 +117,17 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
             firstOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageSellPrice,
-                baseCurrencyAmount = baseCurrencyAmount,
+                baseCurrencyAmount = firstOrderBookBaseCurrencyAmount,
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = secondOrderBookAverageBuyPrice,
-                baseCurrencyAmount = baseCurrencyAmount,
+                baseCurrencyAmount = secondOrderBookBaseCurrencyAmount,
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountBeforeTransfer)
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
     }
 
     @Test
@@ -141,27 +151,34 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
             secondOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = "9.55".toBigDecimal(),
-                baseCurrencyAmount = "10.5".toBigDecimal()
+                baseCurrencyAmount = "10.49".toBigDecimal()
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo("0.03".toBigDecimal())
+        assertThat(profit.relativeProfit).isEqualByComparingTo("0.03".toBigDecimal())
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo("10.49".toBigDecimal())
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo("10.49".toBigDecimal())
     }
 
     @ParameterizedTest
     @CsvSource(
-        "5.0,11.0,10.0,0.005,0.01,0.08683850",
-        "5.0,11.0,10.0,0.1,0.0,-0.1090", // transaction fee eating profit that was initially 10%
-        "5.0,11.0,10.0,0.0,1.0,-0.1200", // withdrawal fee eating profit that was initially 10%
-        "5.0,11.0,10.0,0.1,1.0,-0.3070", // both transaction and withdrawal fee eating profit that was initially 10%
+        "5.0,5.01,11.0,10.0,0.005,0.01,0.08683850,5.0,4.9401750",
+        "50.0,50.1,11.0,10.0,0.005,0.01,0.08880860,50.0,49.4913000",
+        "500.0,501.2,11.0,10.0,0.005,0.01,0.08900561,500.0,495.0025500",
+        "5.0,4.98,11.0,10.0,0.1,0.0,-0.1090,4.98,4.0338", // transaction fee eating profit that was initially 10%
+        "5.0,5.05,11.0,10.0,0.0,1.0,-0.1200,5.0,4.0", // withdrawal fee eating profit that was initially 10%
+        "5.0,5.0,11.0,10.0,0.1,1.0,-0.3070,5.0,3.150", // both transaction and withdrawal fee eating profit that was initially 10%
     )
     fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange(
-        baseCurrencyAmount: BigDecimal,
+        firstOrderBookBaseCurrencyAmount: BigDecimal,
+        secondOrderBookBaseCurrencyAmount: BigDecimal,
         firstOrderBookAverageBuyPrice: BigDecimal,
         secondOrderBookAverageSellPrice: BigDecimal,
         transactionFeeRatio: BigDecimal,
         withdrawalFeeAmount: BigDecimal,
-        expectedRelativeProfit: BigDecimal
+        expectedRelativeProfit: BigDecimal,
+        expectedBaseCurrencyAmountBeforeTransfer: BigDecimal,
+        expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
     ) {
         // given
         val intValueWhichDoesNotMatter = 0
@@ -205,15 +222,17 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageBuyPrice,
-                baseCurrencyAmount = baseCurrencyAmount,
+                baseCurrencyAmount = firstOrderBookBaseCurrencyAmount,
             ),
             secondOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = secondOrderBookAverageSellPrice,
-                baseCurrencyAmount = baseCurrencyAmount,
+                baseCurrencyAmount = secondOrderBookBaseCurrencyAmount,
             ),
         )
         // then
-        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountBeforeTransfer)
+        assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
     }
 
 }

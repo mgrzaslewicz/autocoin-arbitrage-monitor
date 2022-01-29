@@ -11,21 +11,31 @@ import java.math.RoundingMode
  * - trade fee
  * - if wallet at exchange allows withdrawal
  */
-class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata: TwoLegArbitrageRelativeProfitCalculator {
+class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata : TwoLegArbitrageRelativeProfitCalculator {
     override fun getProfitBuyAtSecondExchangeSellAtFirst(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
-    ): BigDecimal {
-        return firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+    ): TwoLegArbitrageRelativeProfit {
+        val baseCurrencyAmountBeforeTransfer = secondOrderBookSellPrice.baseCurrencyAmount.min(firstOrderBookBuyPrice.baseCurrencyAmount)
+        return TwoLegArbitrageRelativeProfit(
+            relativeProfit = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
+            baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer
+        )
     }
 
     override fun getProfitBuyAtFirstExchangeSellAtSecond(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookSellPrice: OrderBookAveragePrice,
         secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): BigDecimal {
-        return secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+    ): TwoLegArbitrageRelativeProfit {
+        val baseCurrencyAmountBeforeTransfer = secondOrderBookBuyPrice.baseCurrencyAmount.min(firstOrderBookSellPrice.baseCurrencyAmount)
+        return TwoLegArbitrageRelativeProfit(
+            relativeProfit = secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
+            baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer
+        )
     }
 
 }
