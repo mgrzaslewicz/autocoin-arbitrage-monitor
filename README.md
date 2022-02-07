@@ -10,6 +10,7 @@ To run locally - use RunLocal.kt
 
 # Backlog
 Refresh exchange metadata periodically. That should be an async operation
+Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a.e.a.o.TwoLegOrderBookArbitrageProfitCalculator - First time could not calculate two leg arbitrage profit for CurrencyPairWithExchangePair(currencyPair=TRX/USDT, exchangePair=ExchangePair(firstExchange=BIBOX, secondExchange=BITTREX))
 
 ## What are users asking for?
 [6.02.2022 00:16]
