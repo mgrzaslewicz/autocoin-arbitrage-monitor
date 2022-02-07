@@ -12,6 +12,10 @@ To run locally - use RunLocal.kt
 Refresh exchange metadata periodically. That should be an async operation
 
 ## What are users asking for?
+[6.02.2022 00:16]
+By the way, I have a bit of experience  of an arbitrage, within Solana Blockchain.
+However, is it possible to monitor the defi exchanges, such as raydium, serum, orca, or a Jupiter liquidity aggregator?
+Because the best spreads I get, are between the spot market and defi exchanges
 
 [23.01.2022 17:04]
 Hi, decentralized exchanges would be really good, as then you could utilize flash loans from Aave
