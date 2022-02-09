@@ -13,24 +13,27 @@ import kotlin.system.measureTimeMillis
 
 
 data class CurrencyPriceDto(
-        val price: Double,
-        val baseCurrency: String,
-        val counterCurrency: String
+    val price: Double,
+    val baseCurrency: String,
+    val counterCurrency: String
 )
 
-class PriceService(private val priceApiUrl: String,
-                   private val httpClient: OkHttpClient,
-                   private val objectMapper: ObjectMapper,
-                   private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
-                   private val metricsService: MetricsService,
-                   private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
+class PriceService(
+    private val priceApiUrl: String,
+    private val httpClient: OkHttpClient,
+    private val objectMapper: ObjectMapper,
+    private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
+    private val metricsService: MetricsService,
+    private val currentTimeMillis: () -> Long = System::currentTimeMillis
+) {
 
     private data class ValueWithTimestamp(
-            val value: BigDecimal,
-            val calculatedAtMillis: Long
+        val value: BigDecimal,
+        val calculatedAtMillis: Long
     )
 
     private val priceCache = ConcurrentHashMap<String, ValueWithTimestamp>()
+    private val currencyLocks = ConcurrentHashMap<String, String>()
 
     companion object : KLogging()
 
@@ -43,7 +46,7 @@ class PriceService(private val priceApiUrl: String,
     }
 
     private fun fetchPrice(currencyCode: String) {
-        synchronized(priceCache) {
+        synchronized(currencyLocks.computeIfAbsent(currencyCode) { currencyCode }) {
             if (priceCache.containsKey(currencyCode)) {
                 val valueWithTimestamp = priceCache[currencyCode]!!
                 if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
@@ -53,8 +56,8 @@ class PriceService(private val priceApiUrl: String,
 
             priceCache.computeIfAbsent(currencyCode) {
                 ValueWithTimestamp(
-                        calculatedAtMillis = currentTimeMillis(),
-                        value = fetchUsdPrice(currencyCode)
+                    calculatedAtMillis = currentTimeMillis(),
+                    value = fetchUsdPrice(currencyCode)
                 )
             }
         }
@@ -78,9 +81,9 @@ class PriceService(private val priceApiUrl: String,
         logger.info { "Fetching price for $currencyCode" }
         val millisBefore = currentTimeMillis()
         val request = Request.Builder()
-                .url("$priceApiUrl/prices/USD?currencyCodes=${currencyCode}")
-                .get()
-                .build()
+            .url("$priceApiUrl/prices/USD?currencyCodes=${currencyCode}")
+            .get()
+            .build()
         val priceResponse = httpClient.newCall(request).execute()
         priceResponse.use {
             metricsService.recordFetchPriceTime(currentTimeMillis() - millisBefore, "currencyCode=$currencyCode,statusCode=${priceResponse.code}")
