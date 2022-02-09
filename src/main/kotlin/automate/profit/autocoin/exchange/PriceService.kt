@@ -1,8 +1,10 @@
 package automate.profit.autocoin.exchange
 
+import automate.profit.autocoin.logger.PeriodicalLogger
 import automate.profit.autocoin.metrics.MetricsService
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
+import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.math.BigDecimal
@@ -35,7 +37,9 @@ class PriceService(
     private val priceCache = ConcurrentHashMap<String, ValueWithTimestamp>()
     private val currencyLocks = ConcurrentHashMap<String, String>()
 
-    companion object : KLogging()
+    companion object {
+        private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
+    }
 
     fun getUsdPrice(currencyCode: String): BigDecimal {
         if (currencyCode == "USD") {
@@ -78,7 +82,7 @@ class PriceService(
     }
 
     private fun fetchUsdPrice(currencyCode: String): BigDecimal {
-        logger.info { "Fetching price for $currencyCode" }
+        logger.frequentInfo { "Fetching price for $currencyCode" }
         val millisBefore = currentTimeMillis()
         val request = Request.Builder()
             .url("$priceApiUrl/prices/USD?currencyCodes=${currencyCode}")

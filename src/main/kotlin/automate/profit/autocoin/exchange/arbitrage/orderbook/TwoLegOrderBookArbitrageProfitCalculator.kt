@@ -4,7 +4,8 @@ import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
-import mu.KLogging
+import automate.profit.autocoin.logger.PeriodicalLogger
+import mu.KotlinLogging
 import java.math.BigDecimal
 
 data class TwoLegArbitrageRelativeProfit(
@@ -46,9 +47,9 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val relativeProfitCalculator: TwoLegArbitrageRelativeProfitCalculator,
     val profitGroup: TwoLegArbitrageRelativeProfitGroup
 ) {
-    companion object : KLogging()
-
-    private val calculationErrorsForOneTimeLogging = HashSet<String?>()
+    companion object {
+        private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
+    }
 
     fun calculateProfit(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
@@ -127,12 +128,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 calculatedAtMillis = currentTimeMillis,
             )
         } catch (e: Exception) {
-            if (calculationErrorsForOneTimeLogging.contains(e.message)) { // happens too often to log every time
-                logger.debug(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
-            } else {
-                calculationErrorsForOneTimeLogging.add(e.message)
-                logger.error(e) { "First time could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
-            }
+            logger.frequentError(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
             null
         }
     }
