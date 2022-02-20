@@ -1,20 +1,16 @@
 package automate.profit.autocoin.config
 
 import automate.profit.autocoin.api.ArbitrageProfitController
-import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
 import automate.profit.autocoin.exchange.arbitrage.orderbook.*
-import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
-import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
-import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
 import automate.profit.autocoin.exchange.tickerstream.TickerSseStreamService
 import automate.profit.autocoin.metrics.MetricsService
@@ -24,7 +20,6 @@ import automate.profit.autocoin.oauth.client.ClientCredentialsAccessTokenProvide
 import automate.profit.autocoin.oauth.server.AccessTokenChecker
 import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
-import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
 import automate.profit.autocoin.scheduled.MetricsScheduler
 import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
@@ -137,22 +132,6 @@ class AppContext(private val appConfig: AppConfig) {
         executorService = scheduledExecutorService
     )
 
-    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
-        profitRepository = object : OrderBookArbitrageProfitRepository {
-            // dummy implementation, it's not a priority right now
-            override fun getAllCurrencyPairsWithExchangePairs(): List<CurrencyPairWithExchangePair> = emptyList()
-            override fun getProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TwoLegOrderBookArbitrageProfit> = emptyList()
-        },
-        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
-    )
-    val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
-    val arbitrageProfitStatisticsCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(
-        twoLegArbitrageProfitStatisticsCalculator = twoLegArbitrageProfitStatisticCalculator,
-        twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
-        executorService = scheduledExecutorService
-    )
-
-
     val accessTokenChecker = AccessTokenChecker(httpClientWithoutAuthorization, objectMapper, appConfig)
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
@@ -164,13 +143,8 @@ class AppContext(private val appConfig: AppConfig) {
         objectMapper = objectMapper,
         oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
     )
-    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(
-        twoLegArbitrageProfitStatisticsCache = twoLegArbitrageProfitStatisticsCache,
-        objectMapper = objectMapper,
-        oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
-    )
 
-    val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
+    val controllers = listOf(arbitrageProfitController)
 
     val server = ServerBuilder(appConfig.appServerPort, controllers, metricsService).build()
 
@@ -190,7 +164,6 @@ class AppContext(private val appConfig: AppConfig) {
         logger.info { "Scheduling jobs" }
         orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
         tickerSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
-        arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
         metricsScheduler.scheduleSendingMetrics()
 
         logger.info { "Starting server" }
