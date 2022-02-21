@@ -14,6 +14,12 @@ Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a
 Add blockchain type to metadata
 
 ## What are users asking for?
+[16.02.2022 22:39]
+What I will like to see is the arbitrage on same exchange, without having to move coins between exchanges.
+
+[19.02.2022 09:59]
+Hello good morning please I need triangular arbitrage on the same exchange and arbitrage opportunity on another exchange that has high profits
+
 [8.02.2022 01:52]
 I'm also seeing opportunities that  stil shows up but the wallet is disable on HitBTC
 
