@@ -1,6 +1,7 @@
 package automate.profit.autocoin.metrics
 
 import autocoin.metrics.MetricsService
+import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import com.timgroup.statsd.StatsDClient
@@ -24,6 +25,10 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         val exchangePairTag =
             "${exchangePairWithOpportunityCount.exchangePair.firstExchange.exchangeName}-${exchangePairWithOpportunityCount.exchangePair.secondExchange.exchangeName}"
         statsDClient.gauge("exchange-pair-opportunity-count,exchangePair=$exchangePairTag,profitGroup=$profitGroup", exchangePairWithOpportunityCount.opportunityCount)
+    }
+
+    fun recordExchangeOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchange: SupportedExchange, opportunityCount: Long) {
+        statsDClient.gauge("exchange-opportunity-count,exchange=${exchange.exchangeName},profitGroup=$profitGroup", opportunityCount)
     }
 
 }
