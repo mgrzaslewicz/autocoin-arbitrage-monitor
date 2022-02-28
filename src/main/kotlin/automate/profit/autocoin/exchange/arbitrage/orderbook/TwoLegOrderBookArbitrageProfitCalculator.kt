@@ -1,11 +1,12 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.exchange.PriceResponseException
 import automate.profit.autocoin.exchange.PriceService
-import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
 import automate.profit.autocoin.logger.PeriodicalLogger
+import automate.profit.autocoin.metrics.MetricsService
 import mu.KotlinLogging
 import java.math.BigDecimal
 
@@ -46,7 +47,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val staleOrdersDetector: StaleOrdersDetector = StaleOrdersDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val staleTickerDetector: StaleTickerDetector = StaleTickerDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val relativeProfitCalculator: TwoLegArbitrageRelativeProfitCalculator,
-    val profitGroup: TwoLegArbitrageRelativeProfitGroup
+    private val metricsService: MetricsService,
+    val profitGroup: TwoLegArbitrageRelativeProfitGroup,
 ) {
     companion object {
         private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
@@ -131,6 +133,14 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 orderBookArbitrageProfitHistogram = opportunities,
                 calculatedAtMillis = currentTimeMillis,
             )
+        } catch (e: PriceResponseException) {
+            logger.frequentError(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
+            metricsService.recordNoUsdPriceForTwoLegProfitOpportunityCalculation(
+                exchangePair = currencyPairWithExchangePair.exchangePair,
+                currencyPair = currencyPairWithExchangePair.currencyPair,
+                reasonTag = e.reasonTag
+            )
+            null
         } catch (e: Exception) {
             logger.frequentError(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
             null

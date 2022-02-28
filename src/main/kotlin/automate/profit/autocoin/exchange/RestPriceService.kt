@@ -7,9 +7,6 @@ import mu.KotlinLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.math.BigDecimal
-import java.time.Duration
-import java.time.temporal.ChronoUnit
-import java.util.concurrent.ConcurrentHashMap
 
 
 data class CurrencyPriceDto(
@@ -22,6 +19,8 @@ interface PriceService {
     fun getUsdPrice(currencyCode: String): BigDecimal
     fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal
 }
+
+class PriceResponseException(message: String, val reasonTag: String) : IllegalStateException(message)
 
 class RestPriceService(
     private val priceApiUrl: String,
@@ -57,10 +56,19 @@ class RestPriceService(
         val priceResponse = httpClient.newCall(request).execute()
         priceResponse.use {
             metricsService.recordFetchPriceTime(currentTimeMillisFunction() - millisBefore, "currencyCode=$currencyCode,statusCode=${priceResponse.code}")
-            check(priceResponse.isSuccessful) { "Could not get price for $currencyCode/USD, code=${priceResponse.code}" }
-            val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<CurrencyPriceDto>::class.java)
-            check(priceDto.size == 1) { "No required price in response for $currencyCode" }
-            return priceDto.first().price.toBigDecimal()
+            if (!priceResponse.isSuccessful) {
+                throw PriceResponseException(reasonTag = "request-error", message = "[$currencyCode/USD] Could not get price, response error code=${priceResponse.code}")
+            }
+            try {
+                val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<CurrencyPriceDto>::class.java)
+                if (priceDto.size != 1) {
+                    throw PriceResponseException(reasonTag = "missing-price", message = "[$currencyCode/USD] No expected price in response body")
+                }
+                return priceDto.first().price.toBigDecimal()
+            } catch (e: Exception) {
+                val errorMessage = "[$currencyCode/USD] Could not parse response body. Exception=${e.message}"
+                throw PriceResponseException(message = errorMessage, reasonTag = "response-parse-error")
+            }
         }
     }
 

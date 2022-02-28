@@ -56,33 +56,43 @@ class TwoLegOrderBookArbitrageMonitor(
     }
 
     private fun recalculateProfit() {
-        var isAllRequiredDataPresent = true
-        if (firstExchangeOrderBook == null) {
-            isAllRequiredDataPresent = false
-            logger.debug { "Null firstOrderBook at ${currencyPairWithExchangePair.exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
-        }
-        if (firstExchangeTicker == null) {
-            isAllRequiredDataPresent = false
-            logger.debug { "Null firstExchangeTicker at ${currencyPairWithExchangePair.exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
-        }
-        if (secondExchangeOrderBook == null) {
-            isAllRequiredDataPresent = false
-            logger.debug { "Null secondOrderBook at ${currencyPairWithExchangePair.exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
-        }
-        if (secondExchangeTicker == null) {
-            isAllRequiredDataPresent = false
-            logger.debug { "Null secondExchangeTicker at ${currencyPairWithExchangePair.exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
-        }
+        val isAllRequiredDataPresent = checkIfAllRequiredDataPresentAndSendMetricsIfNot()
         if (isAllRequiredDataPresent) {
             val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
             val tickerPair = TickerPair(firstExchangeTicker!!, secondExchangeTicker!!)
-                val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
-                if (profit == null) {
-                    logger.debug { "No profit found for $currencyPairWithExchangePair" }
-                    profitCache.removeProfitOpportunity(profitCalculator.profitGroup, currencyPairWithExchangePair)
-                } else {
-                    profitCache.setProfitOpportunity(profitCalculator.profitGroup, profit)
-                }
+            val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
+            if (profit == null) {
+                logger.debug { "No profit found for $currencyPairWithExchangePair" }
+                profitCache.removeProfitOpportunity(profitCalculator.profitGroup, currencyPairWithExchangePair)
+            } else {
+                profitCache.setProfitOpportunity(profitCalculator.profitGroup, profit)
+            }
+        }
+    }
+
+    private fun checkIfAllRequiredDataPresentAndSendMetricsIfNot(): Boolean {
+        return when {
+            firstExchangeOrderBook == null -> {
+                logger.debug { "Null firstOrderBook at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
+                metricsService.recordNoOrderBookForTwoLegProfitOpportunityCalculation(exchangePair.firstExchange, currencyPair)
+                false
+            }
+            firstExchangeTicker == null -> {
+                logger.debug { "Null firstExchangeTicker at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
+                metricsService.recordNoTickerForTwoLegProfitOpportunityCalculation(exchangePair.firstExchange, currencyPair)
+                false
+            }
+            secondExchangeOrderBook == null -> {
+                logger.debug { "Null secondOrderBook at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
+                metricsService.recordNoOrderBookForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, currencyPair)
+                false
+            }
+            secondExchangeTicker == null -> {
+                logger.debug { "Null secondExchangeTicker at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
+                metricsService.recordNoTickerForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, currencyPair)
+                false
+            }
+            else -> true
         }
     }
 
