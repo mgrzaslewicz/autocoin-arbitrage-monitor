@@ -30,8 +30,10 @@ class TwoLegOrderBookArbitrageProfitCache(
 
     fun removeProfit(profitGroup: TwoLegArbitrageRelativeProfitGroup, currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
         synchronized(profitGroups[profitGroup]!!) {
-            if (profitGroups[profitGroup]!!.contains(currencyPairWithExchangePair)) {
-                logger.debug { "Removing profit for key $currencyPairWithExchangePair" }
+            if (logger.isDebugEnabled) {
+                if (profitGroups[profitGroup]!!.contains(currencyPairWithExchangePair)) {
+                    logger.debug("Removing profit for key $currencyPairWithExchangePair")
+                }
             }
             profitGroups[profitGroup]!!.remove(currencyPairWithExchangePair)
         }
