@@ -20,12 +20,12 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
     fun scheduleRemovingTooOldAndSendingMetrics() {
         logger.info { "Scheduling removing too old profits and sending metrics every ${ageOfOldestTwoLegArbitrageProfitToKeepMs}ms" }
         scheduledExecutorService.scheduleAtFixedRate({
-            removeTooMetricsOldAndSendMetrics()
+            removeTooOldMetrics()
             sendMetrics()
         }, ageOfOldestTwoLegArbitrageProfitToKeepMs + 1000, ageOfOldestTwoLegArbitrageProfitToKeepMs, TimeUnit.MILLISECONDS)
     }
 
-    private fun removeTooMetricsOldAndSendMetrics() {
+    private fun removeTooOldMetrics() {
         try {
             twoLegOrderBookArbitrageProfitOpportunityCache.removeTooOldProfits()
         } catch (e: Exception) {

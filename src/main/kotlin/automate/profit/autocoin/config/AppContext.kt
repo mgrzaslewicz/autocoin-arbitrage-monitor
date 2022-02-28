@@ -2,7 +2,8 @@ package automate.profit.autocoin.config
 
 import automate.profit.autocoin.api.ArbitrageProfitController
 import automate.profit.autocoin.api.ServerBuilder
-import automate.profit.autocoin.exchange.PriceService
+import automate.profit.autocoin.exchange.CachingPriceService
+import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
 import automate.profit.autocoin.exchange.arbitrage.orderbook.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
@@ -62,11 +63,13 @@ class AppContext(private val appConfig: AppConfig) {
     }
     val metricsService: MetricsService = MetricsService(statsdClient)
 
-    val priceService = PriceService(
-        priceApiUrl = appConfig.exchangeMediatorApiUrl,
-        httpClient = oauth2HttpClient,
-        metricsService = metricsService,
-        objectMapper = objectMapper
+    val priceService = CachingPriceService(
+        decorated = RestPriceService(
+            priceApiUrl = appConfig.exchangeMediatorApiUrl,
+            httpClient = oauth2HttpClient,
+            metricsService = metricsService,
+            objectMapper = objectMapper
+        )
     )
 
     val exchangeMetadataService = CachingExchangeMetadataService(

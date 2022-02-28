@@ -18,65 +18,33 @@ data class CurrencyPriceDto(
     val counterCurrency: String
 )
 
-class PriceService(
+interface PriceService {
+    fun getUsdPrice(currencyCode: String): BigDecimal
+    fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal
+}
+
+class RestPriceService(
     private val priceApiUrl: String,
     private val httpClient: OkHttpClient,
     private val objectMapper: ObjectMapper,
-    private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
     private val metricsService: MetricsService,
-    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis
-) {
+    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
+) : PriceService {
 
-    private data class ValueWithTimestamp(
-        val value: BigDecimal,
-        val calculatedAtMillis: Long
-    )
-
-    private val priceCache = ConcurrentHashMap<String, ValueWithTimestamp>()
-    private val currencyLocks = ConcurrentHashMap<String, String>()
-
-    companion object {
+    private companion object {
         private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
     }
 
-    fun getUsdPrice(currencyCode: String): BigDecimal {
+    override fun getUsdPrice(currencyCode: String): BigDecimal {
         if (currencyCode == "USD") {
             return BigDecimal.ONE
         }
-        fetchPrice(currencyCode)
-        return priceCache.getValue(currencyCode).value
+        return fetchUsdPrice(currencyCode)
     }
 
-    private fun fetchPrice(currencyCode: String) {
-        synchronized(currencyLocks.computeIfAbsent(currencyCode) { currencyCode }) {
-            if (priceCache.containsKey(currencyCode)) {
-                val valueWithTimestamp = priceCache[currencyCode]!!
-                if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
-                    priceCache.remove(currencyCode)
-                }
-            }
-
-            priceCache.computeIfAbsent(currencyCode) {
-                ValueWithTimestamp(
-                    calculatedAtMillis = currentTimeMillisFunction(),
-                    value = fetchUsdPrice(currencyCode)
-                )
-            }
-        }
-    }
-
-    fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
-        if (currencyCode == "USD") {
-            return amount
-        }
-        fetchPrice(currencyCode)
-        val price = priceCache.getValue(currencyCode).value
+    override fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
+        val price = getUsdPrice(currencyCode)
         return amount.multiply(price)
-    }
-
-
-    private fun isOlderThanMaxCacheAge(calculatedAtMillis: Long): Boolean {
-        return currentTimeMillisFunction() - calculatedAtMillis > maxPriceCacheAgeMs
     }
 
     private fun fetchUsdPrice(currencyCode: String): BigDecimal {
