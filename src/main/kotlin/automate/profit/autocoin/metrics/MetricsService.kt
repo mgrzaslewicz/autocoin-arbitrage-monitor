@@ -31,4 +31,10 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         statsDClient.gauge("exchange-opportunity-count,exchange=${exchange.exchangeName},profitGroup=$profitGroup", opportunityCount)
     }
 
+    /**
+     * When exchange has value 0 in statistics it means it was not calculated at all
+     */
+    fun recordExchangeNoOpportunityFoundCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchange: SupportedExchange, noOpportunityFoundCount: Long) {
+        statsDClient.gauge("exchange-no-opportunity-found-count,exchange=${exchange.exchangeName},profitGroup=$profitGroup", noOpportunityFoundCount)
+    }
 }

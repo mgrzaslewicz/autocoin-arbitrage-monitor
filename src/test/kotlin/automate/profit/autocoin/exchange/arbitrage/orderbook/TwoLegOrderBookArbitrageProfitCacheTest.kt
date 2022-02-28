@@ -40,10 +40,10 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     fun shouldRemoveTooOldProfits() {
         // given
         val timeMillis = ArrayDeque(listOf(3L, 7L, 9L))
-        val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
+        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
         val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfit(cacheGroup, noProfitSample.copy(calculatedAtMillis = 1))
-        profitsCache.setProfit(cacheGroup, noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(calculatedAtMillis = 1))
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
         profitsCache.removeTooOldProfits()
         assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGroup)).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)
@@ -58,12 +58,12 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCountWhenNoOpportunities() {
         // given
-        val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
         val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfit(cacheGroup, noProfitSample)
-        profitsCache.setProfit(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
-        profitsCache.setProfit(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
-        profitsCache.setProfit(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample)
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
+        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
         // when
         val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount(cacheGroup)
         // then
@@ -86,12 +86,12 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCount() {
         // given
-        val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
         val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfit(cacheGroup, sampleProfit)
-        profitsCache.setProfit(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
-        profitsCache.setProfit(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
-        profitsCache.setProfit(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
+        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit)
+        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
+        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
         // when
         val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount(cacheGroup)
         // then

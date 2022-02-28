@@ -90,21 +90,21 @@ class AppContext(private val appConfig: AppConfig) {
         profitGroup = TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA
     )
 
-    val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
+    val twoLegOrderBookArbitrageProfitOpportunityCache = TwoLegOrderBookArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
 
     val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
 
     private val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
         ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
-        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+        twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
         metricsService = metricsService
     )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
     val tickerListenersProvider = TickerListenersProvider()
     val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
-        profitCache = twoLegOrderBookArbitrageProfitCache,
+        profitCache = twoLegOrderBookArbitrageProfitOpportunityCache,
         profitCalculators = listOf(twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata, twoLegOrderBookArbitrageProfitCalculatorWithMetadata),
         metricsService = metricsService
     )
@@ -146,7 +146,7 @@ class AppContext(private val appConfig: AppConfig) {
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
     val arbitrageProfitController = ArbitrageProfitController(
-        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+        twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         objectMapper = objectMapper,
