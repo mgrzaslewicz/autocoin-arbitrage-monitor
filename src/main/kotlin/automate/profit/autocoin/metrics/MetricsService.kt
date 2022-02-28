@@ -56,6 +56,6 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
     }
 
     private fun recordNoDataForTwoLegProfitOpportunityCalculation(exchange: SupportedExchange, tags: String) {
-        statsDClient.gauge("missing-data-for-opportunity-calculation,exchange=,${exchange.exchangeName},$tags", 1)
+        statsDClient.gauge("missing-data-for-opportunity-calculation,exchange=${exchange.exchangeName},$tags", 1)
     }
 }
