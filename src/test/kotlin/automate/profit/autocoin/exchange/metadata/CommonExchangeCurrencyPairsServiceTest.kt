@@ -16,9 +16,9 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val commonForBittrexAndKucoin = CurrencyPair.of("LSK/BTC")
     private val commonForKucoinAndBinance = CurrencyPair.of("EOS/ETH")
 
-    private val onlyAtBittrex = CurrencyPair.of("ONLY/ATBITTREX")
-    private val onlyAtBinance = CurrencyPair.of("ONLY/ATBINANCE")
-    private val onlyAtKucoin = CurrencyPair.of("ONLY/ATKUCOIN")
+    private val onlyAtBittrex = CurrencyPair.of("ONLY/AT-BITTREX")
+    private val onlyAtBinance = CurrencyPair.of("ONLY/AT-BINANCE")
+    private val onlyAtKucoin = CurrencyPair.of("ONLY/AT-KUCOIN")
 
     private val exchanges = listOf(BINANCE, BITTREX, KUCOIN)
 

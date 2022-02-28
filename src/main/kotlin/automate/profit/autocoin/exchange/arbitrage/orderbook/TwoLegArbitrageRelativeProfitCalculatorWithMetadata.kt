@@ -23,31 +23,31 @@ class CurrencyWithdrawalAndDepositStatusChecker(private val metadataService: Exc
      * not false value which will make opportunity not appear
      */
     fun areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair: CurrencyPairWithExchangePair): Boolean {
-        val firstExchangeBaseCurrencyMetadata = metadataService.getMetadata(
+        val firstExchangeBaseCurrencyMetadata = metadataService.getCurrencyMetadata(
             exchangeName = currencyPairWithExchangePair.exchangePair.firstExchange.exchangeName,
             currency = currencyPairWithExchangePair.currencyPair.base
         )
-        val firstExchangeCounterCurrencyMetadata = metadataService.getMetadata(
+        val firstExchangeCounterCurrencyMetadata = metadataService.getCurrencyMetadata(
             exchangeName = currencyPairWithExchangePair.exchangePair.firstExchange.exchangeName,
             currency = currencyPairWithExchangePair.currencyPair.counter
         )
-        val firstExchangeBaseCurrencyDepositEnabled = firstExchangeBaseCurrencyMetadata.depositEnabled
-        val firstExchangeCounterCurrencyDepositEnabled = firstExchangeCounterCurrencyMetadata.depositEnabled
-        val firstExchangeBaseCurrencyWithdrawalEnabled = firstExchangeBaseCurrencyMetadata.withdrawalEnabled
-        val firstExchangeCounterCurrencyWithdrawalEnabled = firstExchangeCounterCurrencyMetadata.withdrawalEnabled
+        val firstExchangeBaseCurrencyDepositEnabled = firstExchangeBaseCurrencyMetadata?.depositEnabled
+        val firstExchangeCounterCurrencyDepositEnabled = firstExchangeCounterCurrencyMetadata?.depositEnabled
+        val firstExchangeBaseCurrencyWithdrawalEnabled = firstExchangeBaseCurrencyMetadata?.withdrawalEnabled
+        val firstExchangeCounterCurrencyWithdrawalEnabled = firstExchangeCounterCurrencyMetadata?.withdrawalEnabled
 
-        val secondExchangeBaseCurrencyMetadata = metadataService.getMetadata(
+        val secondExchangeBaseCurrencyMetadata = metadataService.getCurrencyMetadata(
             exchangeName = currencyPairWithExchangePair.exchangePair.secondExchange.exchangeName,
             currency = currencyPairWithExchangePair.currencyPair.base
         )
-        val secondExchangeCounterCurrencyMetadata = metadataService.getMetadata(
+        val secondExchangeCounterCurrencyMetadata = metadataService.getCurrencyMetadata(
             exchangeName = currencyPairWithExchangePair.exchangePair.secondExchange.exchangeName,
             currency = currencyPairWithExchangePair.currencyPair.counter
         )
-        val secondExchangeBaseCurrencyDepositEnabled = secondExchangeBaseCurrencyMetadata.depositEnabled
-        val secondExchangeCounterCurrencyDepositEnabled = secondExchangeCounterCurrencyMetadata.depositEnabled
-        val secondExchangeBaseCurrencyWithdrawalEnabled = secondExchangeBaseCurrencyMetadata.withdrawalEnabled
-        val secondExchangeCounterCurrencyWithdrawalEnabled = secondExchangeCounterCurrencyMetadata.withdrawalEnabled
+        val secondExchangeBaseCurrencyDepositEnabled = secondExchangeBaseCurrencyMetadata?.depositEnabled
+        val secondExchangeCounterCurrencyDepositEnabled = secondExchangeCounterCurrencyMetadata?.depositEnabled
+        val secondExchangeBaseCurrencyWithdrawalEnabled = secondExchangeBaseCurrencyMetadata?.withdrawalEnabled
+        val secondExchangeCounterCurrencyWithdrawalEnabled = secondExchangeCounterCurrencyMetadata?.withdrawalEnabled
 
         return (firstExchangeBaseCurrencyDepositEnabled != null && !firstExchangeBaseCurrencyDepositEnabled) ||
                 (firstExchangeCounterCurrencyDepositEnabled != null && !firstExchangeCounterCurrencyDepositEnabled) ||
@@ -80,9 +80,12 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
     ) {
         val transactionFeeAmountFunction = object : TransactionFeeAmountFunction {
             override fun apply(exchange: SupportedExchange, currencyPair: CurrencyPair, amount: BigDecimal): BigDecimal? {
-                val takerFeeRange = metadataService.getMetadata(exchangeName = exchange.exchangeName, currencyPair = currencyPair)
-                    .transactionFeeRanges
-                    .takerFeeRange(amount)
+                val takerFeeRange = metadataService.getCurrencyPairMetadata(
+                    exchangeName = exchange.exchangeName,
+                    currencyPair = currencyPair
+                )
+                    ?.transactionFeeRanges
+                    ?.takerFeeRange(amount)
                 return when {
                     takerFeeRange?.feeRatio != null -> amount.multiply(takerFeeRange.feeRatio)
                     takerFeeRange?.feeAmount != null -> takerFeeRange.feeAmount
@@ -92,8 +95,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         }
         val withdrawalFeeAmountFunction = object : WithdrawalFeeAmountFunction {
             override fun apply(exchange: SupportedExchange, currency: String, amount: BigDecimal): BigDecimal? {
-                val currencyMetadata = metadataService.getMetadata(exchangeName = exchange.exchangeName, currency = currency)
+                val currencyMetadata = metadataService.getCurrencyMetadata(exchangeName = exchange.exchangeName, currency = currency)
                 return when {
+                    currencyMetadata == null -> null
                     currencyMetadata.minWithdrawalAmount?.compareTo(amount) == 1 -> null
                     else -> currencyMetadata.withdrawalFeeAmount
                 }

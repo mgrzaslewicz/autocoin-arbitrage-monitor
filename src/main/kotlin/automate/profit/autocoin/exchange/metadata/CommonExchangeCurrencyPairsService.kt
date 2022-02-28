@@ -16,7 +16,7 @@ class CommonExchangeCurrencyPairsService(
         private val exchangeMetadataService: ExchangeMetadataService,
         private val exchanges: List<SupportedExchange>,
         private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
-        private val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
+        private val staticTwoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
 ) {
 
     companion object : KLogging()
@@ -25,10 +25,10 @@ class CommonExchangeCurrencyPairsService(
         private set
 
     fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
-        if (twoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
-            logger.warn { "Using hardcoded currency pairs for monitoring profits" }
+        if (staticTwoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
+            logger.warn { "Using static list of currency pairs for monitoring profits provided at runtime" }
             return CommonExchangeCurrencyPairs(
-                    currencyPairsToExchangePairs = twoLegArbitrageCurrencyAndExchangePairs,
+                    currencyPairsToExchangePairs = staticTwoLegArbitrageCurrencyAndExchangePairs,
                     exchangePairsToCurrencyPairs = emptyMap()
             )
         }
