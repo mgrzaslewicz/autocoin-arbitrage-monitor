@@ -60,19 +60,22 @@ class PeriodicalLogger(
             logLevelContextMap.forEach { logLevelContext ->
                 logLevelContext.value.occurrenceInstanceMap.forEach {
                     val howManyTimesOccurred = logLevelContext.value.occurrenceCountMap.getValue(it.key)
-                    val firstOccurrenceMillis = logLevelContext.value.firstOccurrenceMillisMap.getValue(it.key)
-                    val lastOccurrenceMillis = logLevelContext.value.lastOccurrenceMillisMap.getValue(it.key)
-                    when (logLevelContext.key) {
-                        LogLevel.INFO -> log(
-                            logLevelContext.key,
-                            it.value.throwable,
-                            "[Multiple info occurrence: $howManyTimesOccurred times between $firstOccurrenceMillis and $lastOccurrenceMillis ($flushLogsInterval) ]\n${it.value.message}"
-                        )
-                        LogLevel.ERROR -> log(
-                            logLevelContext.key,
-                            it.value.throwable,
-                            "[Multiple error occurrence: $howManyTimesOccurred times between $firstOccurrenceMillis and $lastOccurrenceMillis ($flushLogsInterval) ]\n${it.value.message}"
-                        )
+                    val theOnlyOccurrenceHasAlreadyBeenLogged = howManyTimesOccurred == 1L
+                    if (!theOnlyOccurrenceHasAlreadyBeenLogged) {
+                        val firstOccurrenceMillis = logLevelContext.value.firstOccurrenceMillisMap.getValue(it.key)
+                        val lastOccurrenceMillis = logLevelContext.value.lastOccurrenceMillisMap.getValue(it.key)
+                        when (logLevelContext.key) {
+                            LogLevel.INFO -> log(
+                                logLevelContext.key,
+                                it.value.throwable,
+                                "[Multiple info occurrence: $howManyTimesOccurred times between $firstOccurrenceMillis and $lastOccurrenceMillis ($flushLogsInterval) ]\n${it.value.message}"
+                            )
+                            LogLevel.ERROR -> log(
+                                logLevelContext.key,
+                                it.value.throwable,
+                                "[Multiple error occurrence: $howManyTimesOccurred times between $firstOccurrenceMillis and $lastOccurrenceMillis ($flushLogsInterval) ]\n${it.value.message}"
+                            )
+                        }
                     }
                 }
                 logLevelContext.value.occurrenceCountMap.clear()
@@ -110,6 +113,7 @@ class PeriodicalLogger(
         frequentLog(LogLevel.INFO, null, messageFunction)
     }
 
+    // TODO first occurrence could be logged from the same thread
     private fun frequentLog(logLevel: LogLevel, t: Throwable?, messageFunction: () -> String) {
         loggerExecutorService.submit {
             lock.lock()
@@ -119,8 +123,8 @@ class PeriodicalLogger(
                 val currentTimeMillis = currentTimeMillisFunction()
 
                 val logLevelContext = logLevelContextMap[logLevel]!!
-                if (!logLevelContext.occurrenceCountMap.containsKey(key)) {
-
+                val shouldLogFirstOccurrence = !logLevelContext.occurrenceCountMap.containsKey(key)
+                if (shouldLogFirstOccurrence) {
                     val message = messageFunction()
                     log(logLevel, t, message)
                     logLevelContext.occurrenceCountMap[key] = 1L
