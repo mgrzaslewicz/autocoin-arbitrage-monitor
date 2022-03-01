@@ -4,7 +4,6 @@ import automate.profit.autocoin.metrics.MetricsService
 import io.undertow.Undertow
 import io.undertow.UndertowOptions
 import io.undertow.server.HttpHandler
-import io.undertow.server.HttpServerExchange
 import io.undertow.server.RoutingHandler
 import io.undertow.util.HttpString.tryFromString
 
@@ -47,7 +46,7 @@ class ServerBuilder(
 
     private fun HttpHandler.wrapWithOptionsHandler(): HttpHandler {
         return HttpHandler {
-            if (it.requestMethod.toString().toUpperCase() == "OPTIONS") {
+            if (it.requestMethod.toString().uppercase() == "OPTIONS") {
                 it.statusCode = 204 // no content
                 it.responseSender.send("")
             } else {
@@ -56,25 +55,17 @@ class ServerBuilder(
         }
     }
 
-    private fun HttpServerExchange.userMetricsTag(): Map<String, String> {
-        val userName = this.securityContext?.authenticatedAccount?.principal?.name
-        return if (userName != null) {
-            mapOf("user" to userName)
-        } else {
-            emptyMap()
-        }
-    }
-
     private fun HttpHandler.wrapWithRequestMetricsHandler(): HttpHandler {
         return HttpHandler {
+            this.handleRequest(it)
             metricsService.recordRequest(
                 method = it.requestMethod.toString(),
                 requestURI = it.requestPath,
                 status = it.statusCode,
                 executionTime = System.currentTimeMillis() - it.requestStartTime,
-                additionalTags = it.userMetricsTag(),
+                // TODO add userName providing proper http handler chain, with current implementation it has null authenticatedAccount @see branch user-in-metrics
+                additionalTags = emptyMap(),
             )
-            this.handleRequest(it)
         }
     }
 
