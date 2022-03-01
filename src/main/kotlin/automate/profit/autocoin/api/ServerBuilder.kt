@@ -4,6 +4,7 @@ import automate.profit.autocoin.metrics.MetricsService
 import io.undertow.Undertow
 import io.undertow.UndertowOptions
 import io.undertow.server.HttpHandler
+import io.undertow.server.HttpServerExchange
 import io.undertow.server.RoutingHandler
 import io.undertow.util.HttpString.tryFromString
 
@@ -16,7 +17,7 @@ class ServerBuilder(
         val routingHandler = RoutingHandler()
         apiControllers.forEach {
             it.apiHandlers().forEach { handler ->
-                routingHandler.add(handler.method, handler.urlTemplate, handler.httpHandler)
+                routingHandler.add(handler.method, handler.urlTemplate, handler.httpHandler.wrapWithRequestMetricsHandler())
             }
         }
         return Undertow.builder()
@@ -25,7 +26,6 @@ class ServerBuilder(
                 routingHandler
                     .wrapWithOptionsHandler()
                     .wrapWithCorsHeadersHandler()
-                    .wrapWithRequestMetricsHandler()
             )
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, true)
             .build()
@@ -55,6 +55,16 @@ class ServerBuilder(
         }
     }
 
+    private fun HttpServerExchange.userMetricsTag(): Map<String, String> {
+        val userName = this.securityContext?.authenticatedAccount?.principal?.name
+        // TODO setup properly handlers chain so authenticatedAccount is not null and get userID, not email
+        return if (userName != null) {
+            mapOf("user" to userName)
+        } else {
+            emptyMap()
+        }
+    }
+
     private fun HttpHandler.wrapWithRequestMetricsHandler(): HttpHandler {
         return HttpHandler {
             this.handleRequest(it)
@@ -63,8 +73,7 @@ class ServerBuilder(
                 requestURI = it.requestPath,
                 status = it.statusCode,
                 executionTime = System.currentTimeMillis() - it.requestStartTime,
-                // TODO add userName providing proper http handler chain, with current implementation it has null authenticatedAccount @see branch user-in-metrics
-                additionalTags = emptyMap(),
+                additionalTags = it.userMetricsTag(),
             )
         }
     }
