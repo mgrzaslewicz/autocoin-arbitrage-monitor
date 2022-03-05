@@ -1,5 +1,6 @@
 package automate.profit.autocoin.config
 
+import autocoin.metrics.JsonlFileStatsDClient
 import automate.profit.autocoin.api.ArbitrageProfitController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.CachingPriceService
@@ -23,12 +24,12 @@ import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.scheduled.HealthMetricsScheduler
 import automate.profit.autocoin.scheduled.TwoLegOrderBookArbitrageProfitCacheScheduler
-import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.sse.EventSources
 import java.net.SocketAddress
+import java.nio.file.Path
 import java.time.Duration
 import java.util.concurrent.Executors
 
@@ -58,8 +59,11 @@ class AppContext(private val appConfig: AppConfig) {
     val statsdClient = if (appConfig.useMetrics) {
         NonBlockingStatsDClient(appConfig.serviceName, appConfig.telegrafHostname, 8125)
     } else {
-        logger.warn { "Using NoOpStatsDClient" }
-        NoOpStatsDClient()
+        val metricsFolderPath = Path.of(appConfig.metricsFolder)
+        metricsFolderPath.toFile().mkdirs()
+        val metricsFile = metricsFolderPath.resolve("metrics.jsonl")
+        logger.warn { "Using JsonlFileStatsDClient, telegraf.hostname not provided. Writing metrics to ${metricsFile.toAbsolutePath()}" }
+        JsonlFileStatsDClient(metricsFile.toFile())
     }
     val metricsService: MetricsService = MetricsService(statsdClient)
 
