@@ -2,7 +2,6 @@ package automate.profit.autocoin.scheduled
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitOpportunityCache
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
@@ -35,44 +34,42 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
 
     private fun sendMetrics() {
         try {
-            TwoLegArbitrageRelativeProfitGroup.values().forEach { profitGroup ->
-                val exchangePairsOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount(profitGroup)
-                sendExchangePairOpportunityCounts(profitGroup, exchangePairsOpportunityCount)
-                sendExchangeOpportunityCounts(profitGroup, exchangePairsOpportunityCount)
-                sendExchangeNoOpportunityFoundCounts(profitGroup)
-            }
+            val exchangePairsOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
+            sendExchangePairOpportunityCounts(exchangePairsOpportunityCount)
+            sendExchangeOpportunityCounts(exchangePairsOpportunityCount)
+            sendExchangeNoOpportunityFoundCounts()
         } catch (e: Exception) {
             logger.error(e) { "Could not send metrics" }
         }
     }
 
-    private fun sendExchangeNoOpportunityFoundCounts(profitGroup: TwoLegArbitrageRelativeProfitGroup) {
-        val noOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getNoOpportunityCount(profitGroup)
+    private fun sendExchangeNoOpportunityFoundCounts() {
+        val noOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getNoOpportunityCount()
         val exchangeNoOpportunityCount = SupportedExchange.values().associateWith { 0L }.toMutableMap()
         noOpportunityCount.forEach {
             exchangeNoOpportunityCount[it.key.exchangePair.firstExchange] = exchangeNoOpportunityCount[it.key.exchangePair.firstExchange]!! + it.value
             exchangeNoOpportunityCount[it.key.exchangePair.secondExchange] = exchangeNoOpportunityCount[it.key.exchangePair.secondExchange]!! + it.value
         }
         exchangeNoOpportunityCount.forEach {
-            metricsService.recordExchangeNoOpportunityFoundCount(profitGroup, it.key, it.value)
-            twoLegOrderBookArbitrageProfitOpportunityCache.clearNoOpportunityCount(profitGroup)
+            metricsService.recordExchangeNoOpportunityFoundCount(it.key, it.value)
+            twoLegOrderBookArbitrageProfitOpportunityCache.clearNoOpportunityCount()
         }
     }
 
-    private fun sendExchangeOpportunityCounts(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchangePairsOpportunityCount: List<ExchangePairWithOpportunityCount>) {
+    private fun sendExchangeOpportunityCounts(exchangePairsOpportunityCount: List<ExchangePairWithOpportunityCount>) {
         val exchangeOpportunityCount = SupportedExchange.values().associateWith { 0L }.toMutableMap()
         exchangePairsOpportunityCount.forEach {
             exchangeOpportunityCount[it.exchangePair.firstExchange] = exchangeOpportunityCount[it.exchangePair.firstExchange]!! + 1
             exchangeOpportunityCount[it.exchangePair.secondExchange] = exchangeOpportunityCount[it.exchangePair.secondExchange]!! + 1
         }
         exchangeOpportunityCount.filter { it.value > 0 }.forEach {
-            metricsService.recordExchangeOpportunityCount(profitGroup, it.key, it.value)
+            metricsService.recordExchangeOpportunityCount(it.key, it.value)
         }
     }
 
-    private fun sendExchangePairOpportunityCounts(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchangePairsOpportunityCount: List<ExchangePairWithOpportunityCount>) {
+    private fun sendExchangePairOpportunityCounts(exchangePairsOpportunityCount: List<ExchangePairWithOpportunityCount>) {
         exchangePairsOpportunityCount.forEach {
-            metricsService.recordExchangePairOpportunityCount(profitGroup, it)
+            metricsService.recordExchangePairOpportunityCount(it)
         }
     }
 

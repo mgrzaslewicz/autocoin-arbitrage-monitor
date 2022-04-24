@@ -5,8 +5,8 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 
+// TODO change it to ExchangePairWithOpportunityStatistics
 data class ExchangePairWithOpportunityCount(
     val exchangePair: ExchangePair,
     val opportunityCount: Long,
@@ -16,65 +16,67 @@ class TwoLegOrderBookArbitrageProfitOpportunityCache(
     private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
 ) {
-    private val profitGroups: Map<TwoLegArbitrageRelativeProfitGroup, ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>> =
-        TwoLegArbitrageRelativeProfitGroup
-            .values()
-            .associateWith { ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>() }
-    private val noOpportunityCount: Map<TwoLegArbitrageRelativeProfitGroup, MutableMap<CurrencyPairWithExchangePair, Long>> =
-        TwoLegArbitrageRelativeProfitGroup
-            .values()
-            .associateWith { ConcurrentHashMap<CurrencyPairWithExchangePair, Long>() }
+    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>()
+    private val noOpportunityCount: MutableMap<CurrencyPairWithExchangePair, Long> =
+        ConcurrentHashMap<CurrencyPairWithExchangePair, Long>()
 
     companion object : KLogging()
 
-    fun setProfitOpportunity(profitGroup: TwoLegArbitrageRelativeProfitGroup, profit: TwoLegOrderBookArbitrageProfit) {
+    fun setProfitOpportunity(profit: TwoLegOrderBookArbitrageProfit) {
         logger.debug { "Setting profit $profit" }
-        synchronized(profitGroups[profitGroup]!!) {
-            profitGroups[profitGroup]!![profit.currencyPairWithExchangePair] = profit
+        synchronized(profits) {
+            profits[profit.currencyPairWithExchangePair] = profit
         }
     }
 
-    fun removeProfitOpportunity(profitGroup: TwoLegArbitrageRelativeProfitGroup, currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
-        synchronized(profitGroups[profitGroup]!!) {
+    fun removeProfitOpportunity(currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
+        synchronized(profits) {
             if (logger.isDebugEnabled) {
-                if (profitGroups[profitGroup]!!.contains(currencyPairWithExchangePair)) {
+                if (profits.contains(currencyPairWithExchangePair)) {
                     logger.debug("Removing profit for key $currencyPairWithExchangePair")
                 }
             }
-            profitGroups[profitGroup]!!.remove(currencyPairWithExchangePair)
+            profits.remove(currencyPairWithExchangePair)
         }
-        countNoOpportunityFound(profitGroup, currencyPairWithExchangePair)
+        countNoOpportunityFound(currencyPairWithExchangePair)
     }
 
-    private fun countNoOpportunityFound(profitGroup: TwoLegArbitrageRelativeProfitGroup, currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
-        synchronized(noOpportunityCount[profitGroup]!!) {
-            if (!noOpportunityCount[profitGroup]!!.containsKey(currencyPairWithExchangePair)) {
-                noOpportunityCount[profitGroup]!![currencyPairWithExchangePair] = 0L
+    private fun countNoOpportunityFound(currencyPairWithExchangePair: CurrencyPairWithExchangePair) {
+        synchronized(noOpportunityCount) {
+            if (!noOpportunityCount.containsKey(currencyPairWithExchangePair)) {
+                noOpportunityCount[currencyPairWithExchangePair] = 0L
             }
-            noOpportunityCount[profitGroup]!![currencyPairWithExchangePair] = noOpportunityCount[profitGroup]!![currencyPairWithExchangePair]!! + 1
+            noOpportunityCount[currencyPairWithExchangePair] = noOpportunityCount[currencyPairWithExchangePair]!! + 1
         }
     }
 
-    fun getProfit(profitGroup: TwoLegArbitrageRelativeProfitGroup, currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit? {
-        return profitGroups[profitGroup]!![currencyPairWithExchangePair]
+    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit? {
+        return profits[currencyPairWithExchangePair]
     }
 
-    fun getNoOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup): Map<CurrencyPairWithExchangePair, Long> {
-        synchronized(noOpportunityCount[profitGroup]!!) {
-            return Collections.unmodifiableMap(noOpportunityCount[profitGroup]!!)
+    fun getAllProfits(): Sequence<TwoLegOrderBookArbitrageProfit> {
+        return getCurrencyPairWithExchangePairs()
+            .asSequence()
+            .mapNotNull { currencyPairWithExchangePair ->
+                getProfit(currencyPairWithExchangePair)
+            }
+    }
+
+    fun getNoOpportunityCount(): Map<CurrencyPairWithExchangePair, Long> {
+        synchronized(noOpportunityCount) {
+            return Collections.unmodifiableMap(noOpportunityCount)
         }
     }
 
-    fun clearNoOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup) {
-        synchronized(noOpportunityCount[profitGroup]!!) {
-            return noOpportunityCount[profitGroup]!!.clear()
+    fun clearNoOpportunityCount() {
+        synchronized(noOpportunityCount) {
+            return noOpportunityCount.clear()
         }
     }
 
-    fun getCurrencyPairWithExchangePairs(profitGroup: TwoLegArbitrageRelativeProfitGroup) = profitGroups[profitGroup]!!.keys.toList()
+    fun getCurrencyPairWithExchangePairs() = profits.keys.toList()
 
-    fun getExchangePairsOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup): List<ExchangePairWithOpportunityCount> {
-        val profits = profitGroups[profitGroup]!!
+    fun getExchangePairsOpportunityCount(): List<ExchangePairWithOpportunityCount> {
         val result = HashMap<ExchangePair, Long>()
         synchronized(profits) {
             profits.forEach {
@@ -102,16 +104,13 @@ class TwoLegOrderBookArbitrageProfitOpportunityCache(
 
     fun removeTooOldProfits() {
         val currentTimeMs = currentTimeMillisFunction()
-        profitGroups.forEach { profitGroupEntry ->
-            getCurrencyPairWithExchangePairs(profitGroupEntry.key).forEach {
-                synchronized(profitGroupEntry.value) {
-                    if (profitGroupEntry.value.containsKey(it)) {
-                        if (currentTimeMs - profitGroupEntry.value[it]!!.calculatedAtMillis > ageOfOldestTwoLegArbitrageProfitToKeepMs) {
-                            profitGroupEntry.value.remove(it)
-                        }
+        getCurrencyPairWithExchangePairs().forEach {
+            synchronized(profits) {
+                if (profits.containsKey(it)) {
+                    if (currentTimeMs - profits[it]!!.calculatedAtMillis > ageOfOldestTwoLegArbitrageProfitToKeepMs) {
+                        profits.remove(it)
                     }
                 }
-
             }
         }
     }

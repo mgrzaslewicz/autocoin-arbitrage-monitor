@@ -63,9 +63,9 @@ class TwoLegOrderBookArbitrageMonitor(
             val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
             if (profit == null) {
                 logger.debug { "No profit found for $currencyPairWithExchangePair" }
-                profitCache.removeProfitOpportunity(profitCalculator.profitGroup, currencyPairWithExchangePair)
+                profitCache.removeProfitOpportunity(currencyPairWithExchangePair)
             } else {
-                profitCache.setProfitOpportunity(profitCalculator.profitGroup, profit)
+                profitCache.setProfitOpportunity(profit)
             }
         }
     }

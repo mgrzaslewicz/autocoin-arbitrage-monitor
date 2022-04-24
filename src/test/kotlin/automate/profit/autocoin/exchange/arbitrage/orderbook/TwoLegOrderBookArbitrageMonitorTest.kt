@@ -3,7 +3,6 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
@@ -32,7 +31,6 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val profit = mock<TwoLegOrderBookArbitrageProfit>()
         val profitCalculator = mock<TwoLegOrderBookArbitrageProfitCalculator>().apply {
             whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
-            whenever(this.profitGroup).thenReturn(INACCURATE_NOT_USING_METADATA)
         }
 
         val twoLegArbitrageMonitor = TwoLegOrderBookArbitrageMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock())
@@ -45,7 +43,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
         orderBookListeners.second.onOrderBook(secondExchange, currencyPair, secondOrderBook)
         tickerListeners.second.onTicker(secondExchange, currencyPair, tickerPair.second)
         // then
-        verify(profitCache).setProfitOpportunity(INACCURATE_NOT_USING_METADATA, profit)
+        verify(profitCache).setProfitOpportunity(profit)
     }
 
 }
