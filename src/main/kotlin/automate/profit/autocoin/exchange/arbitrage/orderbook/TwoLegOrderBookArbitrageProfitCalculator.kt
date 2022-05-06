@@ -13,7 +13,10 @@ import java.math.BigDecimal
 data class TwoLegArbitrageRelativeProfit(
     val relativeProfit: BigDecimal,
     val baseCurrencyAmountBeforeTransfer: BigDecimal,
+    val transactionFeeAmountBeforeTransfer: BigDecimal?,
+    val transferFeeAmount: BigDecimal?,
     val baseCurrencyAmountAfterTransfer: BigDecimal,
+    val transactionFeeAmountAfterTransfer: BigDecimal?,
 )
 
 interface TwoLegArbitrageRelativeProfitCalculator {
@@ -85,7 +88,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
 
                             relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
-                            usdDepthUpTo = usdDepthTo
+                            usdDepthUpTo = usdDepthTo,
+
+                            transactionFeeAmountBeforeTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountBeforeTransfer,
+                            transferFeeAmount = profitBuyAtSecondSellAtFirst.transferFeeAmount,
+                            transactionFeeAmountAfterTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountAfterTransfer,
                         )
                     } else {
                         val profitBuyAtFirstSellAtSecond =
@@ -101,7 +108,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                                 baseCurrencyAmountAtBuyExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountAfterTransfer,
 
                                 relativeProfit = profitBuyAtFirstSellAtSecond.relativeProfit,
-                                usdDepthUpTo = usdDepthTo
+                                usdDepthUpTo = usdDepthTo,
+
+                                transactionFeeAmountBeforeTransfer = profitBuyAtFirstSellAtSecond.transactionFeeAmountBeforeTransfer,
+                                transferFeeAmount = profitBuyAtFirstSellAtSecond.transferFeeAmount,
+                                transactionFeeAmountAfterTransfer = profitBuyAtFirstSellAtSecond.transactionFeeAmountAfterTransfer,
                             )
                         } else {
                             null
