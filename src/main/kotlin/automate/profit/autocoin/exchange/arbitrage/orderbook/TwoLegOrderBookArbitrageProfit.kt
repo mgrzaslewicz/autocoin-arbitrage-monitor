@@ -12,6 +12,7 @@ data class TwoLegOrderBookArbitrageOpportunity(
         val buyAtExchange: SupportedExchange,
         val baseCurrencyAmountAtBuyExchange: BigDecimal,
         val relativeProfit: BigDecimal,
+        val profitUsd: BigDecimal,
         val usdDepthUpTo: BigDecimal,
         val transactionFeeAmountBeforeTransfer: BigDecimal?,
         val transferFeeAmount: BigDecimal?,

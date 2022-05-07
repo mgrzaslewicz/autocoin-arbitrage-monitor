@@ -120,6 +120,7 @@ class ArbitrageProfitControllerTest {
                                     buyAmount = "18",
                                     buyAtExchange = BITTREX,
                                     relativeProfitPercent = "0.015",
+                                    profitUsd = "5.2",
                                     usdDepthUpTo = "15000",
                                     areDetailsHidden = false,
                                     fees = TwoLegOrderBookArbitrageOpportunityFeesDto(
@@ -169,6 +170,7 @@ class ArbitrageProfitControllerTest {
                     assertThat(arbitrageProfitHistogram.first()!!.buyAmount).isEqualTo("18")
                     assertThat(arbitrageProfitHistogram.first()!!.buyAtExchange).isEqualTo("BITTREX")
                     assertThat(arbitrageProfitHistogram.first()!!.relativeProfitPercent).isEqualTo("0.015")
+                    assertThat(arbitrageProfitHistogram.first()!!.profitUsd).isEqualTo("5.5")
                     assertThat(arbitrageProfitHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
                     assertThat(arbitrageProfitHistogram.first()!!.areDetailsHidden).isFalse
                     assertThat(arbitrageProfitHistogram.first()!!.fees.buyFee).isEqualTo("0.5")

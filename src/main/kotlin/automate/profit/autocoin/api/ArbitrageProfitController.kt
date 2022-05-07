@@ -31,6 +31,7 @@ data class TwoLegOrderBookArbitrageOpportunityDto(
     val buyAmount: String,
     val buyAtExchange: SupportedExchange,
     val relativeProfitPercent: String,
+    val profitUsd: String,
     val areDetailsHidden: Boolean,
     val usdDepthUpTo: String,
     val fees: TwoLegOrderBookArbitrageOpportunityFeesDto,
@@ -75,6 +76,7 @@ class ClientTwoLegArbitrageProfits(private val freePlanRelativeProfitCutOff: Big
         sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
         buyAtExchange = buyAtExchange,
         relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
+        profitUsd = profitUsd.setScale(2, HALF_EVEN).toPlainString(),
         areDetailsHidden = shouldHideOpportunityDetails,
         usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString(),
         fees = TwoLegOrderBookArbitrageOpportunityFeesDto(
