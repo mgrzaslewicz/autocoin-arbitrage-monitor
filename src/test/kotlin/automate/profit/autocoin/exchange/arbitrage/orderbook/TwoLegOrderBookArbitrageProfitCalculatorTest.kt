@@ -52,10 +52,10 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val tickerPair = TickerPair(first = exchangeATicker, second = exchangeBTicker)
 
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
-    private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
         priceService = pricesService,
         orderBookUsdAmountThresholds = orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TestTwoLegArbitrageRelativeProfitCalculator(),
+        relativeProfitCalculator = TestTwoLegArbitrageProfitCalculator(),
         metricsService = mock(),
     )
     private val buyOrderExchangeA = OrderBookExchangeOrder(
@@ -75,7 +75,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     @Test
     fun shouldFindNoProfitWhenOrderTooOld() {
         // given
-        val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+        val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(true) },
@@ -93,7 +93,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     @Test
     fun shouldFindNoProfitWhenTickerTooOld() {
         // given
-        val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
+        val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(false) },
@@ -162,15 +162,15 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             assertThat(currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
             assertThat(usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
             assertThat(usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
-            assertThat(orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("7200.00000000"))
-            assertThat(orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeA)
-            assertThat(orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("7150.00000000"))
-            assertThat(orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
-            assertThat(orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00699301"))
-            assertThat(orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-            assertThat(orderBookArbitrageProfitHistogram[1]).isNotNull
-            assertThat(orderBookArbitrageProfitHistogram[1]!!.usdDepthUpTo).isEqualTo(BigDecimal("500.0"))
+            assertThat(buyAtExchange).isEqualTo(exchangeB)
+            assertThat(sellAtExchange).isEqualTo(exchangeA)
+            assertThat(profitOpportunityHistogram).hasSize(orderBookUsdAmountThresholds.size)
+            assertThat(profitOpportunityHistogram[0]?.sellPrice).isEqualTo(BigDecimal("7200.00000000"))
+            assertThat(profitOpportunityHistogram[0]?.buyPrice).isEqualTo(BigDecimal("7150.00000000"))
+            assertThat(profitOpportunityHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00699301"))
+            assertThat(profitOpportunityHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
+            assertThat(profitOpportunityHistogram[1]).isNotNull
+            assertThat(profitOpportunityHistogram[1]!!.usdDepthUpTo).isEqualTo(BigDecimal("500.0"))
         }
     }
 

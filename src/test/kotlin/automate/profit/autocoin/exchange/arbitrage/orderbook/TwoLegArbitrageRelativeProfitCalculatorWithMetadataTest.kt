@@ -28,7 +28,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     @Test
     fun shouldCalculateProfitWhenBuyAtFirstExchangeWhenNoFeesAvailable() {
         // given
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
+        val tested = TwoLegArbitrageProfitCalculatorWithMetadata(
             firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
@@ -120,7 +120,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 )
             )
         }
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
+        val tested = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
@@ -145,7 +145,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     @Test
     fun shouldCalculateProfitWhenBuyAtSecondExchangeWhenNoFeesAvailable() {
         // given
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
+        val tested = TwoLegArbitrageProfitCalculatorWithMetadata(
             firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
@@ -236,7 +236,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 )
             )
         }
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
+        val tested = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(

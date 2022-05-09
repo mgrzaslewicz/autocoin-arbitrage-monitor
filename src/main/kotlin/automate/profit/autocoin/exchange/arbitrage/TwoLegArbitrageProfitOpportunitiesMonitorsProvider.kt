@@ -1,22 +1,22 @@
 package automate.profit.autocoin.exchange.arbitrage
 
 import automate.profit.autocoin.config.ExchangePair
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageMonitor
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitOpportunityCache
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageOpportunitiesMonitor
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.metrics.MetricsService
 
-class TwoLegOrderBookArbitrageMonitorProvider(
-    private val profitCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
-    private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
+class TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
+    private val profitCache: TwoLegArbitrageProfitOpportunityCache,
+    private val profitCalculator: TwoLegArbitrageProfitOpportunityCalculator,
     private val metricsService: MetricsService
 ) {
-    fun getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<TwoLegOrderBookArbitrageMonitor> {
+    fun getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<TwoLegArbitrageOpportunitiesMonitor> {
         return commonCurrencyPairsAtExchanges.flatMap {
             it.value.map { exchangePair ->
-                TwoLegOrderBookArbitrageMonitor(
+                TwoLegArbitrageOpportunitiesMonitor(
                     currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
                     profitCache = profitCache,
                     profitCalculator = profitCalculator,

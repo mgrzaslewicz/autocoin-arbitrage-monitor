@@ -14,10 +14,10 @@ import mu.KLogging
 /**
  * Calculates arbitrage opportunities based on order books
  */
-class TwoLegOrderBookArbitrageMonitor(
+class TwoLegArbitrageOpportunitiesMonitor(
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-    private val profitCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
-    private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
+    private val profitCache: TwoLegArbitrageProfitOpportunityCache,
+    private val profitCalculator: TwoLegArbitrageProfitOpportunityCalculator,
     private val metricsService: MetricsService
 ) {
     private companion object : KLogging()

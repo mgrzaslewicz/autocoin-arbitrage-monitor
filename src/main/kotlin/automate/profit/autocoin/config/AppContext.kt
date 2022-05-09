@@ -2,11 +2,11 @@ package automate.profit.autocoin.config
 
 import autocoin.metrics.JsonlFileStatsDClient
 import automate.profit.autocoin.api.ArbitrageProfitController
-import automate.profit.autocoin.api.ClientTwoLegArbitrageProfits
+import automate.profit.autocoin.api.ClientTwoLegArbitrageProfitOpportunities
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
-import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.arbitrage.orderbook.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
@@ -86,29 +86,29 @@ class AppContext(private val appConfig: AppConfig) {
         )
     )
 
-    val twoLegOrderBookArbitrageProfitCalculatorWithMetadata = TwoLegOrderBookArbitrageProfitCalculator(
+    val twoLegArbitrageProfitOpportunityCalculatorWithMetadata = TwoLegArbitrageProfitOpportunityCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
+        relativeProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
         metricsService = metricsService,
     )
 
-    val twoLegOrderBookArbitrageProfitOpportunityCache = TwoLegOrderBookArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
+    val twoLegArbitrageProfitOpportunityCache = TwoLegArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
 
     val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
 
     private val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
         ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
-        twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
+        twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         metricsService = metricsService
     )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
     val tickerListenersProvider = TickerListenersProvider()
-    val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
-        profitCache = twoLegOrderBookArbitrageProfitOpportunityCache,
-        profitCalculator = twoLegOrderBookArbitrageProfitCalculatorWithMetadata,
+    val twoLegArbitrageMonitorProvider = TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
+        profitCache = twoLegArbitrageProfitOpportunityCache,
+        profitCalculator = twoLegArbitrageProfitOpportunityCalculatorWithMetadata,
         metricsService = metricsService
     )
 
@@ -150,12 +150,12 @@ class AppContext(private val appConfig: AppConfig) {
 
     val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
-        twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
+        twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         objectMapper = objectMapper,
         oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
-        clientTwoLegArbitrageProfits = ClientTwoLegArbitrageProfits(freePlanRelativeProfitCutOff),
+        clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(freePlanRelativeProfitCutOff),
         freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString()
     )
 
@@ -169,7 +169,7 @@ class AppContext(private val appConfig: AppConfig) {
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
         logCommonCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
 
-        val twoLegArbitrageMonitors = twoLegArbitrageMonitorProvider.getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairs.currencyPairsToExchangePairs)
+        val twoLegArbitrageMonitors = twoLegArbitrageMonitorProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairs.currencyPairsToExchangePairs)
 
         orderBookListenersProvider.prepareOrderBookListeners(twoLegArbitrageMonitors)
         tickerListenersProvider.prepareTickerListeners(twoLegArbitrageMonitors)

@@ -12,17 +12,17 @@ data class ExchangePairWithOpportunityCount(
     val opportunityCount: Long,
 )
 
-class TwoLegOrderBookArbitrageProfitOpportunityCache(
+class TwoLegArbitrageProfitOpportunityCache(
     private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
 ) {
-    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>()
+    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegArbitrageProfitOpportunity>()
     private val noOpportunityCount: MutableMap<CurrencyPairWithExchangePair, Long> =
         ConcurrentHashMap<CurrencyPairWithExchangePair, Long>()
 
     companion object : KLogging()
 
-    fun setProfitOpportunity(profit: TwoLegOrderBookArbitrageProfit) {
+    fun setProfitOpportunity(profit: TwoLegArbitrageProfitOpportunity) {
         logger.debug { "Setting profit $profit" }
         synchronized(profits) {
             profits[profit.currencyPairWithExchangePair] = profit
@@ -50,11 +50,11 @@ class TwoLegOrderBookArbitrageProfitOpportunityCache(
         }
     }
 
-    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit? {
+    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegArbitrageProfitOpportunity? {
         return profits[currencyPairWithExchangePair]
     }
 
-    fun getAllProfits(): Sequence<TwoLegOrderBookArbitrageProfit> {
+    fun getAllProfits(): Sequence<TwoLegArbitrageProfitOpportunity> {
         return getCurrencyPairWithExchangePairs()
             .asSequence()
             .mapNotNull { currencyPairWithExchangePair ->
@@ -94,8 +94,8 @@ class TwoLegOrderBookArbitrageProfitOpportunityCache(
         }
     }
 
-    private fun oneIfHasOpportunity(profit: TwoLegOrderBookArbitrageProfit): Int {
-        return if (profit.orderBookArbitrageProfitHistogram.find { it != null } != null) {
+    private fun oneIfHasOpportunity(profit: TwoLegArbitrageProfitOpportunity): Int {
+        return if (profit.profitOpportunityHistogram.find { it != null } != null) {
             1
         } else {
             0

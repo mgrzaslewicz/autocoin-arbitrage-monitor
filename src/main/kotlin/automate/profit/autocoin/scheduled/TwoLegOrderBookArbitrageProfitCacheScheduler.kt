@@ -2,7 +2,7 @@ package automate.profit.autocoin.scheduled
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitOpportunityCache
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
 import java.util.concurrent.ScheduledExecutorService
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 class TwoLegOrderBookArbitrageProfitCacheScheduler(
     private val scheduledExecutorService: ScheduledExecutorService,
     private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
-    private val twoLegOrderBookArbitrageProfitOpportunityCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
+    private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
     private val metricsService: MetricsService,
 ) {
     private companion object : KLogging()
@@ -26,7 +26,7 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
 
     private fun removeTooOldMetrics() {
         try {
-            twoLegOrderBookArbitrageProfitOpportunityCache.removeTooOldProfits()
+            twoLegArbitrageProfitOpportunityCache.removeTooOldProfits()
         } catch (e: Exception) {
             logger.error(e) { "Could not remove too old profits" }
         }
@@ -34,7 +34,7 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
 
     private fun sendMetrics() {
         try {
-            val exchangePairsOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
+            val exchangePairsOpportunityCount = twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
             sendExchangePairOpportunityCounts(exchangePairsOpportunityCount)
             sendExchangeOpportunityCounts(exchangePairsOpportunityCount)
             sendExchangeNoOpportunityFoundCounts()
@@ -44,7 +44,7 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
     }
 
     private fun sendExchangeNoOpportunityFoundCounts() {
-        val noOpportunityCount = twoLegOrderBookArbitrageProfitOpportunityCache.getNoOpportunityCount()
+        val noOpportunityCount = twoLegArbitrageProfitOpportunityCache.getNoOpportunityCount()
         val exchangeNoOpportunityCount = SupportedExchange.values().associateWith { 0L }.toMutableMap()
         noOpportunityCount.forEach {
             exchangeNoOpportunityCount[it.key.exchangePair.firstExchange] = exchangeNoOpportunityCount[it.key.exchangePair.firstExchange]!! + it.value
@@ -52,7 +52,7 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
         }
         exchangeNoOpportunityCount.forEach {
             metricsService.recordExchangeNoOpportunityFoundCount(it.key, it.value)
-            twoLegOrderBookArbitrageProfitOpportunityCache.clearNoOpportunityCount()
+            twoLegArbitrageProfitOpportunityCache.clearNoOpportunityCount()
         }
     }
 
