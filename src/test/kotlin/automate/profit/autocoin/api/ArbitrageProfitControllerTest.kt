@@ -124,10 +124,10 @@ class ArbitrageProfitControllerTest {
                                     usdDepthUpTo = "15000",
                                     fees = TwoLegArbitrageProfitOpportunityFeesDto(
                                         buyFee = "0.5",
-                                        isBuyFeeEstimated = false,
+                                        isDefaultBuyFeeUsed = false,
                                         withdrawalFee = "0.1",
                                         sellFee = "0.2",
-                                        isSellFeeEstimated = true,
+                                        isDefaultSellFeeUsed = true,
                                     )
                                 )
                             ),
@@ -175,10 +175,10 @@ class ArbitrageProfitControllerTest {
                     assertThat(profitOpportunityHistogram.first()!!.profitUsd).isEqualTo("5.5")
                     assertThat(profitOpportunityHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
                     assertThat(profitOpportunityHistogram.first()!!.fees.buyFee).isEqualTo("0.5")
-                    assertThat(profitOpportunityHistogram.first()!!.fees.isBuyFeeEstimated).isFalse
+                    assertThat(profitOpportunityHistogram.first()!!.fees.isDefaultBuyFeeUsed).isFalse
                     assertThat(profitOpportunityHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.1")
                     assertThat(profitOpportunityHistogram.first()!!.fees.sellFee).isEqualTo("0.2")
-                    assertThat(profitOpportunityHistogram.first()!!.fees.isSellFeeEstimated).isTrue
+                    assertThat(profitOpportunityHistogram.first()!!.fees.isDefaultSellFeeUsed).isTrue
                 }
             }
         }
