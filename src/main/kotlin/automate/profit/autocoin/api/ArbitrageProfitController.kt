@@ -19,8 +19,10 @@ import java.math.RoundingMode.HALF_EVEN
 
 data class TwoLegArbitrageProfitOpportunityFeesDto(
     val buyFee: String?,
+    val isBuyFeeEstimated: Boolean,
     val withdrawalFee: String?,
     val sellFee: String?,
+    val isSellFeeEstimated: Boolean,
 )
 
 data class TwoLegArbitrageProfitOpportunityAtDepthDto(
@@ -56,6 +58,7 @@ data class TwoLegArbitrageMetadataDto(
     val counterCurrenciesMonitored: Set<String>,
     val freePlanProfitPercentCutOff: String,
     val isIncludingProPlanOpportunities: Boolean,
+    val defaultTransactionFeePercent: String,
 )
 
 private fun SecurityContext.authenticatedUserHasRole(roleName: String) = this.authenticatedAccount.roles.contains(roleName)
@@ -76,8 +79,10 @@ class ClientTwoLegArbitrageProfitOpportunities(private val freePlanRelativeProfi
         usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString(),
         fees = TwoLegArbitrageProfitOpportunityFeesDto(
             buyFee = this.transactionFeeAmountBeforeTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
+            isBuyFeeEstimated = this.isDefaultTransactionFeeAmountBeforeTransferUsed,
             withdrawalFee = this.transferFeeAmount?.setScale(8, HALF_EVEN)?.toPlainString(),
             sellFee = this.transactionFeeAmountAfterTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
+            isSellFeeEstimated = this.isDefaultTransactionFeeAmountAfterTransferUsed,
         )
     )
 
@@ -126,6 +131,7 @@ class ArbitrageProfitController(
     private val isUserInProPlanFunction: (httpServerExchange: HttpServerExchange) -> Boolean = { it -> it.securityContext.authenticatedUserHasRole("ROLE_PRO_USER") },
     private val clientTwoLegArbitrageProfitOpportunities: ClientTwoLegArbitrageProfitOpportunities,
     private val freePlanRelativeProfitPercentCutOff: String,
+    private val transactionFeeRatioWhenNotAvailableInMetadata: BigDecimal,
 ) : ApiController {
 
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
@@ -161,7 +167,8 @@ class ArbitrageProfitController(
                 baseCurrenciesMonitored = baseCurrencies,
                 counterCurrenciesMonitored = counterCurrencies,
                 freePlanProfitPercentCutOff = freePlanRelativeProfitPercentCutOff,
-                isIncludingProPlanOpportunities = isUserInProPlan
+                isIncludingProPlanOpportunities = isUserInProPlan,
+                defaultTransactionFeePercent = transactionFeeRatioWhenNotAvailableInMetadata.movePointRight(2).toPlainString(),
             )
             httpServerExchange.responseSender.send(objectMapper.writeValueAsString(response))
         }

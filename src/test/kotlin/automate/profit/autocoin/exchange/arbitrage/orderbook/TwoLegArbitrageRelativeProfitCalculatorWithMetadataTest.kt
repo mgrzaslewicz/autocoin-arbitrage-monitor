@@ -17,8 +17,9 @@ import org.junit.jupiter.params.provider.CsvSource
 import java.math.BigDecimal
 
 class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
-    val nullTransactionFeeAmountFunction = object : TransactionFeeAmountFunction {
-        override fun apply(exchange: SupportedExchange, currencyPair: CurrencyPair, amount: BigDecimal): BigDecimal? = null
+    val mockTransactionFeeAmountFunction = object : TransactionFeeAmountFunction {
+        override fun apply(exchange: SupportedExchange, currencyPair: CurrencyPair, amount: BigDecimal): TransactionFeeAmount =
+            TransactionFeeAmount(feeAmount = BigDecimal.ZERO, isDefaultFeeUsed = true)
     }
 
     val nullWithdrawalFeeAmountFunction = object : WithdrawalFeeAmountFunction {
@@ -29,11 +30,16 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     fun shouldCalculateProfitWhenBuyAtFirstExchangeWhenNoFeesAvailable() {
         // given
         val tested = TwoLegArbitrageProfitCalculatorWithMetadata(
-            firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
+            firstExchangeTransactionFeeAmountFunction = mockTransactionFeeAmountFunction,
+            secondExchangeTransactionFeeAmountFunction = mockTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
             secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply { whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(false) }
+            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply {
+                whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(
+                    false
+                )
+            },
+            transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
         )
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
@@ -120,7 +126,12 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 )
             )
         }
-        val tested = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
+        val tested =
+            TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(
+                metadataService = metadataService,
+                transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
+            )
+                .build()
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
@@ -146,11 +157,16 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     fun shouldCalculateProfitWhenBuyAtSecondExchangeWhenNoFeesAvailable() {
         // given
         val tested = TwoLegArbitrageProfitCalculatorWithMetadata(
-            firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
+            firstExchangeTransactionFeeAmountFunction = mockTransactionFeeAmountFunction,
+            secondExchangeTransactionFeeAmountFunction = mockTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
             secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply { whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(false) }
+            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply {
+                whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(
+                    false
+                )
+            },
+            transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001"),
         )
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
@@ -236,7 +252,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 )
             )
         }
-        val tested = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = metadataService).build()
+        val tested = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(
+            metadataService = metadataService,
+            transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001"),
+        ).build()
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(

@@ -58,7 +58,8 @@ class ArbitrageProfitControllerTest {
             commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
             clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(BigDecimal("0.01")),
             freePlanRelativeProfitPercentCutOff = "0.01",
-            isUserInProPlanFunction = { _ -> false },
+            isUserInProPlanFunction = { false },
+            transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001"),
         )
         val serverBuilder = ServerBuilder(
             appServerPort = getFreePort(),
@@ -82,6 +83,7 @@ class ArbitrageProfitControllerTest {
                     counterCurrenciesMonitored = setOf("DEF"),
                     freePlanProfitPercentCutOff = "0.01",
                     isIncludingProPlanOpportunities = false,
+                    defaultTransactionFeePercent = "0.1",
                 )
             )
         }
@@ -100,7 +102,7 @@ class ArbitrageProfitControllerTest {
             objectMapper = objectMapper,
             oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),
             commonExchangeCurrencyPairsService = mock(),
-            isUserInProPlanFunction = { _ -> true },
+            isUserInProPlanFunction = { true },
             clientTwoLegArbitrageProfitOpportunities = mock<ClientTwoLegArbitrageProfitOpportunities>().apply {
                 whenever(this.process(any(), eq(true))).thenReturn(
                     listOf(
@@ -122,8 +124,10 @@ class ArbitrageProfitControllerTest {
                                     usdDepthUpTo = "15000",
                                     fees = TwoLegArbitrageProfitOpportunityFeesDto(
                                         buyFee = "0.5",
+                                        isBuyFeeEstimated = false,
                                         withdrawalFee = "0.1",
                                         sellFee = "0.2",
+                                        isSellFeeEstimated = true,
                                     )
                                 )
                             ),
@@ -134,6 +138,7 @@ class ArbitrageProfitControllerTest {
                 )
             },
             freePlanRelativeProfitPercentCutOff = "0.03",
+            transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001"),
         )
         val serverBuilder = ServerBuilder(
             appServerPort = getFreePort(),
@@ -170,8 +175,10 @@ class ArbitrageProfitControllerTest {
                     assertThat(profitOpportunityHistogram.first()!!.profitUsd).isEqualTo("5.5")
                     assertThat(profitOpportunityHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
                     assertThat(profitOpportunityHistogram.first()!!.fees.buyFee).isEqualTo("0.5")
+                    assertThat(profitOpportunityHistogram.first()!!.fees.isBuyFeeEstimated).isFalse
                     assertThat(profitOpportunityHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.1")
                     assertThat(profitOpportunityHistogram.first()!!.fees.sellFee).isEqualTo("0.2")
+                    assertThat(profitOpportunityHistogram.first()!!.fees.isSellFeeEstimated).isTrue
                 }
             }
         }

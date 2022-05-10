@@ -18,6 +18,8 @@ data class TwoLegArbitrageProfit(
     val transferFeeAmount: BigDecimal?,
     val baseCurrencyAmountAfterTransfer: BigDecimal,
     val transactionFeeAmountAfterTransfer: BigDecimal?,
+    val isTransactionFeeAmountBeforeTransferEstimated: Boolean,
+    val isTransactionFeeAmountAfterTransferEstimated: Boolean,
 )
 
 interface TwoLegArbitrageProfitCalculator {
@@ -99,6 +101,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                             transactionFeeAmountBeforeTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountBeforeTransfer,
                             transferFeeAmount = profitBuyAtSecondSellAtFirst.transferFeeAmount,
                             transactionFeeAmountAfterTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountAfterTransfer,
+                            isDefaultTransactionFeeAmountBeforeTransferUsed = profitBuyAtSecondSellAtFirst.isTransactionFeeAmountBeforeTransferEstimated,
+                            isDefaultTransactionFeeAmountAfterTransferUsed = profitBuyAtSecondSellAtFirst.isTransactionFeeAmountAfterTransferEstimated,
                         )
                     } else {
                         val profitBuyAtFirstSellAtSecond =
@@ -121,6 +125,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                                 transactionFeeAmountBeforeTransfer = profitBuyAtFirstSellAtSecond.transactionFeeAmountBeforeTransfer,
                                 transferFeeAmount = profitBuyAtFirstSellAtSecond.transferFeeAmount,
                                 transactionFeeAmountAfterTransfer = profitBuyAtFirstSellAtSecond.transactionFeeAmountAfterTransfer,
+                                isDefaultTransactionFeeAmountBeforeTransferUsed = profitBuyAtFirstSellAtSecond.isTransactionFeeAmountBeforeTransferEstimated,
+                                isDefaultTransactionFeeAmountAfterTransferUsed = profitBuyAtFirstSellAtSecond.isTransactionFeeAmountAfterTransferEstimated,
                             )
                         } else {
                             null
