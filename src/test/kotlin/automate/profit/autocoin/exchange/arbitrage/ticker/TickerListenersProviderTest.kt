@@ -4,7 +4,7 @@ import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.exchange.ticker.TickerListeners
 import com.nhaarman.mockitokotlin2.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -34,7 +34,7 @@ class TickerListenersProviderTest {
     @Test
     fun shouldPrepareListeners() {
         // given
-        val tested = TickerListenersProvider()
+        val tested = TickerListeners()
         tested.prepareTickerListeners(twoLegArbitrageProfitOpportunitiesMonitorsProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairsAtExchanges))
         // when-then
         assertThat(tested.getTickerListeners(BIBOX, grinUsdt)).hasSize(4)
