@@ -2,6 +2,8 @@ package automate.profit.autocoin.api
 
 import automate.profit.autocoin.exchange.ExchangeWithCurrencyPair
 import automate.profit.autocoin.exchange.SupportedExchange
+import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.orderbook.OrderBook
@@ -15,14 +17,21 @@ import io.undertow.server.HttpHandler
 import io.undertow.util.Methods.GET
 import java.util.*
 
+data class TwoLegArbitrageOpportunitiesHealthDto(
+    val currentTotalCount: Long,
+    val exchangePairsWithOpportunityCount: List<ExchangePairWithOpportunityCount>,
+)
+
 data class HealthDto(
-    val commonCurrencyPairs: Map<String, Int>,
+    val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesHealthDto,
     val orderBookUpdatesSinceStart: Map<SupportedExchange, Long>,
     val tickerUpdatesSinceStart: Map<SupportedExchange, Long>,
+    val commonCurrencyPairs: Map<String, Int>,
 )
 
 class HealthService(
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
+    private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
 ) {
     private val orderBookUpdatesSinceStart = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java).apply {
         SupportedExchange.values().forEach { put(it, 0L) }
@@ -69,6 +78,7 @@ class HealthService(
     }
 
     fun getHealth(): HealthDto {
+        val twoLegArbitrageExchangePairsOpportunityCount = twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
         val health = HealthDto(
             commonCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.map {
                 "${it.key.firstExchange}/${it.key.secondExchange}" to it.value.size
@@ -77,6 +87,10 @@ class HealthService(
                 .toMap(),
             orderBookUpdatesSinceStart = Collections.unmodifiableMap(orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
             tickerUpdatesSinceStart = Collections.unmodifiableMap(tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
+            twoLegArbitrageOpportunities = TwoLegArbitrageOpportunitiesHealthDto(
+                exchangePairsWithOpportunityCount = twoLegArbitrageExchangePairsOpportunityCount,
+                currentTotalCount = twoLegArbitrageExchangePairsOpportunityCount.sumOf { it.opportunityCount }
+            )
         )
         return health
     }
