@@ -68,7 +68,11 @@ class CommonExchangeCurrencyPairsService(
         runBlocking {
             exchanges.map {
                 launch {
-                    metadataList.add(Pair(it.exchangeName, exchangeMetadataService.getMetadata(it.exchangeName)))
+                        try {
+                            metadataList.add(Pair(it.exchangeName, exchangeMetadataService.getMetadata(it.exchangeName)))
+                        } catch (e: Exception) {
+                            logger.error(e) { "${it.exchangeName} Could not get metadata" }
+                        }
                 }
             }.forEach { it.join() }
         }
