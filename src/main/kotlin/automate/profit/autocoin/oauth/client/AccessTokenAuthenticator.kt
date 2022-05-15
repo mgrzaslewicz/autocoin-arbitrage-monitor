@@ -13,7 +13,7 @@ import okhttp3.Route
  * automatically retried.
  */
 class AccessTokenAuthenticator(
-        private val tokenProvider: AccessTokenProvider
+    private val tokenProvider: AccessTokenProvider
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
@@ -29,20 +29,20 @@ class AccessTokenAuthenticator(
                 // If the token has changed since the request was made, use the new token.
                 if (newToken != token) {
                     return response.request
-                            .newBuilder()
-                            .removeHeader("Authorization")
-                            .addHeader("Authorization", "Bearer $newToken")
-                            .build()
+                        .newBuilder()
+                        .removeHeader("Authorization")
+                        .addHeader("Authorization", "Bearer $newToken")
+                        .build()
                 }
 
                 val updatedToken = tokenProvider.refreshToken() ?: return null
 
                 // Retry the request with the new token.
                 return response.request
-                        .newBuilder()
-                        .removeHeader("Authorization")
-                        .addHeader("Authorization", "Bearer $updatedToken")
-                        .build()
+                    .newBuilder()
+                    .removeHeader("Authorization")
+                    .addHeader("Authorization", "Bearer $updatedToken")
+                    .build()
             }
         }
         return null

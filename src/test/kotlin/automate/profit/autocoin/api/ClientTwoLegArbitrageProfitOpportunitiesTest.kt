@@ -3,8 +3,8 @@ package automate.profit.autocoin.api
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunity
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import org.assertj.core.api.Assertions.assertThat

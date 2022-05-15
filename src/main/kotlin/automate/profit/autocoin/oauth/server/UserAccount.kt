@@ -6,9 +6,9 @@ import java.security.Principal
 fun CheckTokenDto.toUserAccount() = UserAccount(userName, userAccount.userAccountId, authorities)
 
 class UserAccount(
-        private val userName: String,
-        private val userAccountId: String,
-        private val authorities: Set<String>
+    private val userName: String,
+    private val userAccountId: String,
+    private val authorities: Set<String>
 ) : Account {
     override fun getRoles() = authorities
     override fun getPrincipal() = Principal { userAccountId }

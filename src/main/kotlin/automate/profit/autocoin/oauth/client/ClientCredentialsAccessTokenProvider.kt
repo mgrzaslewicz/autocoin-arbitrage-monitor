@@ -9,29 +9,30 @@ import okhttp3.Request
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TokenResponseDto(
-        @JsonProperty("access_token")
-        val accessToken: String
+    @JsonProperty("access_token")
+    val accessToken: String
 )
 
 class ClientCredentialsAccessTokenProvider(
-        private val httpClient: OkHttpClient,
-        private val objectMapper: ObjectMapper,
-        private val oauth2ServerUrl: String,
-        private val oauthClientId: String,
-        private val oauthClientSecret: String
+    private val httpClient: OkHttpClient,
+    private val objectMapper: ObjectMapper,
+    private val oauth2ServerUrl: String,
+    private val oauthClientId: String,
+    private val oauthClientSecret: String
 ) : AccessTokenProvider {
     private var lastToken: TokenResponseDto? = null
 
     private fun requestBodyTemplate() = FormBody.Builder()
-            .add("client_id", oauthClientId)
-            .add("client_secret", oauthClientSecret)
-            .add("scopes", "API")
+        .add("client_id", oauthClientId)
+        .add("client_secret", oauthClientSecret)
+        .add("scopes", "API")
 
     private fun requestToken(): TokenResponseDto {
         val formBody = requestBodyTemplate()
-                .add("grant_type", "client_credentials")
-                .build()
-        val tokenResponse = httpClient.newCall(Request.Builder()
+            .add("grant_type", "client_credentials")
+            .build()
+        val tokenResponse = httpClient.newCall(
+            Request.Builder()
                 .post(formBody)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .url("${oauth2ServerUrl}/oauth/token")
