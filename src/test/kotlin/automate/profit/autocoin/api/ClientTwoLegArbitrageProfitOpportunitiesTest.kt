@@ -13,6 +13,29 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 
 class ClientTwoLegArbitrageProfitOpportunitiesTest {
+    private val maxRelativeProfitCutOff = BigDecimal("1.0")
+    private val minRelativeProfitCutOff = BigDecimal("0.002")
+
+    private val sampleTwoLegArbitrageProfitOpportunityAtDepth = TwoLegArbitrageProfitOpportunityAtDepth(
+        sellPrice = BigDecimal.ONE,
+        baseCurrencyAmountAtSellExchange = BigDecimal("101"),
+        buyPrice = BigDecimal("1.1"),
+        baseCurrencyAmountAtBuyExchange = BigDecimal("103"),
+        relativeProfit = BigDecimal("0.01"),
+        profitUsd = BigDecimal("95"),
+        usdDepthUpTo = BigDecimal("15000"),
+        transactionFeeAmountBeforeTransfer = BigDecimal("0.21"),
+        isDefaultTransactionFeeAmountBeforeTransferUsed = true,
+        transferFeeAmount = BigDecimal("0.3"),
+        transactionFeeAmountAfterTransfer = BigDecimal("0.6"),
+        isDefaultTransactionFeeAmountAfterTransferUsed = false,
+    )
+    private val sampleTwoLegArbitrageProfitOpportunityAtDepthAboveMax = sampleTwoLegArbitrageProfitOpportunityAtDepth.copy(
+        relativeProfit = maxRelativeProfitCutOff.plus(BigDecimal("0.01"))
+    )
+    private val sampleTwoLegArbitrageProfitOpportunityAtDepthBelowMin = sampleTwoLegArbitrageProfitOpportunityAtDepth.copy(
+        relativeProfit = minRelativeProfitCutOff.minus(BigDecimal("0.01"))
+    )
 
     private val opportunitiesToProcess = listOf(
         TwoLegArbitrageProfitOpportunity(
@@ -25,20 +48,9 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             usd24hVolumeAtFirstExchange = BigDecimal("12000"),
             usd24hVolumeAtSecondExchange = BigDecimal("13000"),
             profitOpportunityHistogram = listOf(
-                TwoLegArbitrageProfitOpportunityAtDepth(
-                    sellPrice = BigDecimal.ONE,
-                    baseCurrencyAmountAtSellExchange = BigDecimal("101"),
-                    buyPrice = BigDecimal("1.1"),
-                    baseCurrencyAmountAtBuyExchange = BigDecimal("103"),
-                    relativeProfit = BigDecimal("0.01"),
-                    profitUsd = BigDecimal("95"),
-                    usdDepthUpTo = BigDecimal("15000"),
-                    transactionFeeAmountBeforeTransfer = BigDecimal("0.21"),
-                    isDefaultTransactionFeeAmountBeforeTransferUsed = true,
-                    transferFeeAmount = BigDecimal("0.3"),
-                    transactionFeeAmountAfterTransfer = BigDecimal("0.6"),
-                    isDefaultTransactionFeeAmountAfterTransferUsed = false,
-                )
+                sampleTwoLegArbitrageProfitOpportunityAtDepth,
+                sampleTwoLegArbitrageProfitOpportunityAtDepthBelowMin,
+                sampleTwoLegArbitrageProfitOpportunityAtDepthAboveMax,
             ),
             calculatedAtMillis = 15L,
         )
@@ -63,7 +75,9 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
             assertThat(result.first().usd24hVolumeAtSellExchange).isEqualTo("13000.00")
             assertThat(result.first().calculatedAtMillis).isEqualTo(15L)
-            assertThat(result.first().profitOpportunityHistogram).hasSize(1)
+            assertThat(result.first().profitOpportunityHistogram).hasSize(3)
+            assertThat(result.first().profitOpportunityHistogram[1]).isNull()
+            assertThat(result.first().profitOpportunityHistogram[2]).isNull()
             assertThat(result.first().profitOpportunityHistogram.first()!!.sellPrice).isEqualTo("1.00000000")
             assertThat(result.first().profitOpportunityHistogram.first()!!.sellAmount).isEqualTo("101.00000000")
             assertThat(result.first().profitOpportunityHistogram.first()!!.buyPrice).isEqualTo("1.10000000")
@@ -99,7 +113,9 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
             assertThat(result.first().usd24hVolumeAtSellExchange).isNull()
             assertThat(result.first().calculatedAtMillis).isEqualTo(15L)
-            assertThat(result.first().profitOpportunityHistogram).hasSize(1)
+            assertThat(result.first().profitOpportunityHistogram).hasSize(3)
+            assertThat(result.first().profitOpportunityHistogram[1]).isNull()
+            assertThat(result.first().profitOpportunityHistogram[2]).isNull()
             assertThat(result.first().profitOpportunityHistogram.first()!!.sellPrice).isNull()
             assertThat(result.first().profitOpportunityHistogram.first()!!.sellAmount).isNull()
             assertThat(result.first().profitOpportunityHistogram.first()!!.buyPrice).isEqualTo("1.10000000")
