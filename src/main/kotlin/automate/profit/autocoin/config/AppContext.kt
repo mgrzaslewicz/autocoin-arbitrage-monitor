@@ -1,7 +1,11 @@
 package automate.profit.autocoin.config
 
 import autocoin.metrics.JsonlFileStatsDClient
-import automate.profit.autocoin.api.*
+import automate.profit.autocoin.api.ArbitrageProfitController
+import automate.profit.autocoin.api.ClientTwoLegArbitrageProfitOpportunities
+import automate.profit.autocoin.api.HealthController
+import automate.profit.autocoin.api.ServerBuilder
+import automate.profit.autocoin.api.health.HealthService
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
@@ -108,7 +112,6 @@ class AppContext(private val appConfig: AppConfig) {
         scheduledExecutorService = scheduledJobsxecutorService,
         ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
-        metricsService = metricsService
     )
 
     val orderBookListeners = OrderBookListeners()
@@ -116,7 +119,6 @@ class AppContext(private val appConfig: AppConfig) {
     val twoLegArbitrageMonitorProvider = TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
         profitCache = twoLegArbitrageProfitOpportunityCache,
         profitCalculator = twoLegArbitrageProfitOpportunityCalculatorWithMetadata,
-        metricsService = metricsService
     )
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
@@ -145,8 +147,15 @@ class AppContext(private val appConfig: AppConfig) {
         executorForReconnecting = threadForStreamReconnecting
     )
 
-    val healthMetricsScheduler = HealthMetricsScheduler(
+    val healthService = HealthService(
         orderBookSseStreamService = orderBookSseStreamService,
+        tickerSseStreamService = tickerSseStreamService,
+        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
+        twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
+    )
+
+    val healthMetricsScheduler = HealthMetricsScheduler(
+        healthService = healthService,
         metricsService = metricsService,
         executorService = scheduledJobsxecutorService
     )
@@ -167,10 +176,6 @@ class AppContext(private val appConfig: AppConfig) {
         transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata,
     )
 
-    val healthService = HealthService(
-        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
-        twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
-    )
     val healthController = HealthController(
         healthService = healthService,
         objectMapper = objectMapper,

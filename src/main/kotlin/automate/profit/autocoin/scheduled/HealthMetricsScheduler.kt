@@ -1,47 +1,58 @@
 package automate.profit.autocoin.scheduled
 
-import autocoin.metrics.MetricsService
-import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
+import automate.profit.autocoin.api.health.HealthService
+import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
+import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class HealthMetricsScheduler(
-    private val orderBookSseStreamService: OrderBookSseStreamService,
+    private val interval: Duration = Duration.of(1, ChronoUnit.MINUTES),
+    private val healthService: HealthService,
     private val metricsService: MetricsService,
     private val executorService: ScheduledExecutorService
 ) {
     companion object : KLogging()
 
-    fun reportMemoryUsage() {
+    private fun reportMemoryUsage() {
         metricsService.recordMemory()
     }
 
-    fun reportHealth() {
-        metricsService.recordHealth(orderBookSseStreamService.isConnected())
+    private fun reportHealth(healthy: Boolean) {
+        metricsService.recordHealth(healthy)
     }
 
-    fun reportDescriptorsUsage() {
+    private fun reportDescriptorsUsage() {
         metricsService.recordDescriptors()
     }
 
-    fun reportThreadsUsage() {
+    private fun reportThreadsUsage() {
         metricsService.recordThreadCount()
     }
 
+    private fun recordExchangePairOpportunityCounts(exchangePairsOpportunityCount: List<ExchangePairWithOpportunityCount>) {
+        exchangePairsOpportunityCount.forEach {
+            metricsService.recordExchangePairOpportunityCount(it)
+        }
+    }
+
     fun scheduleSendingMetrics() {
-        val interval = 60L
-        logger.info { "Scheduling sending metrics every ${interval}s: health, memory usage, threads count, open files count" }
+        logger.info { "Scheduling sending metrics every ${interval}: health, memory usage, threads count, open files count, exchange opportunity counts" }
         executorService.scheduleAtFixedRate({
             try {
-                reportHealth()
+                val health = healthService.getHealth()
+                reportHealth(health.healthy)
                 reportMemoryUsage()
                 reportThreadsUsage()
                 reportDescriptorsUsage()
+                recordExchangePairOpportunityCounts(health.twoLegArbitrageOpportunities.exchangePairsWithOpportunityCount)
             } catch (e: Exception) {
                 logger.error(e) { "Something went wrong when sending metrics" }
             }
-        }, 0, interval, TimeUnit.SECONDS)
+        }, 0, interval.seconds, TimeUnit.SECONDS)
 
     }
 }

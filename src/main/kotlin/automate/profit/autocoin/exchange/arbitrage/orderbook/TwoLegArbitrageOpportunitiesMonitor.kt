@@ -8,7 +8,6 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerListener
 import automate.profit.autocoin.exchange.ticker.TickerPair
-import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
 
 /**
@@ -18,38 +17,58 @@ class TwoLegArbitrageOpportunitiesMonitor(
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
     private val profitCache: TwoLegArbitrageProfitOpportunityCache,
     private val profitCalculator: TwoLegArbitrageProfitOpportunityCalculator,
-    private val metricsService: MetricsService
 ) {
     private companion object : KLogging()
 
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
-    private val commonMetricsTags = "currencyPair=$currencyPair,exchanges=${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
     private var firstExchangeOrderBook: OrderBook? = null
     private var firstExchangeTicker: Ticker? = null
     private var secondExchangeOrderBook: OrderBook? = null
     private var secondExchangeTicker: Ticker? = null
 
+    private var firstTimeFirstExchangeOrderBook = true
+    private var firstTimeFirstExchangeTicker = true
+    private var firstTimeSecondExchangeOrderBook = true
+    private var firstTimeSecondExchangeTicker = true
+
     private fun onFirstExchangeOrderBook(orderBook: OrderBook) {
-        logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+        if (firstTimeFirstExchangeOrderBook) {
+            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeOrderBook of $currencyPairWithExchangePair. Contains ${orderBook.buyOrders.size} buy orders and ${orderBook.sellOrders.size} sell orders" }
+            firstTimeFirstExchangeOrderBook = false
+        } else {
+            logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair. Contains ${orderBook.buyOrders.size} buy orders and ${orderBook.sellOrders.size} sell orders" }
+        }
         firstExchangeOrderBook = orderBook
-        metricsService.recordArbitrageOrderbooksSize(orderBook.buyOrders.size.toLong(), orderBook.sellOrders.size.toLong(), commonMetricsTags)
         recalculateProfit()
     }
 
     private fun onSecondExchangeOrderBook(orderBook: OrderBook) {
-        logger.debug { "[${exchangePair.secondExchange}-${currencyPair}] onSecondExchangeOrderBook of $currencyPairWithExchangePair" }
+        if (firstTimeSecondExchangeOrderBook) {
+            logger.info { "[${exchangePair.secondExchange}-${currencyPair}] First time onSecondExchangeOrderBook of $currencyPairWithExchangePair. Contains ${orderBook.buyOrders.size} buy orders and ${orderBook.sellOrders.size} sell orders" }
+            firstTimeSecondExchangeOrderBook = false
+        }
+        logger.debug { "[${exchangePair.secondExchange}-${currencyPair}] onSecondExchangeOrderBook of $currencyPairWithExchangePair. Contains ${orderBook.buyOrders.size} buy orders and ${orderBook.sellOrders.size} sell orders" }
         secondExchangeOrderBook = orderBook
         recalculateProfit()
     }
 
     private fun onFirstExchangeTicker(ticker: Ticker) {
-        logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+        if (firstTimeFirstExchangeTicker) {
+            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+            firstTimeFirstExchangeTicker = false
+        } else {
+            logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+        }
         firstExchangeTicker = ticker
         recalculateProfit()
     }
 
     private fun onSecondExchangeTicker(ticker: Ticker) {
+        if (firstTimeSecondExchangeTicker) {
+            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+            firstTimeSecondExchangeTicker = false
+        }
         logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
         secondExchangeTicker = ticker
         recalculateProfit()
@@ -74,22 +93,18 @@ class TwoLegArbitrageOpportunitiesMonitor(
         return when {
             firstExchangeOrderBook == null -> {
                 logger.debug { "Null firstOrderBook at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
-                metricsService.recordNoOrderBookForTwoLegProfitOpportunityCalculation(exchangePair.firstExchange, currencyPair)
                 false
             }
             firstExchangeTicker == null -> {
                 logger.debug { "Null firstExchangeTicker at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
-                metricsService.recordNoTickerForTwoLegProfitOpportunityCalculation(exchangePair.firstExchange, currencyPair)
                 false
             }
             secondExchangeOrderBook == null -> {
                 logger.debug { "Null secondOrderBook at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
-                metricsService.recordNoOrderBookForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, currencyPair)
                 false
             }
             secondExchangeTicker == null -> {
                 logger.debug { "Null secondExchangeTicker at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
-                metricsService.recordNoTickerForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, currencyPair)
                 false
             }
             else -> true
