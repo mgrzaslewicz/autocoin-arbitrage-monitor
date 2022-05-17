@@ -5,52 +5,48 @@ import automate.profit.autocoin.exchange.ticker.TickerPair
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.Duration
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 class StaleTickerDetectorTest {
 
-    @Test
-    fun shouldTickersBeTooOld() {
+    @ParameterizedTest
+    @CsvSource(
+        "20,110,111,,,130,false",
+        "20,110,111,,,131,true",
+        "20,110,111,109,,130,true",
+        "20,110,111,,109,130,true",
+        "20,110,111,109,109,130,true",
+        "20,110,111,110,110,130,false",
+    )
+    fun shouldTickersBeTooOld(
+        maxTickerAgeMillis: Long,
+        firstExchangeTickerReceivedAtMillis: Long,
+        secondExchangeTickerReceivedAtMillis: Long,
+        firstExchangeTickerTimestamp: Long?,
+        secondExchangeTickerTimestamp: Long?,
+        currentTimeMillis: Long,
+        shouldBeTooOld: Boolean,
+    ) {
         // given
-        val maxAgeOfFirstTicker = Duration.of(1L, ChronoUnit.HOURS)
+        val maxTickerAge = Duration.of(maxTickerAgeMillis, ChronoUnit.MILLIS)
         val tickerPairWithTooOldOrders = TickerPair(
-            first = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
-            second = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
+            first = mock<Ticker>().apply {
+                whenever(this.receivedAtMillis).thenReturn(firstExchangeTickerReceivedAtMillis)
+                whenever(this.exchangeTimestampMillis).thenReturn(firstExchangeTickerTimestamp)
+            },
+            second = mock<Ticker>().apply {
+                whenever(this.receivedAtMillis).thenReturn(secondExchangeTickerReceivedAtMillis)
+                whenever(this.exchangeTimestampMillis).thenReturn(secondExchangeTickerTimestamp)
+            }
         )
-        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 2 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
+        val tested = StaleTickerDetector(currentTimeMillisFunction = { currentTimeMillis }, maxTickerAge = maxTickerAge)
         // when
         val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
         // then
-        assertThat(tickerAreTooOld).isTrue
+        assertThat(tickerAreTooOld).isEqualTo(shouldBeTooOld)
     }
 
-    @Test
-    fun shouldTickersNotBeTooOld() {
-        // given
-        val maxAgeOfFirstTicker = Duration.of(1L, ChronoUnit.HOURS)
-        val tickerPairWithTooOldOrders = TickerPair(
-            first = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
-            second = mock<Ticker>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) },
-        )
-        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
-        // when
-        val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
-        // then
-        assertThat(tickerAreTooOld).isFalse
-    }
-
-    @Test
-    fun shouldTickersBeTooOldWhenNoTimestamp() {
-        // given
-        val maxAgeOfFirstTicker = Duration.of(1L, ChronoUnit.HOURS)
-        val tickerPairWithTooOldOrders = TickerPair(first = mock(), second = mock())
-        val tested = StaleTickerDetector(currentTimeMillisFunction = { maxAgeOfFirstTicker.toMillis() + 1 }, maxAgeOfFirstTicker = maxAgeOfFirstTicker)
-        // when
-        val tickerAreTooOld = tested.oneOfTickersIsTooOld(tickerPairWithTooOldOrders)
-        // then
-        assertThat(tickerAreTooOld).isTrue
-    }
 }

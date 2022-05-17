@@ -43,7 +43,7 @@ class TwoLegArbitrageProfitOpportunityCalculator(
     private val priceService: PriceService,
     private val orderBookUsdAmountThresholds: List<BigDecimal>,
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
-    private val staleOrdersDetector: StaleOrdersDetector = StaleOrdersDetector(currentTimeMillisFunction = currentTimeMillisFunction),
+    private val staleOrderBooksDetector: StaleOrderBooksDetector = StaleOrderBooksDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val staleTickerDetector: StaleTickerDetector = StaleTickerDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val relativeProfitCalculator: TwoLegArbitrageProfitCalculator,
     private val metricsService: MetricsService,
@@ -62,7 +62,7 @@ class TwoLegArbitrageProfitOpportunityCalculator(
     ): TwoLegArbitrageProfitOpportunity? {
         logger.debug { "Calculating profit for $currencyPairWithExchangePair" }
 
-        if (staleTickerDetector.oneOfTickersIsTooOld(tickerPair) || staleOrdersDetector.ordersAreTooOld(orderBookPair)) {
+        if (staleTickerDetector.oneOfTickersIsTooOld(tickerPair) || staleOrderBooksDetector.orderBooksAreTooOld(orderBookPair)) {
             return null
         }
 
