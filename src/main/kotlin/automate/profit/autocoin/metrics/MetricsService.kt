@@ -19,6 +19,13 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         statsDClient.gauge("exchange-pair-opportunity-count,exchangePair=$exchangePairTag", exchangePairWithOpportunityCount.opportunityCount)
     }
 
+    fun recordReceivedOrderBooksSinceStart(exchangeName: String, total: Long) {
+        statsDClient.gauge("exchange-received-order-books-count,exchange=$exchangeName", total)
+    }
+    fun recordReceivedTickersSinceStart(exchangeName: String, count: Long) {
+        statsDClient.gauge("exchange-received-tickers-count,exchange=$exchangeName", count)
+    }
+
     fun recordNoUsdPriceForTwoLegProfitOpportunityCalculation(exchangePair: ExchangePair, currencyPair: CurrencyPair, reasonTag: String) {
         recordNoDataForTwoLegProfitOpportunityCalculation(exchangePair.firstExchange, "missing=usd-price,currencyPair=$currencyPair,reason=$reasonTag")
         recordNoDataForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, "missing=usd-price,currencyPair=$currencyPair,reason=$reasonTag")

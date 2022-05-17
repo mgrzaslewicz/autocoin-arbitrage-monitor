@@ -25,8 +25,8 @@ data class Health(
     val healthy: Boolean,
     val unhealthyReasons: List<String>,
     val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesCount,
-    val orderBookUpdatesSinceStart: Map<SupportedExchange, Long>,
-    val tickerUpdatesSinceStart: Map<SupportedExchange, Long>,
+    val receivedOrderBooksSinceStart: Map<SupportedExchange, Long>,
+    val receivedTickersSinceStart: Map<SupportedExchange, Long>,
     val commonCurrencyPairs: Map<String, Int>,
 )
 
@@ -95,8 +95,8 @@ class HealthService(
             }
                 .sortedBy { it.second }
                 .toMap(),
-            orderBookUpdatesSinceStart = Collections.unmodifiableMap(orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
-            tickerUpdatesSinceStart = Collections.unmodifiableMap(tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
+            receivedOrderBooksSinceStart = Collections.unmodifiableMap(orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
+            receivedTickersSinceStart = Collections.unmodifiableMap(tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
             twoLegArbitrageOpportunities = TwoLegArbitrageOpportunitiesCount(
                 exchangePairsWithOpportunityCount = twoLegArbitrageExchangePairsOpportunityCount,
                 currentTotalCount = twoLegArbitrageExchangePairsOpportunityCount.sumOf { it.opportunityCount }
