@@ -22,7 +22,7 @@ class CommonExchangeCurrencyPairsServiceTest {
 
     private val exchange1WithFailedMetadataResponse = GATEIO
     private val exchange2WithFailedMetadataResponse = CEXIO
-    private val exchanges= listOf(BINANCE, exchange1WithFailedMetadataResponse, BITTREX, KUCOIN, exchange2WithFailedMetadataResponse)
+    private val exchanges = listOf(BINANCE, exchange1WithFailedMetadataResponse, BITTREX, KUCOIN, exchange2WithFailedMetadataResponse)
 
     private val bittrexMetadata = ExchangeMetadata(
         currencyMetadata = emptyMap(),
@@ -90,6 +90,16 @@ class CommonExchangeCurrencyPairsServiceTest {
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndKucoin)).containsOnly(ExchangePair(BITTREX, KUCOIN))
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndBinance)).containsOnly(ExchangePair(BINANCE, BITTREX))
         assertThat(commonCurrencyPairs.getValue(commonForKucoinAndBinance)).containsOnly(ExchangePair(BINANCE, KUCOIN))
+    }
+
+    @Test
+    fun shouldCalculateExchangeToCurrencyPairsCommonForAtLeastOneOtherExchange() {
+        // given
+        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
+        // when
+        val bittrexCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange
+        // then
+        assertThat(bittrexCurrencyPairs.getValue(BITTREX)).containsExactly(commonForAllExchanges, commonForBittrexAndBinance, commonForBittrexAndKucoin)
     }
 
     @Test

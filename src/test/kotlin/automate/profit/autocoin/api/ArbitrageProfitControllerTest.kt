@@ -46,7 +46,8 @@ class ArbitrageProfitControllerTest {
                             )
                         )
                     ),
-                    exchangePairsToCurrencyPairs = emptyMap()
+                    exchangePairsToCurrencyPairs = emptyMap(),
+                    exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange = emptyMap(),
                 )
             )
         }
