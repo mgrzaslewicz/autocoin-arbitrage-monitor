@@ -53,15 +53,19 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
                 sampleTwoLegArbitrageProfitOpportunityAtDepthAboveMax,
             ),
             calculatedAtMillis = 15L,
+            olderOrderBookReceivedAtOrExchangeMillis = 20300,
         )
     )
 
     @Test
     fun shouldNotHideOpportunityDetails() {
         // given
-        val tested = ClientTwoLegArbitrageProfitOpportunities(freePlanRelativeProfitCutOff = BigDecimal("0.02"))
+        val tested = ClientTwoLegArbitrageProfitOpportunities(
+            freePlanRelativeProfitCutOff = BigDecimal("0.02"),
+            timeMillisFunction = { 40301L },
+        )
         // when
-        val result = tested.process(
+        val result = tested.prepareClientProfits(
             allProfits = opportunitiesToProcess.asSequence(),
             isUserInProPlan = true
         )
@@ -75,6 +79,7 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
             assertThat(result.first().usd24hVolumeAtSellExchange).isEqualTo("13000.00")
             assertThat(result.first().calculatedAtMillis).isEqualTo(15L)
+            assertThat(result.first().ageSeconds).isEqualTo(20L)
             assertThat(result.first().profitOpportunityHistogram).hasSize(3)
             assertThat(result.first().profitOpportunityHistogram[1]).isNull()
             assertThat(result.first().profitOpportunityHistogram[2]).isNull()
@@ -97,9 +102,12 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
     @Test
     fun shouldHideOpportunityDetails() {
         // given
-        val tested = ClientTwoLegArbitrageProfitOpportunities(freePlanRelativeProfitCutOff = BigDecimal("0.009"))
+        val tested = ClientTwoLegArbitrageProfitOpportunities(
+            freePlanRelativeProfitCutOff = BigDecimal("0.009"),
+            timeMillisFunction = { 40301L },
+        )
         // when
-        val result = tested.process(
+        val result = tested.prepareClientProfits(
             allProfits = opportunitiesToProcess.asSequence(),
             isUserInProPlan = false
         )
@@ -113,6 +121,7 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
             assertThat(result.first().usd24hVolumeAtSellExchange).isNull()
             assertThat(result.first().calculatedAtMillis).isEqualTo(15L)
+            assertThat(result.first().ageSeconds).isEqualTo(20L)
             assertThat(result.first().profitOpportunityHistogram).hasSize(3)
             assertThat(result.first().profitOpportunityHistogram[1]).isNull()
             assertThat(result.first().profitOpportunityHistogram[2]).isNull()

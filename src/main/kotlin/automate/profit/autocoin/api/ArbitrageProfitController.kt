@@ -45,7 +45,8 @@ data class TwoLegArbitrageProfitOpportunityDto(
     val usd24hVolumeAtSellExchange: String?,
     val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepthDto?>,
     val areDetailsHidden: Boolean,
-    val calculatedAtMillis: Long
+    val calculatedAtMillis: Long,
+    val ageSeconds: Int,
 )
 
 data class TwoLegArbitrageProfitOpportunitiesResponseDto(
@@ -73,6 +74,7 @@ class ClientTwoLegArbitrageProfitOpportunities(
      * It does not make sense to expose too big opportunities, that means opportunity would not be used anyway (e.g. problem with transfer, trading stopped)
      */
     private val maxRelativeProfitCutOff: BigDecimal = BigDecimal("1.0"),
+    private val timeMillisFunction: () -> Long = { System.currentTimeMillis() },
 ) {
     private val minUsd24hVolume = 1000.toBigDecimal()
     private val plusInfinity = Long.MAX_VALUE.toBigDecimal()
@@ -111,10 +113,11 @@ class ClientTwoLegArbitrageProfitOpportunities(
             it?.toDto(shouldHideOpportunityDetails)
         },
         areDetailsHidden = shouldHideOpportunityDetails,
-        calculatedAtMillis = calculatedAtMillis
+        calculatedAtMillis = calculatedAtMillis,
+        ageSeconds = ((timeMillisFunction() - olderOrderBookReceivedAtOrExchangeMillis) / 1000.0).toInt(),
     )
 
-    fun process(allProfits: Sequence<TwoLegArbitrageProfitOpportunity>, isUserInProPlan: Boolean): List<TwoLegArbitrageProfitOpportunityDto> {
+    fun prepareClientProfits(allProfits: Sequence<TwoLegArbitrageProfitOpportunity>, isUserInProPlan: Boolean): List<TwoLegArbitrageProfitOpportunityDto> {
         return allProfits.mapNotNull { profit ->
             val anyDepthHasProfitBetweenMinAndMax =
                 profit.profitOpportunityHistogram
@@ -154,7 +157,7 @@ class ArbitrageProfitController(
 
         override val httpHandler = HttpHandler { httpServerExchange ->
             val isUserInProPlan = isUserInProPlanFunction(httpServerExchange)
-            val profits = clientTwoLegArbitrageProfitOpportunities.process(twoLegArbitrageProfitOpportunityCache.getAllProfits(), isUserInProPlan)
+            val profits = clientTwoLegArbitrageProfitOpportunities.prepareClientProfits(twoLegArbitrageProfitOpportunityCache.getAllProfits(), isUserInProPlan)
 
             val result = TwoLegArbitrageProfitOpportunitiesResponseDto(
                 usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },

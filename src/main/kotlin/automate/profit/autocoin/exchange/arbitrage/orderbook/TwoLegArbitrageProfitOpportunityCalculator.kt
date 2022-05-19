@@ -151,6 +151,7 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                 usd24hVolumeAtSecondExchange = usd24hVolumeAtSecondExchange,
                 profitOpportunityHistogram = opportunities,
                 calculatedAtMillis = currentTimeMillis,
+                olderOrderBookReceivedAtOrExchangeMillis = orderBookPair.oldestOrderBookReceivedAtOrExchangeMillis(),
             )
         } catch (e: PriceResponseException) {
             logger.frequentError(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }

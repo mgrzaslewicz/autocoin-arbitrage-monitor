@@ -105,7 +105,7 @@ class ArbitrageProfitControllerTest {
             commonExchangeCurrencyPairsService = mock(),
             isUserInProPlanFunction = { true },
             clientTwoLegArbitrageProfitOpportunities = mock<ClientTwoLegArbitrageProfitOpportunities>().apply {
-                whenever(this.process(any(), eq(true))).thenReturn(
+                whenever(this.prepareClientProfits(any(), eq(true))).thenReturn(
                     listOf(
                         TwoLegArbitrageProfitOpportunityDto(
                             baseCurrency = "A",
@@ -134,6 +134,8 @@ class ArbitrageProfitControllerTest {
                             ),
                             areDetailsHidden = false,
                             calculatedAtMillis = 15L,
+                            ageSeconds = 567,
+//                            olderOrderBookExchangeTimestampMillis = 566,
                         )
                     )
                 )
@@ -167,6 +169,8 @@ class ArbitrageProfitControllerTest {
                     assertThat(usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
                     assertThat(usd24hVolumeAtSellExchange).isEqualTo("13000.00")
                     assertThat(areDetailsHidden).isFalse
+                    assertThat(calculatedAtMillis).isEqualTo(15L)
+                    assertThat(ageSeconds).isEqualTo(566)
                     assertThat(profitOpportunityHistogram).hasSize(1)
                     assertThat(profitOpportunityHistogram.first()!!.sellPrice).isEqualTo("0.15")
                     assertThat(profitOpportunityHistogram.first()!!.sellAmount).isEqualTo("21")
