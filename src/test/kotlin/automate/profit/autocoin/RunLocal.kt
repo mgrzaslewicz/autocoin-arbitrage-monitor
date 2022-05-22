@@ -5,7 +5,7 @@ import java.lang.System.setProperty
 /**
  * Copy this file to src/main and provide settings to run
  * Add limits when running process
--Xmx200M
+-Xmx400M
 -XX:+ExitOnOutOfMemoryError
 -XX:+HeapDumpOnOutOfMemoryError
  */

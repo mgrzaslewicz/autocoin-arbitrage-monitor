@@ -18,7 +18,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
     private val secondExchange = BINANCE
 
     @Test
-    fun shouldAddTickerSpreadToCache() {
+    fun shouldCacheOpportunityWhenOrderBooksAndTickersAvailable() {
         // given
         val currencyPair = CurrencyPair.of("A/B")
         val exchangePair = ExchangePair(firstExchange, secondExchange)
@@ -39,11 +39,37 @@ class TwoLegOrderBookArbitrageMonitorTest {
 
         // when
         orderBookListeners.first.onOrderBook(firstExchange, currencyPair, firstOrderBook)
-        tickerListeners.first.onTicker(firstExchange, currencyPair, tickerPair.first)
+        tickerListeners.first.onTicker(firstExchange, currencyPair, tickerPair.first!!)
         orderBookListeners.second.onOrderBook(secondExchange, currencyPair, secondOrderBook)
-        tickerListeners.second.onTicker(secondExchange, currencyPair, tickerPair.second)
+        tickerListeners.second.onTicker(secondExchange, currencyPair, tickerPair.second!!)
         // then
         verify(profitCache).setProfitOpportunity(profit)
     }
 
+    @Test
+    fun shouldCacheOpportunityWhenOnlyOrderBooksAvailable() {
+        // given
+        val currencyPair = CurrencyPair.of("A/B")
+        val exchangePair = ExchangePair(firstExchange, secondExchange)
+        val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
+        val firstOrderBook = mock<OrderBook>()
+        val secondOrderBook = mock<OrderBook>()
+        val orderBoookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
+        val tickerPair = TickerPair(first = null, second = null)
+        val profitCache = mock<TwoLegArbitrageProfitOpportunityCache>()
+        val profit = mock<TwoLegArbitrageProfitOpportunity>()
+        val profitCalculator = mock<TwoLegArbitrageProfitOpportunityCalculator>().apply {
+            whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
+        }
+
+        val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator)
+        val orderBookListeners = twoLegArbitrageMonitor.getOrderBookListeners()
+        val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
+
+        // when
+        orderBookListeners.first.onOrderBook(firstExchange, currencyPair, firstOrderBook)
+        orderBookListeners.second.onOrderBook(secondExchange, currencyPair, secondOrderBook)
+        // then
+        verify(profitCache).setProfitOpportunity(profit)
+    }
 }

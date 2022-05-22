@@ -140,8 +140,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                 return null
             }
 
-            val usd24hVolumeAtFirstExchange = priceService.getUsdValue(tickerPair.first.currencyPair.counter, tickerPair.first.counterCurrency24hVolume)
-            val usd24hVolumeAtSecondExchange = priceService.getUsdValue(tickerPair.second.currencyPair.counter, tickerPair.second.counterCurrency24hVolume)
+            val usd24hVolumeAtFirstExchange = if (tickerPair.first != null) priceService.getUsdValue(tickerPair.first.currencyPair.counter, tickerPair.first.counterCurrency24hVolume) else null
+            val usd24hVolumeAtSecondExchange = if (tickerPair.second != null) priceService.getUsdValue(tickerPair.second.currencyPair.counter, tickerPair.second.counterCurrency24hVolume) else null
 
             return TwoLegArbitrageProfitOpportunity(
                 buyAtExchange = buyAtExchange,

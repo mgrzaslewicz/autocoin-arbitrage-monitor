@@ -41,7 +41,7 @@ data class TwoLegArbitrageProfitOpportunityDto(
     val counterCurrency: String,
     val buyAtExchange: SupportedExchange,
     val sellAtExchange: SupportedExchange?,
-    val usd24hVolumeAtBuyExchange: String,
+    val usd24hVolumeAtBuyExchange: String?,
     val usd24hVolumeAtSellExchange: String?,
     val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepthDto?>,
     val areDetailsHidden: Boolean,
@@ -57,6 +57,7 @@ data class TwoLegArbitrageProfitOpportunitiesResponseDto(
 data class TwoLegArbitrageMetadataDto(
     val baseCurrenciesMonitored: Set<String>,
     val counterCurrenciesMonitored: Set<String>,
+    val exchangesMonitored: Set<String>,
     val freePlanProfitPercentCutOff: String,
     val isIncludingProPlanOpportunities: Boolean,
     val defaultTransactionFeePercent: String,
@@ -107,8 +108,8 @@ class ClientTwoLegArbitrageProfitOpportunities(
         counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
         buyAtExchange = buyAtExchange,
         sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
-        usd24hVolumeAtBuyExchange = usd24hVolumeAtFirstExchange.setScale(2, HALF_DOWN).toPlainString(),
-        usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSecondExchange.setScale(2, HALF_DOWN).toPlainString(),
+        usd24hVolumeAtBuyExchange = usd24hVolumeAtFirstExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
+        usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSecondExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
         profitOpportunityHistogram = profitOpportunityHistogram.map {
             it?.toDto(shouldHideOpportunityDetails)
         },
@@ -125,7 +126,7 @@ class ClientTwoLegArbitrageProfitOpportunities(
                         (opportunity?.relativeProfit ?: ZERO) > minRelativeProfitCutOff
                                 && (opportunity?.relativeProfit ?: plusInfinity) < maxRelativeProfitCutOff
                     }
-            if (anyDepthHasProfitBetweenMinAndMax && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume) {
+            if (anyDepthHasProfitBetweenMinAndMax && profit.minUsd24hVolumeOfBothExchanges?: plusInfinity > minUsd24hVolume) {
                 profit.toDto(
                     shouldHideOpportunityDetails = !isUserInProPlan
                             && profit.profitOpportunityHistogram.any {
@@ -140,6 +141,7 @@ class ClientTwoLegArbitrageProfitOpportunities(
 }
 
 class ArbitrageProfitController(
+    private val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange>,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
     private val orderBookUsdAmountThresholds: List<BigDecimal>,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
@@ -151,6 +153,7 @@ class ArbitrageProfitController(
     private val transactionFeeRatioWhenNotAvailableInMetadata: BigDecimal,
 ) : ApiController {
 
+    private val exchangesMonitored = exchangesToMonitorTwoLegArbitrageOpportunities.map { it.exchangeName }.toSet()
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
@@ -184,6 +187,7 @@ class ArbitrageProfitController(
                 baseCurrenciesMonitored = baseCurrencies,
                 counterCurrenciesMonitored = counterCurrencies,
                 freePlanProfitPercentCutOff = freePlanRelativeProfitPercentCutOff,
+                exchangesMonitored = exchangesMonitored,
                 isIncludingProPlanOpportunities = isUserInProPlan,
                 defaultTransactionFeePercent = transactionFeeRatioWhenNotAvailableInMetadata.movePointRight(2).toPlainString(),
             )

@@ -166,6 +166,7 @@ class AppContext(private val appConfig: AppConfig) {
 
     val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
+        exchangesToMonitorTwoLegArbitrageOpportunities = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,

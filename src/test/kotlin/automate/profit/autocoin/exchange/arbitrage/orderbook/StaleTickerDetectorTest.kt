@@ -20,11 +20,14 @@ class StaleTickerDetectorTest {
         "20,110,111,,109,130,true",
         "20,110,111,109,109,130,true",
         "20,110,111,110,110,130,false",
+        "20,,,,,130,false",
+        "20,109,,109,,130,true",
+        "20,,109,,109,130,true",
     )
     fun shouldTickersBeTooOld(
         maxTickerAgeMillis: Long,
-        firstExchangeTickerReceivedAtMillis: Long,
-        secondExchangeTickerReceivedAtMillis: Long,
+        firstExchangeTickerReceivedAtMillis: Long?,
+        secondExchangeTickerReceivedAtMillis: Long?,
         firstExchangeTickerTimestamp: Long?,
         secondExchangeTickerTimestamp: Long?,
         currentTimeMillis: Long,
@@ -33,14 +36,14 @@ class StaleTickerDetectorTest {
         // given
         val maxTickerAge = Duration.of(maxTickerAgeMillis, ChronoUnit.MILLIS)
         val tickerPairWithTooOldOrders = TickerPair(
-            first = mock<Ticker>().apply {
+            first = if (firstExchangeTickerReceivedAtMillis != null) mock<Ticker>().apply {
                 whenever(this.receivedAtMillis).thenReturn(firstExchangeTickerReceivedAtMillis)
                 whenever(this.exchangeTimestampMillis).thenReturn(firstExchangeTickerTimestamp)
-            },
-            second = mock<Ticker>().apply {
+            } else null,
+            second = if (secondExchangeTickerReceivedAtMillis != null) mock<Ticker>().apply {
                 whenever(this.receivedAtMillis).thenReturn(secondExchangeTickerReceivedAtMillis)
                 whenever(this.exchangeTimestampMillis).thenReturn(secondExchangeTickerTimestamp)
-            }
+            } else null
         )
         val tested = StaleTickerDetector(currentTimeMillisFunction = { currentTimeMillis }, maxTickerAge = maxTickerAge)
         // when
