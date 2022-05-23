@@ -53,6 +53,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
 
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
     private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
+        opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
         priceService = pricesService,
         orderBookUsdAmountThresholds = orderBookUsdAmountThresholds,
         relativeProfitCalculator = TestTwoLegArbitrageProfitCalculator(),
@@ -76,6 +77,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     fun shouldFindNoProfitWhenOrderTooOld() {
         // given
         val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
+            opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply { whenever(this.orderBooksAreTooOld(any())).thenReturn(true) },
@@ -95,6 +97,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     fun shouldFindNoProfitWhenTickerTooOld() {
         // given
         val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitOpportunityCalculator(
+            opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
             staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply { whenever(this.orderBooksAreTooOld(any())).thenReturn(false) },

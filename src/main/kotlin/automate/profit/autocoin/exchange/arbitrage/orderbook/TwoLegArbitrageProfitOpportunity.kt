@@ -30,11 +30,5 @@ data class TwoLegArbitrageProfitOpportunity(
     val olderOrderBookReceivedAtOrExchangeMillis: Long,
 ) {
 
-    val minUsd24hVolumeOfBothExchanges = when {
-        usd24hVolumeAtFirstExchange != null && usd24hVolumeAtSecondExchange != null -> usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)
-        usd24hVolumeAtFirstExchange != null && usd24hVolumeAtSecondExchange == null -> usd24hVolumeAtFirstExchange
-        usd24hVolumeAtFirstExchange == null && usd24hVolumeAtSecondExchange != null -> usd24hVolumeAtSecondExchange
-        else -> null
-    }
 
 }

@@ -12,6 +12,7 @@ import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportun
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitCalculatorWithMetadata
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCutOff
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
@@ -95,6 +96,7 @@ class AppContext(private val appConfig: AppConfig) {
     private val transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
 
     val twoLegArbitrageProfitOpportunityCalculatorWithMetadata = TwoLegArbitrageProfitOpportunityCalculator(
+        opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(

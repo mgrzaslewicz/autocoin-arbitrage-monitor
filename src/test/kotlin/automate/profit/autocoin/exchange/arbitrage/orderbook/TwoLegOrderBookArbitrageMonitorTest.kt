@@ -25,12 +25,12 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
         val firstOrderBook = mock<OrderBook>()
         val secondOrderBook = mock<OrderBook>()
-        val orderBoookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
+        val orderBookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
         val tickerPair = TickerPair(first = mock(), second = mock())
         val profitCache = mock<TwoLegArbitrageProfitOpportunityCache>()
         val profit = mock<TwoLegArbitrageProfitOpportunity>()
         val profitCalculator = mock<TwoLegArbitrageProfitOpportunityCalculator>().apply {
-            whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
+            whenever(this.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)).thenReturn(profit)
         }
 
         val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator)
@@ -54,17 +54,16 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
         val firstOrderBook = mock<OrderBook>()
         val secondOrderBook = mock<OrderBook>()
-        val orderBoookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
+        val orderBookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
         val tickerPair = TickerPair(first = null, second = null)
         val profitCache = mock<TwoLegArbitrageProfitOpportunityCache>()
         val profit = mock<TwoLegArbitrageProfitOpportunity>()
         val profitCalculator = mock<TwoLegArbitrageProfitOpportunityCalculator>().apply {
-            whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
+            whenever(this.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)).thenReturn(profit)
         }
 
         val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator)
         val orderBookListeners = twoLegArbitrageMonitor.getOrderBookListeners()
-        val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
 
         // when
         orderBookListeners.first.onOrderBook(firstExchange, currencyPair, firstOrderBook)
