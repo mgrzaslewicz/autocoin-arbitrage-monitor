@@ -37,8 +37,8 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
                 exchangePair = ExchangePair(BINANCE, BITTREX),
                 currencyPair = CurrencyPair.of("ETH/BTC")
             ),
-            usd24hVolumeAtFirstExchange = BigDecimal("12000"),
-            usd24hVolumeAtSecondExchange = BigDecimal("13000"),
+            usd24hVolumeAtBuyExchange = BigDecimal("12000"),
+            usd24hVolumeAtSellExchange = BigDecimal("13000"),
             profitOpportunityHistogram = listOf(
                 sampleTwoLegArbitrageProfitOpportunityAtDepth,
             ),

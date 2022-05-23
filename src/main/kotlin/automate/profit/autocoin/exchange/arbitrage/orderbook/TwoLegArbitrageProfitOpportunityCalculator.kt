@@ -81,6 +81,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
 
             lateinit var buyAtExchange: SupportedExchange
             lateinit var sellAtExchange: SupportedExchange
+            var usd24hVolumeAtBuyExchange: BigDecimal? = null
+            var usd24hVolumeAtSellExchange: BigDecimal? = null
 
             val opportunities = orderBookUsdAmountThresholds.map { usdDepthTo ->
                 val firstOrderBookBuyPrice = orderBookPair.first.getWeightedAverageBuyPrice(otherCurrencyAmount = usdDepthTo, otherCurrencyPrice = usdPrice)
@@ -96,6 +98,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                         if (opportunityCutOff.isRelativeProfitWithinAllowedRange(profitBuyAtSecondSellAtFirst.relativeProfit)) {
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange
+                            usd24hVolumeAtBuyExchange = usd24hVolumeAtSecondExchange
+                            usd24hVolumeAtSellExchange = usd24hVolumeAtFirstExchange
 
                             TwoLegArbitrageProfitOpportunityAtDepth(
                                 sellPrice = firstOrderBookBuyPrice.averagePrice,
@@ -158,8 +162,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                 buyAtExchange = buyAtExchange,
                 sellAtExchange = sellAtExchange,
                 currencyPairWithExchangePair = currencyPairWithExchangePair,
-                usd24hVolumeAtFirstExchange = usd24hVolumeAtFirstExchange,
-                usd24hVolumeAtSecondExchange = usd24hVolumeAtSecondExchange,
+                usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange,
+                usd24hVolumeAtSellExchange = usd24hVolumeAtSellExchange,
                 profitOpportunityHistogram = opportunities,
                 calculatedAtMillis = currentTimeMillis,
                 olderOrderBookReceivedAtOrExchangeMillis = orderBookPair.oldestOrderBookReceivedAtOrExchangeMillis(),

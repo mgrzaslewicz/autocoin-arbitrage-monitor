@@ -162,8 +162,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         assertThat(profit).isNotNull
         with(profit!!) {
             assertThat(currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
-            assertThat(usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
-            assertThat(usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
+            assertThat(usd24hVolumeAtBuyExchange).isEqualTo(usdValueFromPriceService)
+            assertThat(usd24hVolumeAtSellExchange).isEqualTo(usdValueFromPriceService)
             assertThat(buyAtExchange).isEqualTo(exchangeB)
             assertThat(sellAtExchange).isEqualTo(exchangeA)
             assertThat(profitOpportunityHistogram).hasSize(orderBookUsdAmountThresholds.size)

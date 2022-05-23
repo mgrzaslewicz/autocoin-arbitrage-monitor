@@ -94,8 +94,8 @@ class ClientTwoLegArbitrageProfitOpportunities(
         counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
         buyAtExchange = buyAtExchange,
         sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
-        usd24hVolumeAtBuyExchange = usd24hVolumeAtFirstExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
-        usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSecondExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
+        usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
+        usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSellExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
         profitOpportunityHistogram = profitOpportunityHistogram.map {
             it?.toDto(shouldHideOpportunityDetails)
         },
