@@ -1,6 +1,6 @@
 package automate.profit.autocoin.exchange.metadata
 
-import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.app.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import com.nhaarman.mockitokotlin2.mock

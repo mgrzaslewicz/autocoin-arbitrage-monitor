@@ -1,4 +1,4 @@
-package automate.profit.autocoin.config
+package automate.profit.autocoin.app
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.SupportedExchange.*
@@ -84,7 +84,7 @@ data class AppConfig(
     ).toLong(),
     val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv(
         "APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES",
-        SupportedExchange.values().joinToString(",") { it.exchangeName }
+        values().joinToString(",") { it.exchangeName }
     )
         .split(",")
         .map { SupportedExchange.fromExchangeName(it) },

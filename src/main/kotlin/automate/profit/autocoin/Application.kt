@@ -1,7 +1,8 @@
 package automate.profit.autocoin
 
-import automate.profit.autocoin.config.AppContext
-import automate.profit.autocoin.config.loadConfig
+import automate.profit.autocoin.app.AppContext
+import automate.profit.autocoin.app.AppStarter
+import automate.profit.autocoin.app.loadConfig
 import mu.KotlinLogging
 import java.net.SocketAddress
 import kotlin.system.measureTimeMillis
@@ -14,7 +15,8 @@ fun main(args: Array<String>) {
         val config = loadConfig()
         logger.info { "Config: $config" }
         val appContext = AppContext(config)
-        address = appContext.start()
+        val appStarter = AppStarter(appContext)
+        address = appStarter.start().serverAddress
     }
-    logger.info { "Started in $bootTimeMillis ms on $address" }
+    logger.info { "Started in $bootTimeMillis ms, available at $address" }
 }
