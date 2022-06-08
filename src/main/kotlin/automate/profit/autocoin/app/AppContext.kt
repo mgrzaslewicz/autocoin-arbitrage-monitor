@@ -172,7 +172,10 @@ class AppContext(val appConfig: AppConfig) {
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         objectMapper = objectMapper,
         oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
-        clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(freePlanRelativeProfitCutOff),
+        clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(
+            freePlanRelativeProfitCutOff = freePlanRelativeProfitCutOff,
+            exchangeMetadataService = exchangeMetadataService,
+        ),
         freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString(),
         transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata,
     )

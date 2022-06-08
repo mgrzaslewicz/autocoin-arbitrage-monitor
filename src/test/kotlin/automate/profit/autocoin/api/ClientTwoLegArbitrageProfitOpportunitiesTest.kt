@@ -6,7 +6,11 @@ import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
 import automate.profit.autocoin.exchange.currency.CurrencyPair
+import automate.profit.autocoin.exchange.metadata.CurrencyMetadata
+import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
@@ -53,6 +57,18 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         val tested = ClientTwoLegArbitrageProfitOpportunities(
             freePlanRelativeProfitCutOff = BigDecimal("0.02"),
             timeMillisFunction = { 40301L },
+            exchangeMetadataService = mock<ExchangeMetadataService>().apply {
+                whenever(this.getCurrencyMetadata("bittrex", "ETH")).thenReturn(
+                    CurrencyMetadata(
+                        withdrawalEnabled = true,
+                    )
+                )
+                whenever(this.getCurrencyMetadata("binance", "BTC")).thenReturn(
+                    CurrencyMetadata(
+                        depositEnabled = false,
+                    )
+                )
+            }
         )
         // when
         val result = tested.prepareClientProfits(
@@ -64,6 +80,8 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         SoftAssertions().apply {
             assertThat(result.first().buyAtExchange).isEqualTo(BITTREX)
             assertThat(result.first().sellAtExchange).isEqualTo(BINANCE)
+            assertThat(result.first().withdrawalEnabled).isTrue
+            assertThat(result.first().depositEnabled).isFalse
             assertThat(result.first().baseCurrency).isEqualTo("ETH")
             assertThat(result.first().counterCurrency).isEqualTo("BTC")
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
@@ -93,6 +111,18 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         val tested = ClientTwoLegArbitrageProfitOpportunities(
             freePlanRelativeProfitCutOff = BigDecimal("0.009"),
             timeMillisFunction = { 40301L },
+            exchangeMetadataService = mock<ExchangeMetadataService>().apply {
+                whenever(this.getCurrencyMetadata("bittrex", "ETH")).thenReturn(
+                    CurrencyMetadata(
+                        withdrawalEnabled = true,
+                    )
+                )
+                whenever(this.getCurrencyMetadata("binance", "BTC")).thenReturn(
+                    CurrencyMetadata(
+                        depositEnabled = false,
+                    )
+                )
+            }
         )
         // when
         val result = tested.prepareClientProfits(
