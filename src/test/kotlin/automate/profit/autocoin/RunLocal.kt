@@ -10,7 +10,7 @@ import java.lang.System.setProperty
 -XX:+HeapDumpOnOutOfMemoryError
  */
 fun main() {
-//     setProperty("OAUTH2_SERVER_URL", "http://localhost:9002")
+//     setProperty("OAUTH2_API_URL", "http://localhost:9002")
 //    setProperty("EXCHANGE_MEDIATOR_API_URL", "http://localhost:9001")
     setProperty("SERVICE_NAME", "autocoin-arbitrage-service")
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
