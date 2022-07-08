@@ -1,36 +1,52 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.exchange.orderbook.OrderBook
-import automate.profit.autocoin.exchange.orderbook.OrderBookExchangeOrder
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.Duration
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 class StaleOrdersDetectorTest {
 
-    @Test
-    fun shouldOrdersBeTooOld() {
+    @ParameterizedTest
+    @CsvSource(
+        "20,110,111,,,130,false",
+        "20,110,111,,,131,true",
+        "20,110,111,109,,130,true",
+        "20,110,111,,109,130,true",
+        "20,110,111,109,109,130,true",
+        "20,110,111,110,110,130,false",
+    )
+    fun shouldOrdersBeTooOld(
+        maxTickerAgeMillis: Long,
+        firstOrderBookReceivedAtMillis: Long,
+        secondOrderBookReceivedAtMillis: Long,
+        firstOrderBookExchangeTimestampMillis: Long?,
+        secondOrderBookExchangeTimestampMillis: Long?,
+        currentTimeMillis: Long,
+        shouldBeTooOld: Boolean,
+    ) {
         // given
-        val sampleOrder = mock<OrderBookExchangeOrder>()
-        val maxAgeOfOrder = Duration.of(1L, ChronoUnit.HOURS)
+        val maxOrderBookAge = Duration.of(maxTickerAgeMillis, ChronoUnit.MILLIS)
         val orderBookPairWithTooOldOrders = OrderBookPair(
             first = OrderBook(
-                buyOrders = listOf(mock<OrderBookExchangeOrder>().apply { whenever(this.timestamp).thenReturn(Instant.ofEpochMilli(1L)) }),
-                sellOrders = listOf(sampleOrder)
+                buyOrders = emptyList(),
+                sellOrders = emptyList(),
+                receivedAtMillis = firstOrderBookReceivedAtMillis,
+                exchangeTimestampMillis = firstOrderBookExchangeTimestampMillis,
             ),
             second = OrderBook(
-                buyOrders = listOf(sampleOrder),
-                sellOrders = listOf(sampleOrder)
+                buyOrders = emptyList(),
+                sellOrders = emptyList(),
+                receivedAtMillis = secondOrderBookReceivedAtMillis,
+                exchangeTimestampMillis = secondOrderBookExchangeTimestampMillis,
             )
         )
-        val tested = StaleOrdersDetector(currentTimeMillisFunction = { maxAgeOfOrder.toMillis() + 2 }, maxAgeOfFirstOrderInOrderBook = maxAgeOfOrder)
+        val tested = StaleOrderBooksDetector(currentTimeMillisFunction = { currentTimeMillis }, maxOrderBookAge = maxOrderBookAge)
         // when
-        val ordersAreTooOld = tested.ordersAreTooOld(orderBookPairWithTooOldOrders)
+        val ordersAreTooOld = tested.orderBooksAreTooOld(orderBookPairWithTooOldOrders)
         // then
-        assertThat(ordersAreTooOld).isTrue
+        assertThat(ordersAreTooOld).isEqualTo(shouldBeTooOld)
     }
 }
