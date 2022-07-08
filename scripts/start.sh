@@ -35,6 +35,16 @@ preconditions() {
         echo "SERVICE_NAME not set. Please edit env.properties file in deployment directory.";
         exit 107;
     fi
+
+    if [[ -z ${APP_OAUTH_CLIENT_ID} ]]; then
+        echo "APP_OAUTH_CLIENT_ID not set. Please edit env.properties file in deployment directory.";
+        exit 107;
+    fi
+
+    if [[ -z ${APP_OAUTH_CLIENT_SECRET} ]]; then
+        echo "APP_OAUTH_CLIENT_SECRET not set. Please edit env.properties file in deployment directory.";
+        exit 107;
+    fi
 }
 
 preconditions
@@ -45,9 +55,10 @@ echo "Using port: ${APP_PORT_ON_HOST}";
 
 docker run --name ${SERVICE_NAME} -d \
     -p 127.0.0.1:${APP_PORT_ON_HOST}:10021  \
-    -e autocoin.environment=${ENV} \
     -e BASIC_PASS=${BASIC_PASS} \
     -e DOCKER_TAG=${VERSION} \
+    -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
+    -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
     -e JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1" \
     -v ${LOG_PATH}:/app/log \
     -v ${APP_DATA_PATH}:/app/data \

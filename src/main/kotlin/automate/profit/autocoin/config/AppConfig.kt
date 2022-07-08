@@ -26,26 +26,17 @@ private val exchangePairsForArbitrage = listOf(
 )
 
 data class AppConfig(
-        val appServerPort: Int,
+        val appServerPort: Int = getProperty("APP_SERVER_PORT", "10021").toInt(),
         val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = commonCurrencyPairs.map { it to exchangePairsForArbitrage }.toMap(),
-        val tickerApiUrl: String,
-        val arbitrageMonitorOauth2ClientId: String,
-        val arbitrageMonitorOauth2ClientSecret: String,
-        val oauth2ServerUrl: String,
-        val tickerPairsRepositoryPath: String,
-        val ageOfOldestTickerPairToKeepMs: Long,
-        val maximumTwoLegArbitrageProfitsToKeep: Int
+        val tickerApiUrl: String = getProperty("TICKER_API_URL", "https://orders-api.autocoin-trader.com"),
+        val arbitrageMonitorOauth2ClientId: String = getProperty("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
+        val arbitrageMonitorOauth2ClientSecret: String = getProperty("APP_OAUTH_CLIENT_SECRET"),
+        val oauth2ServerUrl: String = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
+        val tickerPairsRepositoryPath: String = getProperty("APP_DATA_PATH", "data") + File.separator + "tickerPairs",
+        val ageOfOldestTickerPairToKeepMs: Long = getProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
+        val maximumTwoLegArbitrageProfitsToKeep: Int = 10
 )
 
 fun loadConfig(): AppConfig {
-    return AppConfig(
-            appServerPort = getProperty("APP_SERVER_PORT", "10021").toInt(),
-            tickerApiUrl = getProperty("TICKER_API_URL", "https://orders-api.autocoin-trader.com"),
-            arbitrageMonitorOauth2ClientId = getProperty("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
-            arbitrageMonitorOauth2ClientSecret = getProperty("APP_OAUTH_CLIENT_SECRET"),
-            oauth2ServerUrl = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
-            tickerPairsRepositoryPath = getProperty("APP_DATA_PATH", "data") + File.separator + "tickerPairs",
-            ageOfOldestTickerPairToKeepMs = getProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
-            maximumTwoLegArbitrageProfitsToKeep = 10
-    )
+    return AppConfig()
 }
