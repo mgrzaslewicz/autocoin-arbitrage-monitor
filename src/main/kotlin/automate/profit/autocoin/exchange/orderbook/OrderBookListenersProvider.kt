@@ -6,10 +6,12 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbi
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.timgroup.statsd.StatsDClient
 
 class OrderBookListenersProvider(
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
-        private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator
+        private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
+        private val statsDClient: StatsDClient
 ) {
     fun createOrderBookListenersFrom(commonCurrencyPairsAtExchanges: Map<CurrencyPair, List<ExchangePair>>): List<OrderBookListener> {
         return commonCurrencyPairsAtExchanges.flatMap {
@@ -17,7 +19,8 @@ class OrderBookListenersProvider(
                 TwoLegOrderBookArbitrageMonitor(
                         CurrencyPairWithExchangePair(it.key, exchangePair),
                         profitCache,
-                        profitCalculator
+                        profitCalculator,
+                        statsDClient
                 )
             }
         }.flatMap {

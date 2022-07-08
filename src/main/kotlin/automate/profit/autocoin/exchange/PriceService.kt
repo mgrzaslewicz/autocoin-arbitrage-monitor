@@ -1,6 +1,7 @@
 package automate.profit.autocoin.exchange
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.timgroup.statsd.StatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -8,6 +9,7 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.system.measureTimeMillis
 
 
 data class PriceDto(
@@ -19,6 +21,7 @@ data class PriceDto(
 class PriceService(private val priceApiUrl: String,
                    private val httpClient: OkHttpClient,
                    private val objectMapper: ObjectMapper,
+                   private val statsDClient: StatsDClient,
                    private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
                    private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
 
@@ -41,19 +44,22 @@ class PriceService(private val priceApiUrl: String,
 
     private fun fetchPrice(currencyCode: String) {
         synchronized(priceCache) {
-            if (priceCache.containsKey(currencyCode)) {
-                val valueWithTimestamp = priceCache[currencyCode]!!
-                if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
-                    priceCache.remove(currencyCode)
+            val millis = measureTimeMillis {
+                if (priceCache.containsKey(currencyCode)) {
+                    val valueWithTimestamp = priceCache[currencyCode]!!
+                    if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
+                        priceCache.remove(currencyCode)
+                    }
+                }
+
+                priceCache.computeIfAbsent(currencyCode) {
+                    ValueWithTimestamp(
+                            calculatedAtMillis = currentTimeMillis(),
+                            value = fetchUsdPrice(currencyCode)
+                    )
                 }
             }
-
-            priceCache.computeIfAbsent(currencyCode) {
-                ValueWithTimestamp(
-                        calculatedAtMillis = currentTimeMillis(),
-                        value = fetchUsdPrice(currencyCode)
-                )
-            }
+            statsDClient.recordExecutionTime("fetchPrice", millis, currencyCode)
         }
     }
 

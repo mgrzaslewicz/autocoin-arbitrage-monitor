@@ -5,6 +5,7 @@ import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.order.UserExchangeOrderBookService
 import automate.profit.autocoin.order.OrderBookResponseDto
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.timgroup.statsd.StatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -13,13 +14,16 @@ class OrderBookFetcher(
         private val supportedExchange: SupportedExchange,
         private val orderBookApiUrl: String,
         private val httpClient: OkHttpClient,
-        private val objectMapper: ObjectMapper
+        private val objectMapper: ObjectMapper,
+        private val statsDClient: StatsDClient
 ) : UserExchangeOrderBookService {
-    companion object : KLogging()
+    private companion object : KLogging()
 
     override fun getOrderBook(currencyPair: CurrencyPair): OrderBook {
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
         // assumption is order book is sorted by price (descending for buy orders, ascending for sell orders)
+        val millisBefore = System.currentTimeMillis()
+
         val request = Request.Builder()
                 .url("$orderBookApiUrl/order-book/${supportedExchange.exchangeName}/${currencyPair.base}/${currencyPair.counter}")
                 .get()
@@ -30,6 +34,9 @@ class OrderBookFetcher(
 
             val orderBookDto = objectMapper.readValue(orderBookResponse.body?.string(), OrderBookResponseDto::class.java)
             orderBookResponse.body?.close()
+
+            val millisAfter = System.currentTimeMillis()
+            statsDClient.recordExecutionTime("fetchOrderBook", millisAfter - millisBefore, currencyPair.toString())
             return orderBookDto.toOrderBook()
         }
     }
