@@ -16,7 +16,7 @@ class RestExchangeMetadataService(
 
     override fun getMetadata(exchangeName: String): ExchangeMetadata {
         val exchangeMetadataApiUrl = "$exchangeMetadataServiceHostWithPort/metadata/$exchangeName"
-        logger.debug { "[$exchangeName] Requesting metadata for exchange @$exchangeMetadataApiUrl" }
+        logger.debug { "[$exchangeName] Requesting exchange metadata @$exchangeMetadataApiUrl" }
         val metadataResponse = httpClient.newCall(
             Request.Builder()
                 .get()
@@ -32,7 +32,7 @@ class RestExchangeMetadataService(
     }
 
     override fun getCurrencyPairMetadata(exchangeName: String, currencyPair: CurrencyPair): CurrencyPairMetadata {
-        logger.info { "Requesting metadata for exchange $exchangeName and currency pair $currencyPair" }
+        logger.info { "[$exchangeName-$currencyPair] Requesting currency pair metadata" }
         return getMetadata(exchangeName).currencyPairMetadata.getValue(currencyPair)
     }
 }
