@@ -70,7 +70,6 @@ data class AppConfig(
         val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
         val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()).toLong(),
         val ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_REPOSITORY_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
-        val saveMetricsToFileEveryNSeconds: Long = getPropertyThenEnv("APP_SAVE_METRICS_TO_FILE_EVERY_N_SECONDS", Duration.of(5, ChronoUnit.MINUTES).toSeconds().toString()).toLong(),
         val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,bleutrade,cexio,coinbasepro,coinbene,exmo,gateio,gemini,hitbtc,kraken,kucoin,luno,poloniex")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
