@@ -72,7 +72,7 @@ class AppContext(appConfig: AppConfig) {
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
-    val arbitrageProfitController = ArbitrageProfitController(twoLegOrderBookArbitrageProfitCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
+    val arbitrageProfitController = ArbitrageProfitController(twoLegOrderBookArbitrageProfitCache, appConfig.orderBookUsdAmountThresholds, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
     val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(twoLegArbitrageProfitStatisticsCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
 
     val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
