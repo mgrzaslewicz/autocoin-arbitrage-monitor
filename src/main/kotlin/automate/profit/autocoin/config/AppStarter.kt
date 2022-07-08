@@ -21,7 +21,7 @@ class AppStarter(
         tickerPairCacheLoader.loadAllSavedTickerPairs()
         logger.info { "Registering ${tickerListeners.size} ticker listeners" }
         tickerListeners.forEach { tickerListenerRegistrars.registerTickerListener(it) }
-        logger.info { "Scheduling getting tickers" }
+        logger.info { "Scheduling fetching tickers" }
         tickerFetchScheduler.scheduleFetchingTickers()
         logger.info { "Scheduling saving tickers to files" }
         tickerPairsSaveScheduler.scheduleSavingTickerPairs()

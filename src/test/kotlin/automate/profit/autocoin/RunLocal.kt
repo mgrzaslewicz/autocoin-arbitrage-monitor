@@ -12,5 +12,6 @@ fun main() {
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
     setProperty("APP_OAUTH_CLIENT_SECRET", "changeme")
     setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS",  Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
+    setProperty("logging.level.automate.profit.autocoin.exchange.ticker", "DEBUG")
     main(emptyArray())
 }
