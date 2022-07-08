@@ -27,7 +27,7 @@ class StaleOrdersDetectorTest {
                 sellOrders = listOf(sampleOrder)
             )
         )
-        val tested = StaleOrdersDetector(currentTimeMillis = { maxAgeOfOrder.toMillis() + 2 }, maxAgeOfFirstOrderInOrderBook = maxAgeOfOrder)
+        val tested = StaleOrdersDetector(currentTimeMillisFunction = { maxAgeOfOrder.toMillis() + 2 }, maxAgeOfFirstOrderInOrderBook = maxAgeOfOrder)
         // when
         val ordersAreTooOld = tested.ordersAreTooOld(orderBookPairWithTooOldOrders)
         // then

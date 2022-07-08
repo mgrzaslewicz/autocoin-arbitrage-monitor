@@ -5,13 +5,13 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 class StaleOrdersDetector(
-    private val currentTimeMillis: () -> Long = System::currentTimeMillis,
+    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
     maxAgeOfFirstOrderInOrderBook: Duration = Duration.of(2, ChronoUnit.HOURS),
 ) {
     private val maxAgeOfFirstOrderInOrderBookMs: Long = maxAgeOfFirstOrderInOrderBook.toMillis()
 
     fun ordersAreTooOld(orderBookPair: OrderBookPair): Boolean {
-        val currentTimeMillis = currentTimeMillis()
+        val currentTimeMillis = currentTimeMillisFunction()
         return (ordersAreTooOld(orderBookPair.first.buyOrders, currentTimeMillis)
                 || ordersAreTooOld(orderBookPair.first.sellOrders, currentTimeMillis)
                 || ordersAreTooOld(orderBookPair.second.buyOrders, currentTimeMillis)

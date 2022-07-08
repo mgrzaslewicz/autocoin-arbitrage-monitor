@@ -9,9 +9,9 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.metrics.MetricsService
 
 class TwoLegOrderBookArbitrageMonitorProvider(
-        private val profitCache: TwoLegOrderBookArbitrageProfitCache,
-        private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
-        private val metricsService: MetricsService
+    private val profitCache: TwoLegOrderBookArbitrageProfitCache,
+    private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
+    private val metricsService: MetricsService
 ) {
     fun getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<TwoLegOrderBookArbitrageMonitor> {
         return commonCurrencyPairsAtExchanges.flatMap {
