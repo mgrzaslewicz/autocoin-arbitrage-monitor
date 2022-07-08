@@ -16,7 +16,7 @@ import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrarProvider
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrars
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
-import automate.profit.autocoin.exchange.orderbook.OrderBookSseStreamService
+import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerFetcher
 import automate.profit.autocoin.metrics.MetricsService
@@ -33,7 +33,6 @@ import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
-import okhttp3.sse.EventSource
 import okhttp3.sse.EventSources
 import java.net.SocketAddress
 import java.time.Duration
@@ -129,11 +128,14 @@ class AppContext(private val appConfig: AppConfig) {
             twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
+    val threadForOrderStreamReconnecting = Executors.newSingleThreadExecutor()
+
     val orderBookSseStreamService = OrderBookSseStreamService(
             orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = sseHttpClient,
             eventSourceFactory = sseEventSourceFactory,
-            objectMapper = objectMapper
+            objectMapper = objectMapper,
+            executorForReconnecting = threadForOrderStreamReconnecting
     )
 
     val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
@@ -173,6 +175,7 @@ class AppContext(private val appConfig: AppConfig) {
 
     val server = ServerBuilder(appConfig.appServerPort, controllers, metricsService).build()
 
+
     fun start(): SocketAddress {
         logger.info { "Fetching currency pairs from exchanges" }
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
@@ -185,6 +188,7 @@ class AppContext(private val appConfig: AppConfig) {
 
         logger.info { "Scheduling jobs" }
         orderBookFetchScheduler.scheduleFetchingOrderBooks()
+        orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
 
         logger.info { "Scheduling calculating arbitrage profit statistics" }
         arbitrageProfitStatisticsCalculateScheduler.scheduleCacheRefresh()
