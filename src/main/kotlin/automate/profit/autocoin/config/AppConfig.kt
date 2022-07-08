@@ -5,9 +5,6 @@ import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import java.lang.System.getProperty
 
-/**
- * Order of exchanges does not matter
- */
 data class ExchangePair(
         val firstExchange: SupportedExchange,
         val secondExchange: SupportedExchange
