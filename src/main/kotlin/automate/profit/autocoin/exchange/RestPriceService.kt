@@ -47,7 +47,7 @@ class RestPriceService(
     }
 
     private fun fetchUsdPrice(currencyCode: String): BigDecimal {
-        logger.frequentInfo { "Fetching price for $currencyCode" }
+        logger.frequentInfo { "[$currencyCode/USD] Fetching price" }
         val millisBefore = currentTimeMillisFunction()
         val request = Request.Builder()
             .url("$priceApiUrl/prices/USD?currencyCodes=${currencyCode}")
