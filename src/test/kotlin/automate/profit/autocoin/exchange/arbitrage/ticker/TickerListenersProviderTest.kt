@@ -1,15 +1,15 @@
-package automate.profit.autocoin.exchange.arbitrage.orderbook
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
 import com.nhaarman.mockitokotlin2.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class OrderBookListenersProviderTest {
+class TickerListenersProviderTest {
     private val grinUsdt = CurrencyPair.Companion.of("GRIN/USD")
     private val commonCurrencyPairsAtExchanges = mapOf(
             grinUsdt to setOf(
@@ -34,13 +34,13 @@ class OrderBookListenersProviderTest {
     @Test
     fun shouldPrepareListeners() {
         // given
-        val tested = OrderBookListenersProvider()
-        tested.prepareOrderBookListeners(twoLegOrderBookArbitrageMonitorProvider.getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges))
+        val tested = TickerListenersProvider()
+        tested.prepareTickerListeners(twoLegOrderBookArbitrageMonitorProvider.getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges))
         // when-then
-        assertThat(tested.getOrderBookListeners(BIBOX, grinUsdt)).hasSize(4)
-        assertThat(tested.getOrderBookListeners(BITTREX, grinUsdt)).hasSize(4)
-        assertThat(tested.getOrderBookListeners(GATEIO, grinUsdt)).hasSize(4)
-        assertThat(tested.getOrderBookListeners(KUCOIN, grinUsdt)).hasSize(4)
-        assertThat(tested.getOrderBookListeners(POLONIEX, grinUsdt)).hasSize(4)
+        assertThat(tested.getTickerListeners(BIBOX, grinUsdt)).hasSize(4)
+        assertThat(tested.getTickerListeners(BITTREX, grinUsdt)).hasSize(4)
+        assertThat(tested.getTickerListeners(GATEIO, grinUsdt)).hasSize(4)
+        assertThat(tested.getTickerListeners(KUCOIN, grinUsdt)).hasSize(4)
+        assertThat(tested.getTickerListeners(POLONIEX, grinUsdt)).hasSize(4)
     }
 }

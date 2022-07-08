@@ -10,7 +10,7 @@ import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookExchangeOrder
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerFetcher
+import automate.profit.autocoin.exchange.ticker.TickerPair
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
@@ -35,26 +35,26 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     }
     private val bigDecimalWhichDoesNotMatter = BigDecimal.ONE
     private val counterCurrency24hVolume = BigDecimal("10.0")
-    private val tickerFetcher = mock<TickerFetcher>().apply {
-        whenever(getCachedOrFetchTicker(exchangeA, currencyPair)).thenReturn(Ticker(
-                currencyPair = currencyPair,
-                ask = bigDecimalWhichDoesNotMatter,
-                bid = bigDecimalWhichDoesNotMatter,
-                baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
-                counterCurrency24hVolume = counterCurrency24hVolume,
-                timestamp = Instant.now()
-        ))
-        whenever(getCachedOrFetchTicker(exchangeB, currencyPair)).thenReturn(Ticker(
-                currencyPair = currencyPair,
-                ask = bigDecimalWhichDoesNotMatter,
-                bid = bigDecimalWhichDoesNotMatter,
-                baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
-                counterCurrency24hVolume = BigDecimal("10.0"),
-                timestamp = Instant.now()
-        ))
-    }
+    private val exchangeATicker = Ticker(
+            currencyPair = currencyPair,
+            ask = bigDecimalWhichDoesNotMatter,
+            bid = bigDecimalWhichDoesNotMatter,
+            baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
+            counterCurrency24hVolume = counterCurrency24hVolume,
+            timestamp = Instant.now()
+    )
+    private val exchangeBTicker = Ticker(
+            currencyPair = currencyPair,
+            ask = bigDecimalWhichDoesNotMatter,
+            bid = bigDecimalWhichDoesNotMatter,
+            baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
+            counterCurrency24hVolume = BigDecimal("10.0"),
+            timestamp = Instant.now()
+    )
+    private val tickerPair = TickerPair(first = exchangeATicker, second = exchangeBTicker)
+
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
-    private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(pricesService, tickerFetcher, orderBookUsdAmountThresholds)
+    private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(pricesService, orderBookUsdAmountThresholds)
     private val buyOrderExchangeA = OrderBookExchangeOrder(
             exchangeName = "exchangeA",
             type = ExchangeOrderType.BID_BUY,
@@ -85,7 +85,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                 )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPairWithTooOldOrders)
+        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPairWithTooOldOrders, tickerPair)
         // then
         assertThat(profit).isNull()
     }
@@ -105,7 +105,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                 )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
+        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
         // then
         assertThat(profit).isNull()
     }
@@ -137,7 +137,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                 )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
+        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
         // then
         assertThat(profit).isNotNull
         with(profit!!) {
