@@ -46,7 +46,7 @@ docker run --name ${SERVICE_NAME} -d \
 -e SERVICE_NAME=${SERVICE_NAME} \
 -v ${LOG_PATH}:/app/log \
 -v ${APP_DATA_PATH}:/app/data \
---memory=1800m \
+--memory=800m \
 --restart=no \
 localhost:5000/${SERVICE_NAME}:${VERSION_TAG}
 
