@@ -12,11 +12,9 @@ data class TwoLegArbitrageProfit(
         val sellPrice: BigDecimal,
         val buyPrice: BigDecimal,
         val sellAtExchange: SupportedExchange,
-        // TODO
-//        val dollar24hVolumeAtSellExchange: Double,
+        val usd24hVolumeAtSellExchange: BigDecimal,
         val buyAtExchange: SupportedExchange,
-        // TODO
-//        val dollar24hVolumeAtBuyExchange: Double,
+        val usd24hVolumeAtBuyExchange: BigDecimal,
         val relativeProfit: BigDecimal,
         val calculatedAtMillis: Long
 ) {
@@ -24,6 +22,19 @@ data class TwoLegArbitrageProfit(
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
 
     override fun toString(): String {
-        return "TwoLegArbitrageProfit(currencyPair=$currencyPair, sellPrice=$sellPrice, buyPrice=$buyPrice, sellAtExchange=$sellAtExchange, buyAtExchange=$buyAtExchange, relativeProfit=${relativeProfit.multiply(BigDecimal.valueOf(100))} %)"
+        return "TwoLegArbitrageProfit(" +
+                "currencyPair=$currencyPair, " +
+                "exchangePair=$exchangePair, " +
+                "sellPrice=$sellPrice, " +
+                "buyPrice=$buyPrice, " +
+                "sellAtExchange=$sellAtExchange, " +
+                "usd24hVolumeAtSellExchange=$usd24hVolumeAtSellExchange, " +
+                "buyAtExchange=$buyAtExchange, " +
+                "usd24hVolumeAtBuyExchange=$usd24hVolumeAtBuyExchange, " +
+                "relativeProfit=${relativeProfit.multiply(BigDecimal.valueOf(100))} %), " +
+                "calculatedAtMillis=$calculatedAtMillis, " +
+                "currencyPairWithExchangePair=$currencyPairWithExchangePair" +
+                ")"
     }
+
 }

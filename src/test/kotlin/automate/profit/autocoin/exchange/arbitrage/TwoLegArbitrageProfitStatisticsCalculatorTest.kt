@@ -1,6 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage
 
 import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.exchange.PriceService
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
@@ -8,6 +9,8 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +23,10 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
-    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
+    private val pricesService = mock<PriceService>().apply {
+        whenever(getUsdValue(eq("B"), any())).thenReturn(BigDecimal(2000.0))
+    }
+    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService)
     private val volumeDoesNotMatter = BigDecimal.ONE
     private val tickerPairs = listOf(
             tickerPair(10.0, 11.0, 9.5, 10.5), // relative profit 0.1
