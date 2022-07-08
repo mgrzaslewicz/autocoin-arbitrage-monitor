@@ -25,6 +25,7 @@ data class TwoLegArbitrageProfitStatisticDto(
         val minProfitPercent: Double,
         val maxProfitPercent: Double,
         val averageProfitPercent: Double,
+        val minUsd24hVolume: Double,
         val profitOpportunityHistogram: List<ProfitOpportunityCountDto>
 )
 
@@ -34,18 +35,27 @@ class ArbitrageProfitStatisticsController(
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
 
-    val minimumRelativeProfit = 0.005.toBigDecimal()
+    val minRelativeProfit = 0.003.toBigDecimal()
+    val minUsd24hVolume = 1000.toBigDecimal()
 
-    private fun BigDecimal.toPercent(): Double {
+    private fun BigDecimal.toPercentWith2DecimalPlaces(): Double {
         return try {
-            this.movePointRight(2).setScale(2).toDouble()
+            movePointRight(2).setScale(2).toDouble()
         } catch (e: ArithmeticException) {
-            this.movePointRight(2).setScale(2, HALF_DOWN).toDouble()
+            movePointRight(2).setScale(2, HALF_DOWN).toDouble()
+        }
+    }
+
+    private fun BigDecimal.with2DecimalPlaces(): Double {
+        return try {
+            setScale(2).toDouble()
+        } catch (e: ArithmeticException) {
+            setScale(2, HALF_DOWN).toDouble()
         }
     }
 
     private fun ProfitOpportunityCount.toDto() = ProfitOpportunityCountDto(
-            profitPercentThreshold = relativeProfitThreshold.toPercent(),
+            profitPercentThreshold = relativeProfitThreshold.toPercentWith2DecimalPlaces(),
             count = count
     )
 
@@ -54,9 +64,10 @@ class ArbitrageProfitStatisticsController(
             counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
             firstExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             secondExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-            minProfitPercent = min.toPercent(),
-            maxProfitPercent = max.toPercent(),
-            averageProfitPercent = average.toPercent(),
+            minProfitPercent = min.toPercentWith2DecimalPlaces(),
+            maxProfitPercent = max.toPercentWith2DecimalPlaces(),
+            minUsd24hVolume = minUsd24hVolume.with2DecimalPlaces(),
+            averageProfitPercent = average.toPercentWith2DecimalPlaces(),
             profitOpportunityHistogram = profitOpportunityHistogram.map { it.toDto() }
     )
 
@@ -65,7 +76,7 @@ class ArbitrageProfitStatisticsController(
         override val urlTemplate = "/two-leg-arbitrage-profit-statistics"
         override val httpHandler = HttpHandler { serverExchange ->
             val profits = twoLegArbitrageProfitStatisticsCache.twoLegArbitrageProfitStatistics.get()
-                    .filter { it.max > minimumRelativeProfit }
+                    .filter { it.max > minRelativeProfit && it.minUsd24hVolume > minUsd24hVolume }
                     .map { it.toDto() }
             serverExchange.responseSender.send(objectMapper.writeValueAsString(profits))
         }.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
