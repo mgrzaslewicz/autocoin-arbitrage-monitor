@@ -1,6 +1,8 @@
 package automate.profit.autocoin.metrics
 
 import autocoin.metrics.MetricsService
+import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import com.timgroup.statsd.StatsDClient
 
 class MetricsService(private val statsDClient: StatsDClient) : MetricsService(statsDClient) {
@@ -16,6 +18,12 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
 
     fun recordFetchPriceTime(millis: Long, tags: String) {
         statsDClient.recordExecutionTime("fetch-price-duration,$tags", millis)
+    }
+
+    fun recordExchangePairOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchangePairWithOpportunityCount: ExchangePairWithOpportunityCount) {
+        val exchangePairTag =
+            "${exchangePairWithOpportunityCount.exchangePair.firstExchange.exchangeName}-${exchangePairWithOpportunityCount.exchangePair.secondExchange.exchangeName}"
+        statsDClient.gauge("exchange-pair-opportunity-count,exchangePair=$exchangePairTag,profitGroup=$profitGroup", exchangePairWithOpportunityCount.opportunityCount)
     }
 
 }

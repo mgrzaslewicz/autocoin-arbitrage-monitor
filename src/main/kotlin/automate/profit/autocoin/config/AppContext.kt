@@ -97,7 +97,8 @@ class AppContext(private val appConfig: AppConfig) {
     private val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
         ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
-        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache
+        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache,
+        metricsService = metricsService
     )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
