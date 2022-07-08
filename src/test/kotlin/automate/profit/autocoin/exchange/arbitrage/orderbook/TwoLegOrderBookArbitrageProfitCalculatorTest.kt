@@ -57,7 +57,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         priceService = pricesService,
         orderBookUsdAmountThresholds = orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata(),
-        profitGroup = profitGroup
+        profitGroup = profitGroup,
+        metricsService = mock(),
     )
     private val buyOrderExchangeA = OrderBookExchangeOrder(
         exchangeName = "exchangeA",
@@ -83,6 +84,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(false) },
             relativeProfitCalculator = mock(),
             profitGroup = profitGroup,
+            metricsService = mock(),
         )
         // then
         assertThat(twoLegArbitrageProfitCalculator.calculateProfit(
@@ -101,6 +103,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(true) },
             relativeProfitCalculator = mock(),
             profitGroup = profitGroup,
+            metricsService = mock(),
         )
         // then
         assertThat(twoLegArbitrageProfitCalculator.calculateProfit(

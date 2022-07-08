@@ -84,13 +84,15 @@ class AppContext(private val appConfig: AppConfig) {
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata(),
-        profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
+        profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA,
+        metricsService = metricsService,
     )
     val twoLegOrderBookArbitrageProfitCalculatorWithMetadata = TwoLegOrderBookArbitrageProfitCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
-        profitGroup = TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA
+        profitGroup = TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA,
+        metricsService = metricsService,
     )
 
     val twoLegOrderBookArbitrageProfitOpportunityCache = TwoLegOrderBookArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
