@@ -84,7 +84,7 @@ class PriceService(private val priceApiUrl: String,
         val priceResponse = httpClient.newCall(request).execute()
         priceResponse.use {
             metricsService.recordFetchPriceTime(currentTimeMillis() - millisBefore, "currencyCode=$currencyCode,statusCode=${priceResponse.code}")
-            check(priceResponse.code == 200) { "Could not get price for $currencyCode/USD, code=${priceResponse.code}" }
+            check(priceResponse.isSuccessful) { "Could not get price for $currencyCode/USD, code=${priceResponse.code}" }
             val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<CurrencyPriceDto>::class.java)
             check(priceDto.size == 1) { "No required price in response for $currencyCode" }
             return priceDto.first().price.toBigDecimal()

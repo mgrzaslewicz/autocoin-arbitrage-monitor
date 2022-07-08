@@ -24,7 +24,7 @@ class RestExchangeMetadataService(
                 .build()
         ).execute()
         metadataResponse.use {
-            check(metadataResponse.code == 200) { "Could not get exchange metadata response, code=${metadataResponse.code}" }
+            check(metadataResponse.isSuccessful) { "Could not get exchange metadata response, code=${metadataResponse.code}" }
             return objectMapper.readValue(metadataResponse.body?.string(), ExchangeMetadataDto::class.java)
                     .toExchangeMetadata()
         }

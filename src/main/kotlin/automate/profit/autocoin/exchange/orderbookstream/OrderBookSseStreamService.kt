@@ -53,7 +53,7 @@ class OrderBookSseStreamService(
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
-//                logger.debug { "onEvent: type=$type, data=$data" }
+                logger.debug { "onEvent: type=$type, data=$data" }
                 if (type == "start") {
                     logger.info { "Start event received" }
                     if (registerForGettingOrderBooks(commonExchangeCurrencyPairs)) {
@@ -67,8 +67,14 @@ class OrderBookSseStreamService(
                     val orderBook = orderBookDto.toOrderBook()
                     val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
                     val currencyPair = CurrencyPair.of(orderBookDto.currencyPair)
-                    val orderBookListener = orderBookListenersProvider.getOrderBookListener(exchange, currencyPair)
-                    orderBookListener.onOrderBook(exchange, currencyPair, orderBook)
+                    val orderBookListener = orderBookListenersProvider.getOrderBookListeners(exchange, currencyPair)
+                    orderBookListener.forEach {
+                        try {
+                            it.onOrderBook(exchange, currencyPair, orderBook)
+                        } catch (e: Exception) {
+                            logger.error(e) { "[$exchange-$currencyPair] Error during onOrderBook" }
+                        }
+                    }
                 }
             }
 

@@ -35,7 +35,7 @@ class TickerFetcher(
                 .get()
                 .build()
         httpClient.newCall(request).execute().use { tickerResponse ->
-            check(tickerResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair (code=${tickerResponse.code})" }
+            check(tickerResponse.isSuccessful) { "Could not get ticker $supportedExchange-$currencyPair (code=${tickerResponse.code})" }
 
             val tickerDto = objectMapper.readValue(tickerResponse.body?.string(), TickerDto::class.java)
             val ticker = tickerDto.toTicker()

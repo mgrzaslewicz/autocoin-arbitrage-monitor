@@ -19,7 +19,7 @@ class OrderBookListenersProvider(
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
         private val metricsService: MetricsService
 ) {
-    private val orderBookListenersCache = HashMap<ExchangeWithCurrencyPair, OrderBookListener>()
+    private val orderBookListenersCache = HashMap<ExchangeWithCurrencyPair, MutableList<OrderBookListener>>()
 
     fun prepareOrderBookListeners(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>) {
         commonCurrencyPairsAtExchanges.forEach {
@@ -31,20 +31,23 @@ class OrderBookListenersProvider(
                         metricsService = metricsService
                 )
                 val orderBookListenersPair = monitor.getOrderBookListeners()
-                orderBookListenersCache[ExchangeWithCurrencyPair(
+                val firstExchangeWithCurrencyPair = ExchangeWithCurrencyPair(
                         exchange = exchangePair.firstExchange,
                         currencyPair = it.key
-                )] = orderBookListenersPair.first
-                orderBookListenersCache[ExchangeWithCurrencyPair(
+                )
+                val secondExchangeWithCurrencyPair = ExchangeWithCurrencyPair(
                         exchange = exchangePair.secondExchange,
                         currencyPair = it.key
-                )] = orderBookListenersPair.second
-                orderBookListenersPair.toList()
+                )
+                orderBookListenersCache.computeIfAbsent(firstExchangeWithCurrencyPair) { ArrayList() }
+                orderBookListenersCache.computeIfAbsent(secondExchangeWithCurrencyPair) { ArrayList() }
+                orderBookListenersCache.getValue(firstExchangeWithCurrencyPair).add(orderBookListenersPair.first)
+                orderBookListenersCache.getValue(secondExchangeWithCurrencyPair).add(orderBookListenersPair.second)
             }
         }
     }
 
-    fun getOrderBookListener(exchange: SupportedExchange, currencyPair: CurrencyPair): OrderBookListener {
+    fun getOrderBookListeners(exchange: SupportedExchange, currencyPair: CurrencyPair): List<OrderBookListener> {
         return orderBookListenersCache.getValue(ExchangeWithCurrencyPair(exchange = exchange, currencyPair = currencyPair))
     }
 
