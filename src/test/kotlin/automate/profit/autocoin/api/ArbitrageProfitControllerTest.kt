@@ -135,7 +135,6 @@ class ArbitrageProfitControllerTest {
                             areDetailsHidden = false,
                             calculatedAtMillis = 15L,
                             ageSeconds = 567,
-//                            olderOrderBookExchangeTimestampMillis = 566,
                         )
                     )
                 )

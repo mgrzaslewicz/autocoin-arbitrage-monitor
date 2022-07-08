@@ -84,7 +84,7 @@ data class AppConfig(
     ).toLong(),
     val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv(
         "APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES",
-        "bibox,binance,bitbay,bitmex,bitstamp,bittrex,cexio,coinbasepro,exmo,gateio,gemini,hitbtc,kraken,kucoin,luno,poloniex"
+        SupportedExchange.values().joinToString(",") { it.exchangeName }
     )
         .split(",")
         .map { SupportedExchange.fromExchangeName(it) },
