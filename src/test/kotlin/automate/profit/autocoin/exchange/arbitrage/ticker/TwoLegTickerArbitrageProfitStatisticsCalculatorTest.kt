@@ -1,4 +1,4 @@
-package automate.profit.autocoin.exchange.arbitrage
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.PriceService
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Instant
 
-class TwoLegArbitrageProfitStatisticsCalculatorTest {
+class TwoLegTickerArbitrageProfitStatisticsCalculatorTest {
 
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
@@ -30,7 +30,7 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
     }
     private val currentFixedTimeMs = 10L
     private val freshTickerTime = Instant.ofEpochMilli(15L)
-    private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator(pricesService, { currentFixedTimeMs })
+    private val twoLegArbitrageProfitCalculator = TwoLegTickerArbitrageProfitCalculator(pricesService, { currentFixedTimeMs })
     private val volumeDoesNotMatter = BigDecimal.ONE
     private val tickerPairs = listOf(
             tickerPair(10.0, 11.0, 9.5, 10.5), // relative profit 0.1

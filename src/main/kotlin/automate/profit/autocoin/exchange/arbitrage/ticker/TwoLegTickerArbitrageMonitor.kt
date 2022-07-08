@@ -1,13 +1,16 @@
-package automate.profit.autocoin.exchange.arbitrage
+package automate.profit.autocoin.exchange.arbitrage.ticker
 
 import automate.profit.autocoin.exchange.ticker.*
 import mu.KLogging
 
-class TwoLegArbitrageMonitor(
+/**
+ * Calculates arbitrage opportunities based on tickers
+ */
+class TwoLegTickerArbitrageMonitor(
         private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val tickerPairCache: TickerPairCache,
-        private val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator,
-        private val twoLegArbitrageProfitCache: TwoLegArbitrageProfitCache
+        private val twoLegTickerArbitrageProfitCalculator: TwoLegTickerArbitrageProfitCalculator,
+        private val twoLegTickerArbitrageProfitCache: TwoLegTickerArbitrageProfitCache
 ) {
     companion object : KLogging()
 
@@ -30,11 +33,11 @@ class TwoLegArbitrageMonitor(
         if (lastFirstExchangeTicker != null && lastSecondExchangeTicker != null) {
             val tickerPair = TickerPair(lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
             tickerPairCache.addTickerPair(currencyPairWithExchangePair, tickerPair)
-            val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
+            val profit = twoLegTickerArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
             if (profit == null) {
-                twoLegArbitrageProfitCache.removeProfit(currencyPairWithExchangePair)
+                twoLegTickerArbitrageProfitCache.removeProfit(currencyPairWithExchangePair)
             } else {
-                twoLegArbitrageProfitCache.addProfit(profit)
+                twoLegTickerArbitrageProfitCache.addProfit(profit)
             }
         }
     }

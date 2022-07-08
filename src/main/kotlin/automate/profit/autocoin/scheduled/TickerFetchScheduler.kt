@@ -1,6 +1,6 @@
 package automate.profit.autocoin.scheduled
 
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
+import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCache
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrars
 import mu.KLogging
 import java.util.concurrent.ScheduledExecutorService
@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class TickerFetchScheduler(
         private val tickerListenerRegistrars: TickerListenerRegistrars,
-        private val profitCache: TwoLegArbitrageProfitCache,
+        private val profitCache: TwoLegTickerArbitrageProfitCache,
         private val executorService: ScheduledExecutorService
 ) {
     companion object : KLogging()
