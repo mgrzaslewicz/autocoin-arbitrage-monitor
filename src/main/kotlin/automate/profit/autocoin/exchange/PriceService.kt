@@ -12,10 +12,10 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
 
-data class PriceDto(
-        val currency: String,
+data class CurrencyPriceDto(
         val price: Double,
-        val unitCurrency: String
+        val baseCurrency: String,
+        val counterCurrency: String
 )
 
 class PriceService(private val priceApiUrl: String,
@@ -85,8 +85,8 @@ class PriceService(private val priceApiUrl: String,
                 .build()
         val priceResponse = httpClient.newCall(request).execute()
         priceResponse.use {
-            check(priceResponse.code == 200) { "Could not get price for $currencyCode, code=${priceResponse.code}" }
-            val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<PriceDto>::class.java)
+            check(priceResponse.code == 200) { "Could not get price for $currencyCode/USD, code=${priceResponse.code}" }
+            val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<CurrencyPriceDto>::class.java)
             check(priceDto.size == 1) { "No required price in response for $currencyCode" }
             return priceDto.first().price.toBigDecimal()
         }
