@@ -4,13 +4,14 @@ import automate.profit.autocoin.metrics.MetricsService
 import io.undertow.Undertow
 import io.undertow.UndertowOptions
 import io.undertow.server.HttpHandler
+import io.undertow.server.HttpServerExchange
 import io.undertow.server.RoutingHandler
 import io.undertow.util.HttpString.tryFromString
 
 class ServerBuilder(
-        val appServerPort: Int,
-        private val apiControllers: List<ApiController>,
-        private val metricsService: MetricsService
+    val appServerPort: Int,
+    private val apiControllers: List<ApiController>,
+    private val metricsService: MetricsService
 ) {
     fun build(): Undertow {
         val routingHandler = RoutingHandler()
@@ -20,14 +21,15 @@ class ServerBuilder(
             }
         }
         return Undertow.builder()
-                .addHttpListener(appServerPort, "0.0.0.0")
-                .setHandler(routingHandler
-                        .wrapWithOptionsHandler()
-                        .wrapWithCorsHeadersHandler()
-                        .wrapWithRequestMetricsHandler()
-                )
-                .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, true)
-                .build()
+            .addHttpListener(appServerPort, "0.0.0.0")
+            .setHandler(
+                routingHandler
+                    .wrapWithOptionsHandler()
+                    .wrapWithCorsHeadersHandler()
+                    .wrapWithRequestMetricsHandler()
+            )
+            .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, true)
+            .build()
     }
 
     private fun HttpHandler.wrapWithCorsHeadersHandler(): HttpHandler {
@@ -54,9 +56,24 @@ class ServerBuilder(
         }
     }
 
+    private fun HttpServerExchange.userMetricsTag(): Map<String, String> {
+        val userName = this.securityContext?.authenticatedAccount?.principal?.name
+        return if (userName != null) {
+            mapOf("user" to userName)
+        } else {
+            emptyMap()
+        }
+    }
+
     private fun HttpHandler.wrapWithRequestMetricsHandler(): HttpHandler {
         return HttpHandler {
-            metricsService.recordRequest(it.requestMethod.toString(), it.requestPath, it.statusCode, System.nanoTime() - it.requestStartTime)
+            metricsService.recordRequest(
+                method = it.requestMethod.toString(),
+                requestURI = it.requestPath,
+                status = it.statusCode,
+                executionTime = System.currentTimeMillis() - it.requestStartTime,
+                additionalTags = it.userMetricsTag(),
+            )
             this.handleRequest(it)
         }
     }
