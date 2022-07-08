@@ -2,6 +2,7 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import org.assertj.core.api.Assertions.assertThat
@@ -17,11 +18,11 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     private val currencyPairWithExchangePair2 = CurrencyPairWithExchangePair(currencyPair2, exchangePair2)
 
     private val sampleProfit = TwoLegOrderBookArbitrageProfit(
-            currencyPairWithExchangePair = currencyPairWithExchangePair1,
-            usd24hVolumeAtFirstExchange = 1000.0.toBigDecimal(),
-            usd24hVolumeAtSecondExchange = 1500.0.toBigDecimal(),
-            orderBookArbitrageProfitHistogram = listOf(),
-            calculatedAtMillis = 1
+        currencyPairWithExchangePair = currencyPairWithExchangePair1,
+        usd24hVolumeAtFirstExchange = 1000.0.toBigDecimal(),
+        usd24hVolumeAtSecondExchange = 1500.0.toBigDecimal(),
+        orderBookArbitrageProfitHistogram = listOf(),
+        calculatedAtMillis = 1,
     )
 
     @Test
@@ -29,17 +30,18 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
         // given
         val timeMillis = ArrayDeque<Long>(listOf(3L, 7L, 9L))
         val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
-        profitsCache.setProfit(sampleProfit.copy(calculatedAtMillis = 1))
-        profitsCache.setProfit(sampleProfit.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        val cacheGrup = INACCURATE_NOT_USING_METADATA
+        profitsCache.setProfit(cacheGrup, sampleProfit.copy(calculatedAtMillis = 1))
+        profitsCache.setProfit(cacheGrup, sampleProfit.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGrup)).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).containsOnly(currencyPairWithExchangePair2)
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGrup)).containsOnly(currencyPairWithExchangePair2)
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).isEmpty()
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGrup)).isEmpty()
     }
 
 }

@@ -9,6 +9,7 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.*
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
+import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
@@ -72,25 +73,35 @@ class AppContext(private val appConfig: AppConfig) {
         objectMapper = objectMapper
     )
 
+    val exchangeMetadataService = CachingExchangeMetadataService(
+        decorated = RestExchangeMetadataService(
+            httpClient = oauth2HttpClient,
+            exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
+            objectMapper = objectMapper
+        )
+    )
+
     val twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata = TwoLegOrderBookArbitrageProfitCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata()
+        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata(),
+        profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
+    )
+    val twoLegOrderBookArbitrageProfitCalculatorWithMetadata = TwoLegOrderBookArbitrageProfitCalculator(
+        priceService = priceService,
+        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
+        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
+        profitGroup = TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA
     )
 
     val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
-    val exchangeMetadataService = RestExchangeMetadataService(
-        httpClient = oauth2HttpClient,
-        exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
-        objectMapper = objectMapper
-    )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
     val tickerListenersProvider = TickerListenersProvider()
     val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
         profitCache = twoLegOrderBookArbitrageProfitCache,
-        profitCalculator = twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata,
+        profitCalculators = listOf(twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata, twoLegOrderBookArbitrageProfitCalculatorWithMetadata),
         metricsService = metricsService
     )
 

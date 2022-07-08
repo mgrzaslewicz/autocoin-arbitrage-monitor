@@ -1,6 +1,7 @@
 package automate.profit.autocoin.api
 
 import automate.profit.autocoin.exchange.SupportedExchange
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
@@ -15,70 +16,70 @@ import java.math.RoundingMode.HALF_DOWN
 import java.math.RoundingMode.HALF_EVEN
 
 data class TwoLegOrderBookArbitrageOpportunityDto(
-        val sellPrice: String,
-        val sellAmount: String,
-        val sellAtExchange: SupportedExchange,
-        val buyPrice: String,
-        val buyAmount: String,
-        val buyAtExchange: SupportedExchange,
-        val relativeProfitPercent: String,
-        val usdDepthUpTo: String
+    val sellPrice: String,
+    val sellAmount: String,
+    val sellAtExchange: SupportedExchange,
+    val buyPrice: String,
+    val buyAmount: String,
+    val buyAtExchange: SupportedExchange,
+    val relativeProfitPercent: String,
+    val usdDepthUpTo: String
 )
 
 data class TwoLegArbitrageProfitDto(
-        val baseCurrency: String,
-        val counterCurrency: String,
-        val firstExchange: SupportedExchange,
-        val secondExchange: SupportedExchange,
-        val usd24hVolumeAtFirstExchange: String,
-        val usd24hVolumeAtSecondExchange: String,
-        val arbitrageProfitHistogram: List<TwoLegOrderBookArbitrageOpportunityDto?>,
-        val calculatedAtMillis: Long
+    val baseCurrency: String,
+    val counterCurrency: String,
+    val firstExchange: SupportedExchange,
+    val secondExchange: SupportedExchange,
+    val usd24hVolumeAtFirstExchange: String,
+    val usd24hVolumeAtSecondExchange: String,
+    val arbitrageProfitHistogram: List<TwoLegOrderBookArbitrageOpportunityDto?>,
+    val calculatedAtMillis: Long
 )
 
 data class TwoLegArbitrageResponseDto(
-        val usdDepthThresholds: List<Int>,
-        val profits: List<TwoLegArbitrageProfitDto?>
+    val usdDepthThresholds: List<Int>,
+    val profits: List<TwoLegArbitrageProfitDto?>
 )
 
 data class TwoLegArbitrageMetadataDto(
-        val baseCurrenciesMonitored: Set<String>,
-        val counterCurrenciesMonitored: Set<String>
+    val baseCurrenciesMonitored: Set<String>,
+    val counterCurrenciesMonitored: Set<String>
 )
 
 class ArbitrageProfitController(
-        private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
-        private val orderBookUsdAmountThresholds: List<BigDecimal>,
-        private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
-        private val objectMapper: ObjectMapper,
-        private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper
+    private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
+    private val orderBookUsdAmountThresholds: List<BigDecimal>,
+    private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
+    private val objectMapper: ObjectMapper,
+    private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper
 ) : ApiController {
 
     private val minRelativeProfit = 0.002.toBigDecimal()
     private val minUsd24hVolume = 1000.toBigDecimal()
 
     private fun TwoLegOrderBookArbitrageOpportunity.toDto() = TwoLegOrderBookArbitrageOpportunityDto(
-            sellPrice = sellPrice.setScale(8, HALF_EVEN).toPlainString(),
-            sellAmount = baseCurrencyAmountAtSellExchange.setScale(8, HALF_EVEN).toPlainString(),
-            buyPrice = buyPrice.setScale(8, HALF_EVEN).toPlainString(),
-            buyAmount = baseCurrencyAmountAtBuyExchange.setScale(8, HALF_EVEN).toPlainString(),
-            sellAtExchange = sellAtExchange,
-            buyAtExchange = buyAtExchange,
-            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
-            usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString()
+        sellPrice = sellPrice.setScale(8, HALF_EVEN).toPlainString(),
+        sellAmount = baseCurrencyAmountAtSellExchange.setScale(8, HALF_EVEN).toPlainString(),
+        buyPrice = buyPrice.setScale(8, HALF_EVEN).toPlainString(),
+        buyAmount = baseCurrencyAmountAtBuyExchange.setScale(8, HALF_EVEN).toPlainString(),
+        sellAtExchange = sellAtExchange,
+        buyAtExchange = buyAtExchange,
+        relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
+        usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString()
     )
 
     private fun TwoLegOrderBookArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
-            baseCurrency = currencyPairWithExchangePair.currencyPair.base,
-            counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
-            firstExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-            secondExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-            usd24hVolumeAtFirstExchange = usd24hVolumeAtFirstExchange.setScale(2, HALF_DOWN).toPlainString(),
-            usd24hVolumeAtSecondExchange = usd24hVolumeAtSecondExchange.setScale(2, HALF_DOWN).toPlainString(),
-            arbitrageProfitHistogram = orderBookArbitrageProfitHistogram.map {
-                it?.toDto()
-            },
-            calculatedAtMillis = calculatedAtMillis
+        baseCurrency = currencyPairWithExchangePair.currencyPair.base,
+        counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
+        firstExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
+        secondExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
+        usd24hVolumeAtFirstExchange = usd24hVolumeAtFirstExchange.setScale(2, HALF_DOWN).toPlainString(),
+        usd24hVolumeAtSecondExchange = usd24hVolumeAtSecondExchange.setScale(2, HALF_DOWN).toPlainString(),
+        arbitrageProfitHistogram = orderBookArbitrageProfitHistogram.map {
+            it?.toDto()
+        },
+        calculatedAtMillis = calculatedAtMillis
     )
 
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
@@ -86,27 +87,30 @@ class ArbitrageProfitController(
         override val urlTemplate = "/two-leg-arbitrage-profits"
 
         override val httpHandler = HttpHandler {
+            val profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA // TODO provide auth context to decide what to send to user
             val profits = twoLegOrderBookArbitrageProfitCache
-                    .getCurrencyPairWithExchangePairs()
-                    .asSequence()
-                    .mapNotNull { currencyPairWithExchangePair ->
-                        val profit = twoLegOrderBookArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
-                        if (profit?.orderBookArbitrageProfitHistogram
-                                        ?.any { opportunity ->
-                                            (opportunity?.relativeProfit ?: ZERO) > minRelativeProfit
-                                        } == true
-                                && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume) {
-                            profit.toDto()
-                        } else null
-                    }
-                    .toList()
+                .getCurrencyPairWithExchangePairs(profitGroup)
+                .asSequence()
+                .mapNotNull { currencyPairWithExchangePair ->
+                    val profit = twoLegOrderBookArbitrageProfitCache
+                        .getProfit(profitGroup, currencyPairWithExchangePair)
+                    if (profit?.orderBookArbitrageProfitHistogram
+                            ?.any { opportunity ->
+                                (opportunity?.relativeProfit ?: ZERO) > minRelativeProfit
+                            } == true
+                        && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume
+                    ) {
+                        profit.toDto()
+                    } else null
+                }
+                .toList()
             val result = TwoLegArbitrageResponseDto(
-                    usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
-                    profits = profits
+                usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
+                profits = profits
             )
             it.responseSender.send(objectMapper.writeValueAsString(result))
         }
-                .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
+            .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
     private fun getTwoLegAribtrageMetadata() = object : ApiHandler {
@@ -120,17 +124,17 @@ class ArbitrageProfitController(
             val counterCurrencies = lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.counter }.toSet()
 
             val response = TwoLegArbitrageMetadataDto(
-                    baseCurrenciesMonitored = baseCurrencies,
-                    counterCurrenciesMonitored = counterCurrencies
+                baseCurrenciesMonitored = baseCurrencies,
+                counterCurrenciesMonitored = counterCurrencies
             )
             httpServerExchange.responseSender.send(objectMapper.writeValueAsString(response))
         }
-                .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
+            .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
     override fun apiHandlers(): List<ApiHandler> = listOf(
-            getTwoLegArbitrageProfits(),
-            getTwoLegAribtrageMetadata()
+        getTwoLegArbitrageProfits(),
+        getTwoLegAribtrageMetadata()
     )
 
 }

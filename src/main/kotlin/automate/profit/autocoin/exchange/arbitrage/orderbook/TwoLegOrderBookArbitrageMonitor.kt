@@ -10,7 +10,6 @@ import automate.profit.autocoin.exchange.ticker.TickerListener
 import automate.profit.autocoin.exchange.ticker.TickerPair
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
-import kotlin.system.measureTimeMillis
 
 /**
  * Calculates arbitrage opportunities based on order books
@@ -77,16 +76,13 @@ class TwoLegOrderBookArbitrageMonitor(
         if (isAllRequiredDataPresent) {
             val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
             val tickerPair = TickerPair(firstExchangeTicker!!, secondExchangeTicker!!)
-            val millis = measureTimeMillis {
                 val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
                 if (profit == null) {
                     logger.debug { "No profit found for $currencyPairWithExchangePair" }
-                    profitCache.removeProfit(currencyPairWithExchangePair)
+                    profitCache.removeProfit(profitCalculator.profitGroup, currencyPairWithExchangePair)
                 } else {
-                    profitCache.setProfit(profit)
+                    profitCache.setProfit(profitCalculator.profitGroup, profit)
                 }
-            }
-            metricsService.recordArbitrageProfitCalculationTime(millis, commonMetricsTags)
         }
     }
 

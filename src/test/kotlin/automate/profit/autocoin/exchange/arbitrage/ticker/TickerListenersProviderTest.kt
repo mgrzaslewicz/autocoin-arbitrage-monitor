@@ -27,7 +27,7 @@ class TickerListenersProviderTest {
     )
     private val twoLegOrderBookArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
             profitCache = mock(),
-            profitCalculator = mock(),
+            profitCalculators = listOf(mock()),
             metricsService = mock()
     )
 

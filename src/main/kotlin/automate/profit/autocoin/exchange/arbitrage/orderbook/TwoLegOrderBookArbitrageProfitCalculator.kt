@@ -6,8 +6,7 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
 import mu.KLogging
 import java.math.BigDecimal
-import java.math.BigDecimal.ONE
-import java.math.RoundingMode.HALF_EVEN
+
 
 interface TwoLegArbitrageRelativeProfitCalculator {
 
@@ -34,47 +33,15 @@ interface TwoLegArbitrageRelativeProfitCalculator {
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
     ): Boolean
+
 }
 
 /**
- * Does not take into account:
- * - withdrawal fee
- * - trade fee
- * - if wallet at exchange allows withdrawal
+ * The way to distinguish how detailed arbitrage opportunities are (for free VS paid)
  */
-class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata: TwoLegArbitrageRelativeProfitCalculator {
-    override fun getProfitBuyAtSecondExchangeSellAtFirst(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookBuyPrice: OrderBookAveragePrice,
-        secondOrderBookSellPrice: OrderBookAveragePrice
-    ): BigDecimal {
-        return firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, HALF_EVEN) - ONE
-    }
-
-    override fun getProfitBuyAtFirstExchangeSellAtSecond(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookSellPrice: OrderBookAveragePrice,
-        secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): BigDecimal {
-        return secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, HALF_EVEN) - ONE
-    }
-
-    override fun shouldBuyAtFirstExchangeAndSellAtSecond(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookSellPrice: OrderBookAveragePrice,
-        secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): Boolean {
-        return secondOrderBookBuyPrice.averagePrice > firstOrderBookSellPrice.averagePrice
-    }
-
-    override fun shouldBuyAtSecondExchangeAndSellAtFirst(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookBuyPrice: OrderBookAveragePrice,
-        secondOrderBookSellPrice: OrderBookAveragePrice
-    ): Boolean {
-        return firstOrderBookBuyPrice.averagePrice > secondOrderBookSellPrice.averagePrice
-    }
-
+enum class TwoLegArbitrageRelativeProfitGroup {
+    ACCURATE_USING_METADATA,
+    INACCURATE_NOT_USING_METADATA,
 }
 
 class TwoLegOrderBookArbitrageProfitCalculator(
@@ -83,7 +50,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
     private val staleOrdersDetector: StaleOrdersDetector = StaleOrdersDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val staleTickerDetector: StaleTickerDetector = StaleTickerDetector(currentTimeMillisFunction = currentTimeMillisFunction),
-    private val relativeProfitCalculator: TwoLegArbitrageRelativeProfitCalculator
+    private val relativeProfitCalculator: TwoLegArbitrageRelativeProfitCalculator,
+    val profitGroup: TwoLegArbitrageRelativeProfitGroup
 ) {
     companion object : KLogging()
 
@@ -119,7 +87,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
                             baseCurrencyAmountAtBuyExchange = secondOrderBookSellPrice.baseCurrencyAmount,
 
-                            relativeProfit = relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(currencyPairWithExchangePair, firstOrderBookBuyPrice, secondOrderBookSellPrice),
+                            relativeProfit = relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(
+                                currencyPairWithExchangePair,
+                                firstOrderBookBuyPrice,
+                                secondOrderBookSellPrice
+                            ),
                             usdDepthUpTo = usdDepthTo
                         )
                     relativeProfitCalculator.shouldBuyAtFirstExchangeAndSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice) ->
@@ -132,7 +104,11 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
                             baseCurrencyAmountAtBuyExchange = firstOrderBookSellPrice.baseCurrencyAmount,
 
-                            relativeProfit = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice),
+                            relativeProfit = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(
+                                currencyPairWithExchangePair,
+                                firstOrderBookSellPrice,
+                                secondOrderBookBuyPrice
+                            ),
                             usdDepthUpTo = usdDepthTo
                         )
                     else -> null
@@ -152,7 +128,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 usd24hVolumeAtFirstExchange = usd24hVolumeAtFirstExchange,
                 usd24hVolumeAtSecondExchange = usd24hVolumeAtSecondExchange,
                 orderBookArbitrageProfitHistogram = opportunities,
-                calculatedAtMillis = currentTimeMillis
+                calculatedAtMillis = currentTimeMillis,
             )
         } catch (e: Exception) {
             logger.error(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
