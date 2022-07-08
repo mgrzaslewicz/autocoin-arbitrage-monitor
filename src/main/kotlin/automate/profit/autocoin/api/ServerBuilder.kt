@@ -1,7 +1,6 @@
 package automate.profit.autocoin.api
 
 import automate.profit.autocoin.metrics.MetricsService
-import io.undertow.Handlers
 import io.undertow.Undertow
 import io.undertow.UndertowOptions
 import io.undertow.server.HttpHandler

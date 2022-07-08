@@ -55,16 +55,17 @@ class AppContext(private val appConfig: AppConfig) {
             objectMapper = objectMapper
     )
 
-    val statsdClient =
-            if (appConfig.useMetrics)
-                NonBlockingStatsDClient(appConfig.serviceName, "telegraf", 8125)
-            else
-                NoOpStatsDClient()
+    val statsdClient = if (appConfig.useMetrics) {
+        NonBlockingStatsDClient(appConfig.serviceName, "telegraf", 8125)
+    } else {
+        NoOpStatsDClient()
+    }
     val metricsService: MetricsService = MetricsService(statsdClient)
 
     val priceService = PriceService(
             priceApiUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = oauth2HttpClient,
+            metricsService = metricsService,
             objectMapper = objectMapper
     )
 

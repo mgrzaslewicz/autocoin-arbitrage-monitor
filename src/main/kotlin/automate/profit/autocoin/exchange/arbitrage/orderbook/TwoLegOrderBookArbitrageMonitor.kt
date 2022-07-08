@@ -23,7 +23,7 @@ class TwoLegOrderBookArbitrageMonitor(
 
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
-    private val commonTags = "$currencyPair=$currencyPair,exchanges=${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
+    private val commonTags = "currencyPair=$currencyPair,exchanges=${exchangePair.firstExchange.exchangeName}-${exchangePair.secondExchange.exchangeName}"
     private var firstExchangeOrderBook: OrderBook? = null
     private var secondExchangeOrderBook: OrderBook? = null
 

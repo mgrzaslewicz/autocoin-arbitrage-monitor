@@ -19,9 +19,6 @@ class OrderBookFetcher(
 
     override fun getOrderBook(currencyPair: CurrencyPair): OrderBook {
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
-        // assumption is order book is sorted by price (descending for buy orders, ascending for sell orders)
-        val millisBefore = System.currentTimeMillis()
-
         val request = Request.Builder()
                 .url("$orderBookApiUrl/order-book/${supportedExchange.exchangeName}/${currencyPair.base}/${currencyPair.counter}")
                 .get()
@@ -33,9 +30,6 @@ class OrderBookFetcher(
             val orderBookDto = objectMapper.readValue(orderBookResponse.body?.string(), OrderBookResponseDto::class.java)
             orderBookResponse.body?.close()
 
-            // TODO do we really need this? State a case or remove
-            //val millisAfter = System.currentTimeMillis()
-            //statsDClient.recordExecutionTime("fetchOrderBook", millisAfter - millisBefore, currencyPair.toString(), supportedExchange.exchangeName)
             return orderBookDto.toOrderBook()
         }
     }
