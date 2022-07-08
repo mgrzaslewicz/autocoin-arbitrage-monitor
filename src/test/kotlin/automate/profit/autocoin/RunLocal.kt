@@ -11,7 +11,8 @@ fun main() {
     //    setProperty("OAUTH2_SERVER_URL", "http://localhost:9002")
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
     setProperty("APP_OAUTH_CLIENT_SECRET", "changeme")
-    setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS",  Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
+    setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker", "DEBUG")
+    setProperty("logging.level.automate.profit.autocoin.exchange.ticker.TickerPairCache", "DEBUG")
     main(emptyArray())
 }

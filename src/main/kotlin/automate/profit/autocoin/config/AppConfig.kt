@@ -33,7 +33,8 @@ data class AppConfig(
         val arbitrageMonitorOauth2ClientSecret: String,
         val oauth2ServerUrl: String,
         val tickerPairsRepositoryPath: String,
-        val ageOfOldestTickerPairToKeepMs: Long
+        val ageOfOldestTickerPairToKeepMs: Long,
+        val maximumTwoLegArbitrageProfitsToKeep: Int
 )
 
 fun loadConfig(): AppConfig {
@@ -44,6 +45,7 @@ fun loadConfig(): AppConfig {
             arbitrageMonitorOauth2ClientSecret = getProperty("APP_OAUTH_CLIENT_SECRET"),
             oauth2ServerUrl = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
             tickerPairsRepositoryPath = getProperty("APP_DATA_PATH", "data") + File.separator + "tickerPairs",
-            ageOfOldestTickerPairToKeepMs = getProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong()
+            ageOfOldestTickerPairToKeepMs = getProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
+            maximumTwoLegArbitrageProfitsToKeep = 10
     )
 }

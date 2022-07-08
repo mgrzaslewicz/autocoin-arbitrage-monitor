@@ -2,6 +2,7 @@ package automate.profit.autocoin.config
 
 import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
 import automate.profit.autocoin.exchange.TwoLegArbitrageMonitor
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
 import automate.profit.autocoin.exchange.ticker.*
 import automate.profit.autocoin.oauth.AccessTokenAuthenticator
 import automate.profit.autocoin.oauth.AccessTokenInterceptor
@@ -28,8 +29,10 @@ class AppContext(val appConfig: AppConfig) {
             tickerListenerRegistrarProvider = tickerListenerRegistrarProvider
     )
     val tickerPairCache = TickerPairCache(appConfig.ageOfOldestTickerPairToKeepMs)
+    val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
+    val twoLegArbitrageProfitCache = TwoLegArbitrageProfitCache(appConfig.maximumTwoLegArbitrageProfitsToKeep)
     val twoLegArbitrageMonitors = appConfig.twoLegArbitragePairs.flatMap {
-        it.value.map { exchangePair -> TwoLegArbitrageMonitor(CurrencyPairWithExchangePair(it.key, exchangePair), tickerPairCache) }
+        it.value.map { exchangePair -> TwoLegArbitrageMonitor(CurrencyPairWithExchangePair(it.key, exchangePair), tickerPairCache, twoLegArbitrageProfitCalculator, twoLegArbitrageProfitCache) }
     }
     val tickerListeners = twoLegArbitrageMonitors.flatMap { it.getTickerListeners().toList() }
     val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars)

@@ -29,8 +29,8 @@ class TickerPairCacheTest {
         // then
         val tickerCurrencyPairs = tickerPairCache.getTickerCurrencyPairs(currencyPairWithExchangePair)
         assertThat(tickerCurrencyPairs).hasSize(4)
-        assertThat(tickerCurrencyPairs.last.first.timestamp?.toEpochMilli()).isEqualTo(2)
-        assertThat(tickerCurrencyPairs.last.second.timestamp?.toEpochMilli()).isEqualTo(2)
+        assertThat(tickerCurrencyPairs.last().first.timestamp?.toEpochMilli()).isEqualTo(2)
+        assertThat(tickerCurrencyPairs.last().second.timestamp?.toEpochMilli()).isEqualTo(2)
     }
 
 }
