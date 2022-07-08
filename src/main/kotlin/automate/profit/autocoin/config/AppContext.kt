@@ -166,7 +166,8 @@ class AppContext(private val appConfig: AppConfig) {
     )
 
     val healthService = HealthService(
-        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService
+        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
+        twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
     )
     val healthController = HealthController(
         healthService = healthService,
