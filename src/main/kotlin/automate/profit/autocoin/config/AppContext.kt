@@ -6,9 +6,7 @@ import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
 import automate.profit.autocoin.exchange.TwoLegArbitrageMonitor
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
 import automate.profit.autocoin.exchange.ticker.*
-import automate.profit.autocoin.oauth.AccessTokenAuthenticator
-import automate.profit.autocoin.oauth.AccessTokenInterceptor
-import automate.profit.autocoin.oauth.ClientCredentialsAccessTokenProvider
+import automate.profit.autocoin.oauth.*
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -41,7 +39,10 @@ class AppContext(val appConfig: AppConfig) {
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath)
     val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository)
     val tickerPairCacheLoader = TickerPairCacheLoader(tickerPairCache, fileTickerPairRepository)
-    val arbitrageProfitController = ArbitrageProfitController(twoLegArbitrageProfitCache, objectMapper)
+    val accessTokenChecker = AccessTokenChecker(httpClient, objectMapper, appConfig)
+    val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
+    val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
+    val arbitrageProfitController = ArbitrageProfitController(twoLegArbitrageProfitCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
     val controllers = listOf(arbitrageProfitController)
     val server = ServerBuilder(appConfig.appServerPort, controllers).build()
 }
