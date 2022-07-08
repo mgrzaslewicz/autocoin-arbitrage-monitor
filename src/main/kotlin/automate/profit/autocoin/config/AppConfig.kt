@@ -70,7 +70,7 @@ data class AppConfig(
         val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
         val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()).toLong(),
         val ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_REPOSITORY_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
-        val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,cexio,coinbasepro,coinbene,exmo,gateio,gemini,hitbtc,kraken,kucoin,luno,poloniex")
+        val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,cexio,coinbasepro,exmo,gateio,gemini,hitbtc,kraken,kucoin,luno,poloniex")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
         val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0")
