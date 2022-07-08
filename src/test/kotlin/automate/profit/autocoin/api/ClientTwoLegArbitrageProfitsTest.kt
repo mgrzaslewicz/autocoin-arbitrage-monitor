@@ -31,6 +31,7 @@ class ClientTwoLegArbitrageProfitsTest {
                     buyAtExchange = BITTREX,
                     baseCurrencyAmountAtBuyExchange = BigDecimal("103"),
                     relativeProfit = BigDecimal("0.01"),
+                    profitUsd = BigDecimal("95"),
                     usdDepthUpTo = BigDecimal("15000"),
                     transactionFeeAmountBeforeTransfer = BigDecimal("0.21"),
                     transferFeeAmount = BigDecimal("0.3"),
@@ -68,6 +69,7 @@ class ClientTwoLegArbitrageProfitsTest {
             assertThat(result.first().arbitrageProfitHistogram.first()!!.buyAtExchange).isEqualTo(BITTREX)
             assertThat(result.first().arbitrageProfitHistogram.first()!!.buyAmount).isEqualTo("103.00000000")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.relativeProfitPercent).isEqualTo("1.0000")
+            assertThat(result.first().arbitrageProfitHistogram.first()!!.profitUsd).isEqualTo("95.00")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.usdDepthUpTo).isEqualTo("15000.00")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.fees.buyFee).isEqualTo("0.21000000")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.30000000")
@@ -103,6 +105,7 @@ class ClientTwoLegArbitrageProfitsTest {
             assertThat(result.first().arbitrageProfitHistogram.first()!!.buyAtExchange).isEqualTo(BITTREX)
             assertThat(result.first().arbitrageProfitHistogram.first()!!.buyAmount).isEqualTo("103.00000000")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.relativeProfitPercent).isEqualTo("1.0000")
+            assertThat(result.first().arbitrageProfitHistogram.first()!!.profitUsd).isEqualTo("95.00")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.usdDepthUpTo).isEqualTo("15000.00")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.fees.buyFee).isEqualTo("0.21000000")
             assertThat(result.first().arbitrageProfitHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.30000000")

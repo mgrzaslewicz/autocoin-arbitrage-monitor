@@ -88,6 +88,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
 
                             relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
+                            profitUsd = profitBuyAtSecondSellAtFirst.relativeProfit.multiply(usdDepthTo),
                             usdDepthUpTo = usdDepthTo,
 
                             transactionFeeAmountBeforeTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountBeforeTransfer,
@@ -107,7 +108,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                                 buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
                                 baseCurrencyAmountAtBuyExchange = profitBuyAtFirstSellAtSecond.baseCurrencyAmountAfterTransfer,
 
-                                relativeProfit = profitBuyAtFirstSellAtSecond.relativeProfit,
+                                relativeProfit = profitBuyAtFirstSellAtSecond.relativeProfit.multiply(usdDepthTo),
+                                profitUsd = profitBuyAtFirstSellAtSecond.relativeProfit,
                                 usdDepthUpTo = usdDepthTo,
 
                                 transactionFeeAmountBeforeTransfer = profitBuyAtFirstSellAtSecond.transactionFeeAmountBeforeTransfer,
