@@ -1,4 +1,4 @@
-package automate.profit.autocoin.config
+package automate.profit.autocoin.app
 
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import com.fasterxml.jackson.databind.DeserializationContext

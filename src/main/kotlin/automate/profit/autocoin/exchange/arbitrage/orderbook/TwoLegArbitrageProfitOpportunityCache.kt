@@ -1,6 +1,6 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.app.ExchangePair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
 import java.util.*

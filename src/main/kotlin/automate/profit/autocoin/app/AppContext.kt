@@ -1,4 +1,4 @@
-package automate.profit.autocoin.config
+package automate.profit.autocoin.app
 
 import autocoin.metrics.JsonlFileStatsDClient
 import automate.profit.autocoin.api.ArbitrageProfitController
@@ -13,7 +13,6 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCutOff
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
@@ -35,14 +34,13 @@ import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.sse.EventSources
 import java.math.BigDecimal
-import java.net.SocketAddress
 import java.nio.file.Path
 import java.time.Duration
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class AppContext(private val appConfig: AppConfig) {
-    companion object : KLogging()
+class AppContext(val appConfig: AppConfig) {
+    private companion object : KLogging()
 
     val httpClientWithoutAuthorization = OkHttpClient()
     val objectMapper = ObjectMapperProvider().createObjectMapper()
@@ -110,7 +108,7 @@ class AppContext(private val appConfig: AppConfig) {
 
     val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
 
-    private val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
+    val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
         ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
@@ -188,44 +186,5 @@ class AppContext(private val appConfig: AppConfig) {
 
     val server = ServerBuilder(appConfig.appServerPort, controllers, metricsService).build()
 
-
-    fun start(): SocketAddress {
-        logger.info { "Fetching currency pairs from exchanges" }
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
-        logCommonCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
-
-        val twoLegArbitrageMonitors = twoLegArbitrageMonitorProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairs.currencyPairsToExchangePairs)
-
-        orderBookListeners.prepareOrderBookListeners(twoLegArbitrageMonitors)
-        healthService.addOrderBookListenersTo(orderBookListeners)
-        tickerListeners.prepareTickerListeners(twoLegArbitrageMonitors)
-        healthService.addTickerListenersTo(tickerListeners)
-
-        orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
-        tickerSseStreamService.startListeningTickerStream(commonCurrencyPairs)
-
-        logger.info { "Scheduling jobs" }
-        orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
-        tickerSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
-        healthMetricsScheduler.scheduleSendingMetrics()
-        twoLegOrderBookArbitrageProfitCacheScheduler.scheduleRemovingTooOldAndSendingMetrics()
-
-        logger.info { "Starting server" }
-        server.start()
-        return server.listenerInfo[0].address
-    }
-
-    private fun logCommonCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
-        appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.forEachIndexed { index, supportedExchange ->
-            for (i in index + 1 until appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.size) {
-                val exchangePair = ExchangePair(
-                    firstExchange = supportedExchange,
-                    secondExchange = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
-                )
-                val currencyPairs = exchangePairToCurrencyPairs[exchangePair]
-                logger.info { "Number common of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }
-            }
-        }
-    }
 
 }

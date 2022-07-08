@@ -1,6 +1,6 @@
 package automate.profit.autocoin.exchange.arbitrage
 
-import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.app.ExchangePair
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageOpportunitiesMonitor
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator

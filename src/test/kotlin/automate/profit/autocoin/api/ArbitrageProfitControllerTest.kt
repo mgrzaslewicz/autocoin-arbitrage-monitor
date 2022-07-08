@@ -1,7 +1,7 @@
 package automate.profit.autocoin.api
 
-import automate.profit.autocoin.config.ExchangePair
-import automate.profit.autocoin.config.ObjectMapperProvider
+import automate.profit.autocoin.app.ExchangePair
+import automate.profit.autocoin.app.ObjectMapperProvider
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
