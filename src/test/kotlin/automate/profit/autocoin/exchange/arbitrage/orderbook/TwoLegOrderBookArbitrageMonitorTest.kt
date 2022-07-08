@@ -33,7 +33,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
             whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
         }
 
-        val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock())
+        val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator)
         val orderBookListeners = twoLegArbitrageMonitor.getOrderBookListeners()
         val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
 

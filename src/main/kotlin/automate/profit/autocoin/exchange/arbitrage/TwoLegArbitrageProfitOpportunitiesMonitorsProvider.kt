@@ -6,12 +6,10 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import automate.profit.autocoin.metrics.MetricsService
 
 class TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
     private val profitCache: TwoLegArbitrageProfitOpportunityCache,
     private val profitCalculator: TwoLegArbitrageProfitOpportunityCalculator,
-    private val metricsService: MetricsService
 ) {
     fun getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<TwoLegArbitrageOpportunitiesMonitor> {
         return commonCurrencyPairsAtExchanges.flatMap {
@@ -20,7 +18,6 @@ class TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
                     currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
                     profitCache = profitCache,
                     profitCalculator = profitCalculator,
-                    metricsService = metricsService
                 )
             }
         }
