@@ -20,7 +20,9 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val onlyAtBinance = CurrencyPair.of("ONLY/AT-BINANCE")
     private val onlyAtKucoin = CurrencyPair.of("ONLY/AT-KUCOIN")
 
-    private val exchanges = listOf(BINANCE, BITTREX, KUCOIN)
+    private val exchange1WithFailedMetadataResponse = GATEIO
+    private val exchange2WithFailedMetadataResponse = CEXIO
+    private val exchanges= listOf(BINANCE, exchange1WithFailedMetadataResponse, BITTREX, KUCOIN, exchange2WithFailedMetadataResponse)
 
     private val bittrexMetadata = ExchangeMetadata(
         currencyMetadata = emptyMap(),
@@ -62,6 +64,8 @@ class CommonExchangeCurrencyPairsServiceTest {
         whenever(this.getMetadata("bittrex")).thenReturn(bittrexMetadata)
         whenever(this.getMetadata("kucoin")).thenReturn(kucoinMetadata)
         whenever(this.getMetadata("binance")).thenReturn(binanceMetadata)
+        whenever(this.getMetadata(exchange1WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 1 failing on purpose"))
+        whenever(this.getMetadata(exchange2WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 2 failing on purpose"))
     }
 
     @Test
@@ -110,6 +114,8 @@ class CommonExchangeCurrencyPairsServiceTest {
             whenever(this.getMetadata("bittrex")).thenReturn(bittrexMetadata)
             whenever(this.getMetadata("kucoin")).thenReturn(emptyMetadata)
             whenever(this.getMetadata("binance")).thenReturn(emptyMetadata)
+            whenever(this.getMetadata(exchange1WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 1 failing on purpose"))
+            whenever(this.getMetadata(exchange2WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 2 failing on purpose"))
         }
         val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
