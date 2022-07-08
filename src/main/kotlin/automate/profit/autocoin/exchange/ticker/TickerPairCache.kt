@@ -3,7 +3,7 @@ package automate.profit.autocoin.exchange.ticker
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class TickerPairCache(private val ageOfOldestTickerPairToKeepMs: Long, private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
+class TickerPairCache() {
 
     private val tickerPairs = ConcurrentHashMap<CurrencyPairWithExchangePair, LinkedList<TickerPair>>()
 
@@ -15,14 +15,8 @@ class TickerPairCache(private val ageOfOldestTickerPairToKeepMs: Long, private v
             tickerPairs[currencyPairWithExchangePair] = newListForInsertingAtHead
             newListForInsertingAtHead
         }
-        currencyTickerPairs!!.addFirst(tickerPair)
-        removeTooOldTickers(currencyTickerPairs, ageOfOldestTickerPairToKeepMs)
-    }
-
-    private fun removeTooOldTickers(currencyTickerPairs: LinkedList<TickerPair>, ageOfOldestTickerPairToKeepMs: Long) {
-        val currentTimeMs = currentTimeMillis()
-        while (currencyTickerPairs.isNotEmpty() && listOf(currencyTickerPairs.last.first.timestamp!!.toEpochMilli(), currencyTickerPairs.last.second.timestamp!!.toEpochMilli()).any { currentTimeMs - it > ageOfOldestTickerPairToKeepMs }) {
-            currencyTickerPairs.removeLast()
+        synchronized(this) {
+            currencyTickerPairs!!.addFirst(tickerPair)
         }
     }
 
@@ -34,6 +28,15 @@ class TickerPairCache(private val ageOfOldestTickerPairToKeepMs: Long, private v
         } else {
             val list = tickerPairs.getValue(currencyPairWithExchangePair)
             list.subList(0, Math.min(maxElements - 1, list.lastIndex))
+        }
+    }
+
+    fun getAndCleanTickerCurrencyPairs(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TickerPair> {
+        synchronized(this) {
+            val tickerPairListToModify = tickerPairs.getValue(currencyPairWithExchangePair)
+            val result = ArrayList(tickerPairListToModify)
+            tickerPairListToModify.clear()
+            return result
         }
     }
 

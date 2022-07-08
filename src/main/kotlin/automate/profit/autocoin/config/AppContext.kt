@@ -27,7 +27,7 @@ class AppContext(appConfig: AppConfig) {
             initialTickerListenerRegistrarList = emptyList(),
             tickerListenerRegistrarProvider = tickerListenerRegistrarProvider
     )
-    val tickerPairCache = TickerPairCache(appConfig.ageOfOldestTickerPairToKeepMs)
+    val tickerPairCache = TickerPairCache()
     val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
     val twoLegArbitrageProfitCache = TwoLegArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepMs)
     val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars, twoLegArbitrageProfitCache)
@@ -37,7 +37,7 @@ class AppContext(appConfig: AppConfig) {
             exchangeMetadataService = exchangeMetadataService,
             twoLegArbitragePairs = appConfig.twoLegArbitragePairs
     )
-    val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath)
+    val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath, appConfig.ageOfOldestTickerPairToKeepInRepositoryMs)
     val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository)
     val tickerPairCacheLoader = TickerPairCacheLoader(tickerPairCache, fileTickerPairRepository)
     val accessTokenChecker = AccessTokenChecker(httpClient, objectMapper, appConfig)

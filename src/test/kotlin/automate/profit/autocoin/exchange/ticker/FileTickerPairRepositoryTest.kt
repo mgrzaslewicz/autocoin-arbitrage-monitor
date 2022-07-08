@@ -19,16 +19,15 @@ class FileTickerPairRepositoryTest {
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(BITTREX, BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
-    private val tickerPairsToSave = listOf(
-            TickerPair(
-                    Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1000)),
-                    Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1000))
-            ),
-            TickerPair(
-                    Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1005)),
-                    Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1005))
-            )
+    private val tickerPair1 = TickerPair(
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1000)),
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1000))
     )
+    private val tickerPair2 = TickerPair(
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1005)),
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1005))
+    )
+    private val tickerPairsToSave = listOf(tickerPair1, tickerPair2)
     private lateinit var tickerPairRepository: FileTickerPairRepository
     private lateinit var tickersFolder: File
 
@@ -36,7 +35,7 @@ class FileTickerPairRepositoryTest {
     fun setup() {
         tempFolder.create()
         tickersFolder = tempFolder.newFolder()
-        tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath) { 1L }
+        tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath, 100L) { 1L }
     }
 
     @AfterEach
@@ -73,6 +72,22 @@ class FileTickerPairRepositoryTest {
         assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000001.csv")).hasContent(expectedContent)
     }
 
+    @Test
+    fun shouldAddTickerPairsToFile() {
+        // given
+        val expectedContent = """
+1.00100000,1.00110000,1000,1.00200000,1.00210000,1000
+1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
+1.00100000,1.00110000,1000,1.00200000,1.00210000,1000
+1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
+        """.trimIndent()
+        // when
+        tickerPairRepository.addAll(currencyPairWithExchangePair, tickerPairsToSave)
+        tickerPairRepository.addAll(currencyPairWithExchangePair, tickerPairsToSave)
+        // then
+        assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000001.csv")).hasContent(expectedContent)
+    }
+
     fun Ticker.withScaledPrice(scale: Int) = this.copy(
             ask = ask.setScale(scale),
             bid = bid.setScale(scale)
@@ -94,10 +109,27 @@ class FileTickerPairRepositoryTest {
     }
 
     @Test
+    fun shouldRemoveTooOldTickers() {
+        // given
+        val timeMillis = ArrayDeque<Long>(listOf(1010L, 1015L, 1017L))
+        val tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath, 12L) { timeMillis.pollFirst() }
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
+        // when
+        tickerPairRepository.removeTooOldTickers(currencyPairWithExchangePair)
+        // then
+        val tickerPairsAfterRemoval = tickerPairRepository.getTickerPairs(currencyPairWithExchangePair)
+        // then
+        assertThat(tickerPairsAfterRemoval).hasSize(1)
+        assertThat(tickerPairsAfterRemoval[0].first.timestamp).isEqualTo(tickerPair2.first.timestamp)
+        assertThat(tickerPairsAfterRemoval[0].second.timestamp).isEqualTo(tickerPair2.second.timestamp)
+    }
+
+
+    @Test
     fun shouldRemoveAllButLatestTickerPairFile() {
         // given
         val timeMillis = ArrayDeque<Long>(listOf(1L, 2L, 3L))
-        var tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath) { timeMillis.poll() }
+        val tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath, 100L) { timeMillis.poll() }
         val otherCurrencyPairInTheSameDirectory = currencyPairWithExchangePair.copy(currencyPair = CurrencyPair.of("B/C"))
         tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
         tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
@@ -154,7 +186,7 @@ class FileTickerPairRepositoryTest {
     @Test
     fun shouldGetAllCurrencyPairsWithExchangePairsWhenExchangeDirectoryDoesNotExistYet() {
         // given
-        var tickerPairRepository = FileTickerPairRepository("/non-existing-path")
+        val tickerPairRepository = FileTickerPairRepository("/non-existing-path", 100L)
         // when
         val allCurrencyPairsWithExchangePairs = tickerPairRepository.getAllCurrencyPairsWithExchangePairs()
         // then

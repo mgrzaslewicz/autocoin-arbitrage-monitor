@@ -15,7 +15,9 @@ class TickerPairsSaveScheduler(private val tickerPairCache: TickerPairCache, pri
         logger.info { "Will save ticker pairs every 30 seconds" }
         executorService.scheduleAtFixedRate({
             tickerPairCache.getCurrencyPairWithExchangePairs().forEach {
-                tickerPairRepository.saveAll(it, tickerPairCache.getTickerCurrencyPairs(it))
+                val tickerPairs = tickerPairCache.getAndCleanTickerCurrencyPairs(it)
+                tickerPairRepository.addAll(it, tickerPairs)
+                tickerPairRepository.removeTooOldTickers(it)
                 tickerPairRepository.removeAllButLatestTickerPairFile(it)
             }
         }, 0, 30, TimeUnit.SECONDS)
