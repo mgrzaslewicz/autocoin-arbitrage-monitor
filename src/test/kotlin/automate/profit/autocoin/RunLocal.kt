@@ -22,6 +22,7 @@ fun main() {
     setProperty("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibex,binance,bittrex")
 //    setProperty("APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST", "QTUM/BTC,GAS/BTC")
     setProperty("USE_METRICS", "false")
+    setProperty("TELEGRAF_HOSTNAME", "localhost")
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker", "DEBUG")
     setProperty("logging.level.automate.profit.autocoin.exchange.orderbook", "DEBUG")
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker.TickerPairCache", "DEBUG")
