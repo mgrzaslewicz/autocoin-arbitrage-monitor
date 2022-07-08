@@ -170,10 +170,10 @@ class TwoLegArbitrageProfitCalculatorWithMetadata(
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,
             transactionFeeAmountBeforeTransfer = transactionFeeAmountBeforeTransfer.feeAmount,
-            isTransactionFeeAmountBeforeTransferEstimated = transactionFeeAmountBeforeTransfer.isDefaultFeeUsed,
+            isDefaultTransactionFeeAmountBeforeTransferUsed = transactionFeeAmountBeforeTransfer.isDefaultFeeUsed,
             transferFeeAmount = transferFeeAmount,
             transactionFeeAmountAfterTransfer = transactionFeeAmountAfterTransfer.feeAmount,
-            isTransactionFeeAmountAfterTransferEstimated = transactionFeeAmountAfterTransfer.isDefaultFeeUsed,
+            isDefaultTransactionFeeAmountAfterTransferUsed = transactionFeeAmountAfterTransfer.isDefaultFeeUsed,
         )
     }
 
@@ -216,10 +216,10 @@ class TwoLegArbitrageProfitCalculatorWithMetadata(
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,
             transactionFeeAmountBeforeTransfer = transactionFeeAmountBeforeTransfer.feeAmount,
-            isTransactionFeeAmountBeforeTransferEstimated = transactionFeeAmountBeforeTransfer.isDefaultFeeUsed,
+            isDefaultTransactionFeeAmountBeforeTransferUsed = transactionFeeAmountBeforeTransfer.isDefaultFeeUsed,
             transferFeeAmount = transferFeeAmount,
             transactionFeeAmountAfterTransfer = transactionFeeAmountAfterTransfer.feeAmount,
-            isTransactionFeeAmountAfterTransferEstimated = transactionFeeAmountAfterTransfer.isDefaultFeeUsed,
+            isDefaultTransactionFeeAmountAfterTransferUsed = transactionFeeAmountAfterTransfer.isDefaultFeeUsed,
         )
     }
 

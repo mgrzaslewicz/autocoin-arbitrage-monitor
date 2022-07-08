@@ -72,10 +72,10 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().profitOpportunityHistogram.first()!!.profitUsd).isEqualTo("95.00")
             assertThat(result.first().profitOpportunityHistogram.first()!!.usdDepthUpTo).isEqualTo("15000.00")
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.buyFee).isEqualTo("0.21000000")
-            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isBuyFeeEstimated).isTrue
+            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isDefaultBuyFeeUsed).isTrue
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.30000000")
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.sellFee).isEqualTo("0.60000000")
-            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isSellFeeEstimated).isFalse
+            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isDefaultSellFeeUsed).isFalse
             assertAll()
         }
     }
@@ -108,10 +108,10 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
             assertThat(result.first().profitOpportunityHistogram.first()!!.profitUsd).isEqualTo("95.00")
             assertThat(result.first().profitOpportunityHistogram.first()!!.usdDepthUpTo).isEqualTo("15000.00")
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.buyFee).isEqualTo("0.21000000")
-            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isBuyFeeEstimated).isTrue
+            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isDefaultBuyFeeUsed).isTrue
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.30000000")
             assertThat(result.first().profitOpportunityHistogram.first()!!.fees.sellFee).isEqualTo("0.60000000")
-            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isSellFeeEstimated).isFalse
+            assertThat(result.first().profitOpportunityHistogram.first()!!.fees.isDefaultSellFeeUsed).isFalse
             assertAll()
         }
     }

@@ -19,10 +19,10 @@ import java.math.RoundingMode.HALF_EVEN
 
 data class TwoLegArbitrageProfitOpportunityFeesDto(
     val buyFee: String?,
-    val isBuyFeeEstimated: Boolean,
+    val isDefaultBuyFeeUsed: Boolean,
     val withdrawalFee: String?,
     val sellFee: String?,
-    val isSellFeeEstimated: Boolean,
+    val isDefaultSellFeeUsed: Boolean,
 )
 
 data class TwoLegArbitrageProfitOpportunityAtDepthDto(
@@ -79,10 +79,10 @@ class ClientTwoLegArbitrageProfitOpportunities(private val freePlanRelativeProfi
         usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString(),
         fees = TwoLegArbitrageProfitOpportunityFeesDto(
             buyFee = this.transactionFeeAmountBeforeTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
-            isBuyFeeEstimated = this.isDefaultTransactionFeeAmountBeforeTransferUsed,
+            isDefaultBuyFeeUsed = this.isDefaultTransactionFeeAmountBeforeTransferUsed,
             withdrawalFee = this.transferFeeAmount?.setScale(8, HALF_EVEN)?.toPlainString(),
             sellFee = this.transactionFeeAmountAfterTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
-            isSellFeeEstimated = this.isDefaultTransactionFeeAmountAfterTransferUsed,
+            isDefaultSellFeeUsed = this.isDefaultTransactionFeeAmountAfterTransferUsed,
         )
     )
 
