@@ -73,7 +73,7 @@ data class AppConfig(
         val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,cexio,coinbasepro,exmo,gateio,gemini,hitbtc,kraken,kucoin,luno,poloniex")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
-        val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0,2000.0,3000.0,4000.0,5000.0,10000.0")
+        val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0,2000.0,3000.0,4000.0,5000.0,6000.0,7000.0,8000.0,9000.0,10000.0,15000.0")
                 .split(",")
                 .map { BigDecimal(it) },
         val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits",
