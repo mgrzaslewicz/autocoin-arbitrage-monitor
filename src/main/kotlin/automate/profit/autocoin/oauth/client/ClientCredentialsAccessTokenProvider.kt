@@ -17,13 +17,15 @@ data class TokenResponseDto(
 class ClientCredentialsAccessTokenProvider(
         private val httpClient: OkHttpClient,
         private val objectMapper: ObjectMapper,
-        private val appConfig: AppConfig
+        private val oauth2ServerUrl: String,
+        private val oauthClientId: String,
+        private val oauthClientSecret: String
 ) : AccessTokenProvider {
     private var lastToken: TokenResponseDto? = null
 
     private fun requestBodyTemplate() = FormBody.Builder()
-            .add("client_id", appConfig.arbitrageMonitorOauth2ClientId)
-            .add("client_secret", appConfig.arbitrageMonitorOauth2ClientSecret)
+            .add("client_id", oauthClientId)
+            .add("client_secret", oauthClientSecret)
             .add("scopes", "API")
 
     private fun requestToken(): TokenResponseDto {
@@ -33,7 +35,7 @@ class ClientCredentialsAccessTokenProvider(
         val tokenResponse = httpClient.newCall(Request.Builder()
                 .post(formBody)
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .url("${appConfig.oauth2ServerUrl}/oauth/token")
+                .url("${oauth2ServerUrl}/oauth/token")
                 .build()
         ).execute()
         tokenResponse.use {
