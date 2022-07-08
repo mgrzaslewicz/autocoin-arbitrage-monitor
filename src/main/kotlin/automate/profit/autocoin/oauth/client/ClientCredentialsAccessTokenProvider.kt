@@ -1,6 +1,5 @@
 package automate.profit.autocoin.oauth.client
 
-import automate.profit.autocoin.config.AppConfig
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
