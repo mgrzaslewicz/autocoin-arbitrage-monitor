@@ -78,7 +78,7 @@ class FileStatsdClient(private val metricsFolder: String, private val currentTim
                     } else ""
                     val aspectFile = metricsFolderDirectory.resolve(aspectFileNamePlusTags[0])
                     try {
-                        aspectFile.appendText("${currentTimeMillis()},$min,$max,$avg,$tags\n")
+                        aspectFile.appendText("${currentTimeMillis()},${timeList.size},$min,$max,$avg,$tags\n")
                     } catch (e: Exception) {
                         logger.error(e) { "Could not save metrics ${it.key}" }
                     } finally { // whether save was successful or not, clear buffer. metrics are not crucial
