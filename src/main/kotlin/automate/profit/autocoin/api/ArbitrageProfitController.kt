@@ -25,15 +25,15 @@ class ArbitrageProfitController(
         private val twoLegArbitrageProfitCache: TwoLegArbitrageProfitCache,
         private val objectMapper: ObjectMapper,
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
-        ) : ApiController {
+) : ApiController {
     val minimumRelativeProfit = 0.005.toBigDecimal()
     private fun TwoLegArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
             baseCurrency = currencyPair.base,
             counterCurrency = currencyPair.counter,
             sellAtExchange = sellAtExchange,
             buyAtExchange = buyAtExchange,
-            sellPrice = sellPrice.setScale(8).toDouble(),
-            buyPrice = buyPrice.setScale(8).toDouble(),
+            sellPrice = sellPrice.setScale(8, HALF_DOWN).toDouble(),
+            buyPrice = buyPrice.setScale(8, HALF_DOWN).toDouble(),
             relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toDouble(),
             calculatedAtMillis = calculatedAtMillis
     )
