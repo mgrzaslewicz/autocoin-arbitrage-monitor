@@ -1,4 +1,4 @@
-package automate.profit.autocoin.oauth
+package automate.profit.autocoin.oauth.client
 
 /**
  * Provides an access token for request authorization.

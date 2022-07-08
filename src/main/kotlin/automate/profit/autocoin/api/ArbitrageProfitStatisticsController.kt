@@ -4,8 +4,8 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.statistic.ProfitOpportunityCount
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatistic
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
-import automate.profit.autocoin.oauth.Oauth2BearerTokenAuthHandlerWrapper
-import automate.profit.autocoin.oauth.authorizeWithOauth2
+import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
+import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.server.HttpHandler
 import io.undertow.util.Methods.GET

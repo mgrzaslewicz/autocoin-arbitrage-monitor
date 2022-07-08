@@ -1,4 +1,4 @@
-package automate.profit.autocoin.oauth
+package automate.profit.autocoin.oauth.client
 
 import okhttp3.Authenticator
 import okhttp3.Request

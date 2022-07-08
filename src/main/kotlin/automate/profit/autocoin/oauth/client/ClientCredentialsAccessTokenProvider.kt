@@ -1,4 +1,4 @@
-package automate.profit.autocoin.oauth
+package automate.profit.autocoin.oauth.client
 
 import automate.profit.autocoin.config.AppConfig
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties

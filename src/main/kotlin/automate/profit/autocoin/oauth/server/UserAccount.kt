@@ -1,4 +1,4 @@
-package automate.profit.autocoin.oauth
+package automate.profit.autocoin.oauth.server
 
 import io.undertow.security.idm.Account
 import java.security.Principal
