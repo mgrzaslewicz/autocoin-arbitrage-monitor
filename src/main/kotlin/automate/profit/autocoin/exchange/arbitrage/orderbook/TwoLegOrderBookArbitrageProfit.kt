@@ -6,9 +6,11 @@ import java.math.BigDecimal
 
 data class TwoLegOrderBookArbitrageOpportunity(
         val sellPrice: BigDecimal,
-        val buyPrice: BigDecimal,
         val sellAtExchange: SupportedExchange,
+        val baseCurrencyAmountAtSellExchange: BigDecimal,
+        val buyPrice: BigDecimal,
         val buyAtExchange: SupportedExchange,
+        val baseCurrencyAmountAtBuyExchange: BigDecimal,
         val relativeProfit: BigDecimal,
         val usdDepthUpTo: BigDecimal
 )

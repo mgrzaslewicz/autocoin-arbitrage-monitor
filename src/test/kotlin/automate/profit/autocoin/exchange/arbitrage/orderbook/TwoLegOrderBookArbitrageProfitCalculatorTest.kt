@@ -55,17 +55,20 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     }
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
     private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(pricesService, tickerFetcher, orderBookUsdAmountThresholds)
-    private val sampleOrderExchangeA = OrderBookExchangeOrder(
+    private val buyOrderExchangeA = OrderBookExchangeOrder(
             exchangeName = "exchangeA",
             type = ExchangeOrderType.BID_BUY,
-            orderedAmount = 10.toBigDecimal(),
-            price = 1.5.toBigDecimal(),
+            orderedAmount = 500.toBigDecimal(),
+            price = 7200.toBigDecimal(),
             currencyPair = currencyPair,
-            timestamp = null
+            timestamp = Instant.now()
     )
-    private val sampleOrderExchangeB = sampleOrderExchangeA.copy(
+    private val sellOrderExchangeA = buyOrderExchangeA.copy(type = ExchangeOrderType.ASK_SELL)
+    private val buyOrderExchangeB = buyOrderExchangeA.copy(
             exchangeName = "exchangeB"
     )
+    private val sellOrderExchangeB = buyOrderExchangeB.copy(type = ExchangeOrderType.ASK_SELL)
+    private val orderListDoesNotMatter:List<OrderBookExchangeOrder> = listOf(buyOrderExchangeA)
 
     @Test
     fun shouldFindNoProfitWhenOrderTooOld() {
@@ -73,12 +76,12 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         val tooOldTimestamp = Instant.ofEpochMilli(Instant.now().toEpochMilli() - Duration.of(121, ChronoUnit.MINUTES).toMillis())
         val orderBookPairWithTooOldOrders = OrderBookPair(
                 first = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(timestamp = tooOldTimestamp)),
-                        sellOrders = listOf(sampleOrderExchangeA)
+                        buyOrders = listOf(buyOrderExchangeA.copy(timestamp = tooOldTimestamp)),
+                        sellOrders = listOf(buyOrderExchangeA)
                 ),
                 second = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeB),
-                        sellOrders = listOf(sampleOrderExchangeB)
+                        buyOrders = listOf(buyOrderExchangeB),
+                        sellOrders = listOf(buyOrderExchangeB)
                 )
         )
         // when
@@ -93,12 +96,12 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         // given
         val orderBookPair = OrderBookPair(
                 first = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(timestamp = Instant.now())),
-                        sellOrders = listOf(sampleOrderExchangeA.copy(timestamp = Instant.now()))
+                        buyOrders = listOf(buyOrderExchangeA),
+                        sellOrders = listOf(buyOrderExchangeA)
                 ),
                 second = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeB.copy(timestamp = Instant.now())),
-                        sellOrders = listOf(sampleOrderExchangeB.copy(timestamp = Instant.now()))
+                        buyOrders = listOf(buyOrderExchangeB),
+                        sellOrders = listOf(buyOrderExchangeB)
                 )
         )
         // when
@@ -109,78 +112,48 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
 
     @Test
     fun shouldSellAtExchangeA() {
-        // given
-        val orderBookPair = OrderBookPair(
-                first = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(
-                                timestamp = Instant.now(),
-                                price = BigDecimal("1.0021"),
-                                orderedAmount = BigDecimal("340.0")
-                        )),
-                        sellOrders = listOf(mock())
-                ),
-                second = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(
-                                timestamp = Instant.now(),
-                                price = BigDecimal("1.001"),
-                                orderedAmount = BigDecimal("340.0")
-                        )),
-                        sellOrders = listOf(mock())
-                )
-        )
-        // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
-        // then
-        assertThat(profit).isNotNull
-        assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
-        assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
-        assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
-        assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("1.00210000"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeA)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("1.00100000"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
+
     }
 
     @Test
     fun shouldSellAtExchangeB() {
         // given
+        // sell higher at exchange A, buy lower at exchange B which means
+        // buyPrice(A) > sellPrice(B)
         val orderBookPair = OrderBookPair(
                 first = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(
-                                timestamp = Instant.now(),
-                                price = BigDecimal("1.001"),
-                                orderedAmount = BigDecimal("340.0")
+                        buyOrders = listOf(buyOrderExchangeA.copy(
+                                price = BigDecimal("7200"),
+                                orderedAmount = BigDecimal("400")
                         )),
-                        sellOrders = listOf(mock())
+                        sellOrders = orderListDoesNotMatter
                 ),
                 second = OrderBook(
-                        buyOrders = listOf(sampleOrderExchangeA.copy(
-                                timestamp = Instant.now(),
-                                price = BigDecimal("1.0021"),
-                                orderedAmount = BigDecimal("340.0")
-                        )),
-                        sellOrders = listOf(mock())
+                        buyOrders = orderListDoesNotMatter,
+                        sellOrders = listOf(sellOrderExchangeB.copy(
+                                price = BigDecimal("7150"),
+                                orderedAmount = BigDecimal("400")
+                        ))
                 )
         )
         // when
         val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
         // then
         assertThat(profit).isNotNull
-        assertThat(profit!!.currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
-        assertThat(profit.usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
-        assertThat(profit.usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
-        assertThat(profit.orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("1.00210000"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeB)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("1.00100000"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeA)
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00109890"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
-        assertThat(profit.orderBookArbitrageProfitHistogram[1]).isNull()
+        with (profit!!) {
+            assertThat(currencyPairWithExchangePair).isEqualTo(currencyPairWithExchangePair)
+            assertThat(usd24hVolumeAtFirstExchange).isEqualTo(usdValueFromPriceService)
+            assertThat(usd24hVolumeAtSecondExchange).isEqualTo(usdValueFromPriceService)
+            assertThat(orderBookArbitrageProfitHistogram).hasSize(orderBookUsdAmountThresholds.size)
+            assertThat(orderBookArbitrageProfitHistogram[0]?.sellPrice).isEqualTo(BigDecimal("7200.00000000"))
+            assertThat(orderBookArbitrageProfitHistogram[0]?.sellAtExchange).isEqualTo(exchangeA)
+            assertThat(orderBookArbitrageProfitHistogram[0]?.buyPrice).isEqualTo(BigDecimal("7150.00000000"))
+            assertThat(orderBookArbitrageProfitHistogram[0]?.buyAtExchange).isEqualTo(exchangeB)
+            assertThat(orderBookArbitrageProfitHistogram[0]?.relativeProfit).isEqualTo(BigDecimal("0.00699301"))
+            assertThat(orderBookArbitrageProfitHistogram[0]?.usdDepthUpTo).isEqualTo(BigDecimal("100.0"))
+            assertThat(orderBookArbitrageProfitHistogram[1]).isNotNull
+            assertThat(orderBookArbitrageProfitHistogram[1]!!.usdDepthUpTo).isEqualTo(BigDecimal("500.0"))
+        }
     }
 
 }
