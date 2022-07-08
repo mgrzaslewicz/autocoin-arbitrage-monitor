@@ -34,6 +34,7 @@ import java.net.SocketAddress
 import java.nio.file.Path
 import java.time.Duration
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class AppContext(private val appConfig: AppConfig) {
     companion object : KLogging()
@@ -52,6 +53,7 @@ class AppContext(private val appConfig: AppConfig) {
     val oauth2HttpClient = OkHttpClient.Builder()
         .authenticator(accessTokenAuthenticator)
         .addInterceptor(accessTokenInterceptor)
+        .callTimeout(5, TimeUnit.SECONDS)
         .build()
     val sseHttpClient = oauth2HttpClient.newBuilder()
         .readTimeout(Duration.ofMillis(0L))
