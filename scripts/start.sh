@@ -53,15 +53,18 @@ preconditions
 echo "Starting new version of container. Using version: ${VERSION}";
 echo "Using port: ${APP_PORT_ON_HOST}";
 
+# Use JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" to prevent from running when any of threads runs of out memory and dies
+
 docker run --name ${SERVICE_NAME} -d \
-    -p 127.0.0.1:${APP_PORT_ON_HOST}:10021  \
+    -p ${APP_PORT_ON_HOST}:10021 \
     -e BASIC_PASS=${BASIC_PASS} \
     -e DOCKER_TAG=${VERSION} \
+    -e JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" \
     -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
     -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
     -v ${LOG_PATH}:/app/log \
     -v ${APP_DATA_PATH}:/app/data \
-    --memory=400m \
+    --memory=800m \
     --restart=no \
     --network autocoin-services-admin \
     localhost:5000/autocoin-arbitrage-monitor:${VERSION}
