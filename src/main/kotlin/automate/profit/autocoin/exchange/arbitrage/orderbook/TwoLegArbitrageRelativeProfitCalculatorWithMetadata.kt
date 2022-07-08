@@ -53,7 +53,8 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
                 }
             }
         }
-        fun build(): TwoLegArbitrageRelativeProfitCalculator =  TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
+
+        fun build(): TwoLegArbitrageRelativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             firstExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
             secondExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = withdrawalFeeAmountFunction,
@@ -82,8 +83,11 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountMinusSecondExchangeWithdrawalFee
         ) ?: BigDecimal.ZERO)
-        return baseCurrencyAmountMinusTransactionFeeAtFirstExchange.multiply(relativeProfitWithoutFees).divide(secondOrderBookSellPrice.baseCurrencyAmount, RoundingMode.HALF_EVEN)
-
+        val amountWithAllFeesAppliedPlusProfit =
+            baseCurrencyAmountMinusTransactionFeeAtFirstExchange.plus(baseCurrencyAmountMinusTransactionFeeAtFirstExchange.multiply(relativeProfitWithoutFees))
+        return amountWithAllFeesAppliedPlusProfit
+            .divide(secondOrderBookSellPrice.baseCurrencyAmount, RoundingMode.HALF_EVEN)
+            .minus(BigDecimal.ONE)
     }
 
     override fun getProfitBuyAtFirstExchangeSellAtSecond(
@@ -107,7 +111,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountMinusFirstExchangeWithdrawalFee
         ) ?: BigDecimal.ZERO)
-        return baseCurrencyAmountMinusTransactionFeeAtSecondExchange.multiply(relativeProfitWithoutFees).divide(firstOrderBookSellPrice.baseCurrencyAmount, RoundingMode.HALF_EVEN)
+        val amountWithAllFeesAppliedPlusProfit = baseCurrencyAmountMinusTransactionFeeAtSecondExchange.plus(baseCurrencyAmountMinusTransactionFeeAtSecondExchange.multiply(relativeProfitWithoutFees))
+        return amountWithAllFeesAppliedPlusProfit
+            .divide(firstOrderBookSellPrice.baseCurrencyAmount, RoundingMode.HALF_EVEN)
+            .minus(BigDecimal.ONE)
     }
 
     override fun shouldBuyAtFirstExchangeAndSellAtSecond(
