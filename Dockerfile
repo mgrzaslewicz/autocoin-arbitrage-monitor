@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk14:alpine
+FROM eclipse-temurin:17-alpine
 
 ADD target/autocoin-arbitrage-monitor*.jar /app/autocoin-arbitrage-monitor.jar
 

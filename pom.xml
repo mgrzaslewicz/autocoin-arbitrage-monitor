@@ -19,9 +19,9 @@
         <jackson.version>2.13.1</jackson.version>
         <autocoin-exchange-api-rest.version>2.0.21</autocoin-exchange-api-rest.version>
         <autocoin-metrics-client.version>1.1.4</autocoin-metrics-client.version>
-        <maven.compiler.source>14</maven.compiler.source>
-        <maven.compiler.target>14</maven.compiler.target>
-        <maven.compiler.release>14</maven.compiler.release>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <!-- v1.4.11 and v1.4.12 has bug which does not allow custom port for private repositories-->
         <dockerfile.maven.plugin.version>1.4.13</dockerfile.maven.plugin.version>
     </properties>
@@ -265,7 +265,7 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
                 <configuration>
-                    <jvmTarget>14</jvmTarget>
+                    <jvmTarget>17</jvmTarget>
                     <compilerPlugins>
                         <plugin>all-open</plugin>
                         <plugin>spring</plugin>
