@@ -26,8 +26,6 @@ class OrderBookSseStreamService(
 
         val request = Request.Builder()
                 .url("$orderBookApiBaseUrl/order-book-sse-stream")
-                .header("Content-Type", "text/event-stream")
-                .get()
                 .build()
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
