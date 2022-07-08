@@ -4,7 +4,7 @@ import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import com.nhaarman.mockitokotlin2.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -34,7 +34,7 @@ class OrderBookListenersProviderTest {
     @Test
     fun shouldPrepareListeners() {
         // given
-        val tested = OrderBookListenersProvider()
+        val tested = OrderBookListeners()
         tested.prepareOrderBookListeners(twoLegArbitrageProfitOpportunitiesMonitorsProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairsAtExchanges))
         // when-then
         assertThat(tested.getOrderBookListeners(BIBOX, grinUsdt)).hasSize(4)

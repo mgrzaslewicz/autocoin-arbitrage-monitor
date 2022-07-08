@@ -1,9 +1,7 @@
 package automate.profit.autocoin.config
 
 import autocoin.metrics.JsonlFileStatsDClient
-import automate.profit.autocoin.api.ArbitrageProfitController
-import automate.profit.autocoin.api.ClientTwoLegArbitrageProfitOpportunities
-import automate.profit.autocoin.api.ServerBuilder
+import automate.profit.autocoin.api.*
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
@@ -14,9 +12,9 @@ import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
-import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.exchange.ticker.TickerListeners
 import automate.profit.autocoin.exchange.tickerstream.TickerSseStreamService
 import automate.profit.autocoin.metrics.MetricsService
 import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
@@ -111,8 +109,8 @@ class AppContext(private val appConfig: AppConfig) {
         metricsService = metricsService
     )
 
-    val orderBookListenersProvider = OrderBookListenersProvider()
-    val tickerListenersProvider = TickerListenersProvider()
+    val orderBookListeners = OrderBookListeners()
+    val tickerListeners = TickerListeners()
     val twoLegArbitrageMonitorProvider = TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
         profitCache = twoLegArbitrageProfitOpportunityCache,
         profitCalculator = twoLegArbitrageProfitOpportunityCalculatorWithMetadata,
@@ -132,7 +130,7 @@ class AppContext(private val appConfig: AppConfig) {
         orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
-        orderBookListenersProvider = orderBookListenersProvider,
+        orderBookListeners = orderBookListeners,
         objectMapper = objectMapper,
         executorForReconnecting = threadForStreamReconnecting
     )
@@ -140,7 +138,7 @@ class AppContext(private val appConfig: AppConfig) {
         tickerApiBaseUrl = appConfig.exchangeMediatorApiUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
-        tickerListenersProvider = tickerListenersProvider,
+        tickerListeners = tickerListeners,
         objectMapper = objectMapper,
         executorForReconnecting = threadForStreamReconnecting
     )
@@ -167,7 +165,15 @@ class AppContext(private val appConfig: AppConfig) {
         transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata,
     )
 
-    val controllers = listOf(arbitrageProfitController)
+    val healthService = HealthService(
+        commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService
+    )
+    val healthController = HealthController(
+        healthService = healthService,
+        objectMapper = objectMapper,
+    )
+
+    val controllers = listOf(arbitrageProfitController, healthController)
 
     val server = ServerBuilder(appConfig.appServerPort, controllers, metricsService).build()
 
@@ -179,8 +185,11 @@ class AppContext(private val appConfig: AppConfig) {
 
         val twoLegArbitrageMonitors = twoLegArbitrageMonitorProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairs.currencyPairsToExchangePairs)
 
-        orderBookListenersProvider.prepareOrderBookListeners(twoLegArbitrageMonitors)
-        tickerListenersProvider.prepareTickerListeners(twoLegArbitrageMonitors)
+        orderBookListeners.prepareOrderBookListeners(twoLegArbitrageMonitors)
+        healthService.addOrderBookListenersTo(orderBookListeners)
+        tickerListeners.prepareTickerListeners(twoLegArbitrageMonitors)
+        healthService.addTickerListenersTo(tickerListeners)
+
         orderBookSseStreamService.startListeningOrderBookStream(commonCurrencyPairs)
         tickerSseStreamService.startListeningTickerStream(commonCurrencyPairs)
 

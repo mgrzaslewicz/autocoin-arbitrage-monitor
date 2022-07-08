@@ -2,7 +2,7 @@ package automate.profit.autocoin.exchange.tickerstream
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
-import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.exchange.ticker.TickerListeners
 import automate.profit.autocoin.ticker.TickerDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
@@ -17,13 +17,13 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 
 class TickerSseStreamService(
-        private val tickerApiBaseUrl: String,
-        private val httpClient: OkHttpClient,
-        private val eventSourceFactory: EventSource.Factory,
-        private val tickerListenersProvider: TickerListenersProvider,
-        private val objectMapper: ObjectMapper,
-        private val executorForReconnecting: ExecutorService,
-        private val lock: Semaphore = Semaphore(1)
+    private val tickerApiBaseUrl: String,
+    private val httpClient: OkHttpClient,
+    private val eventSourceFactory: EventSource.Factory,
+    private val tickerListeners: TickerListeners,
+    private val objectMapper: ObjectMapper,
+    private val executorForReconnecting: ExecutorService,
+    private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
 
@@ -49,7 +49,7 @@ class TickerSseStreamService(
         val tickerDto = objectMapper.readValue(tickerJson, TickerDto::class.java)
         val ticker = tickerDto.toTicker()
         val exchange = SupportedExchange.fromExchangeName(tickerDto.exchange)
-        val tickerListener = tickerListenersProvider.getTickerListeners(exchange, ticker.currencyPair)
+        val tickerListener = tickerListeners.getTickerListeners(exchange, ticker.currencyPair)
         tickerListener.forEach {
             try {
                 it.onTicker(exchange, ticker.currencyPair, ticker)

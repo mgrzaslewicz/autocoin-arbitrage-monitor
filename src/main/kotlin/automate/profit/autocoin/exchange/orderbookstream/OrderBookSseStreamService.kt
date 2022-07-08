@@ -3,7 +3,7 @@ package automate.profit.autocoin.exchange.orderbookstream
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
-import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import automate.profit.autocoin.order.OrderBookResponseDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
@@ -18,13 +18,13 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 
 class OrderBookSseStreamService(
-        private val orderBookApiBaseUrl: String,
-        private val httpClient: OkHttpClient,
-        private val eventSourceFactory: EventSource.Factory,
-        private val orderBookListenersProvider: OrderBookListenersProvider,
-        private val objectMapper: ObjectMapper,
-        private val executorForReconnecting: ExecutorService,
-        private val lock: Semaphore = Semaphore(1)
+    private val orderBookApiBaseUrl: String,
+    private val httpClient: OkHttpClient,
+    private val eventSourceFactory: EventSource.Factory,
+    private val orderBookListeners: OrderBookListeners,
+    private val objectMapper: ObjectMapper,
+    private val executorForReconnecting: ExecutorService,
+    private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
 
@@ -51,7 +51,7 @@ class OrderBookSseStreamService(
         val orderBook = orderBookDto.toOrderBook()
         val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
         val currencyPair = CurrencyPair.of(orderBookDto.currencyPair)
-        val orderBookListener = orderBookListenersProvider.getOrderBookListeners(exchange, currencyPair)
+        val orderBookListener = orderBookListeners.getOrderBookListeners(exchange, currencyPair)
         orderBookListener.forEach {
             try {
                 it.onOrderBook(exchange, currencyPair, orderBook)
