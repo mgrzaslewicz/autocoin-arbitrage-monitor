@@ -17,15 +17,16 @@ data class TwoLegArbitrageProfitDto(
         val buyAtExchange: SupportedExchange,
         val sellPrice: Double,
         val buyPrice: Double,
-        val relativeProfitPercent: Double
+        val relativeProfitPercent: Double,
+        val calculatedAtMillis: Long
 )
 
 class ArbitrageProfitController(
         private val twoLegArbitrageProfitCache: TwoLegArbitrageProfitCache,
         private val objectMapper: ObjectMapper,
         private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
-) : ApiController {
-
+        ) : ApiController {
+    val minimumRelativeProfit = 0.005.toBigDecimal()
     private fun TwoLegArbitrageProfit.toDto() = TwoLegArbitrageProfitDto(
             baseCurrency = currencyPair.base,
             counterCurrency = currencyPair.counter,
@@ -33,7 +34,8 @@ class ArbitrageProfitController(
             buyAtExchange = buyAtExchange,
             sellPrice = sellPrice.setScale(8).toDouble(),
             buyPrice = buyPrice.setScale(8).toDouble(),
-            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toDouble()
+            relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_DOWN).toDouble(),
+            calculatedAtMillis = calculatedAtMillis
     )
 
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
@@ -41,17 +43,13 @@ class ArbitrageProfitController(
         override val urlTemplate = "/two-leg-arbitrage-profits"
         override val httpHandler = HttpHandler {
             it.securityContext
-            val minimumRelativeProfit = 0.005.toBigDecimal()
             val profits = twoLegArbitrageProfitCache
                     .getCurrencyPairWithExchangePairs()
-                    .flatMap { currencyPairWithExchangePair ->
-                        twoLegArbitrageProfitCache.getProfits(currencyPairWithExchangePair)
-                                .filter { twoLegArbitrageProfit ->
-                                    twoLegArbitrageProfit.relativeProfit > minimumRelativeProfit
-                                }
-                                .map { twoLegArbitrageProfit ->
-                                    twoLegArbitrageProfit.toDto()
-                                }
+                    .mapNotNull { currencyPairWithExchangePair ->
+                        val profit = twoLegArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
+                        if (profit.relativeProfit > minimumRelativeProfit) {
+                            profit.toDto()
+                        } else null
                     }
             it.responseSender.send(objectMapper.writeValueAsString(profits))
         }.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
