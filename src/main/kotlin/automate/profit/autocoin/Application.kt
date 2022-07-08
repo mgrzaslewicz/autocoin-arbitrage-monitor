@@ -16,7 +16,8 @@ fun main(args: Array<String>) {
         val appStarter = AppStarter(
                 tickerListeners = appContext.tickerListeners,
                 tickerFetchScheduler = appContext.tickerFetchScheduler,
-                tickerListenerRegistrars = appContext.tickerListenerRegistrars
+                tickerListenerRegistrars = appContext.tickerListenerRegistrars,
+                tickerPairsSaveScheduler = appContext.tickerPairsSaveScheduler
         )
         appStarter.start()
     }

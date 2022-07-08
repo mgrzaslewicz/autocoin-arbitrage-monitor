@@ -4,7 +4,7 @@ import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import java.util.*
 
-private data class CurrencyPairWithExchangePair(
+data class CurrencyPairWithExchangePair(
         val currencyPair: CurrencyPair,
         val exchangePair: ExchangePair
 )
@@ -24,5 +24,9 @@ class TickerPairCache {
         }
         tickerPairs!!.addFirst(TickerPair(firstExchangeTicker, secondExchangeTicker))
     }
+
+    fun getCurrencyPairWithExchangePairs() = tickerPairs.keys.toList()
+
+    fun getTickerCurrencyPairs(currencyPairWithExchangePair: CurrencyPairWithExchangePair) = tickerPairs.getValue(currencyPairWithExchangePair)
 
 }

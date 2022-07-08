@@ -40,6 +40,6 @@ fun loadConfig(): AppConfig {
             arbitrageMonitorOauth2ClientId = getProperty("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
             arbitrageMonitorOauth2ClientSecret = getProperty("APP_OAUTH_CLIENT_SECRET"),
             oauth2ServerUrl = getProperty("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
-            tickerPairsRepositoryPath = getProperty("APP_DATA_PATH", "data") + File.pathSeparator + "tickerPairs"
+            tickerPairsRepositoryPath = getProperty("APP_DATA_PATH", "data") + File.separator + "tickerPairs"
     )
 }
