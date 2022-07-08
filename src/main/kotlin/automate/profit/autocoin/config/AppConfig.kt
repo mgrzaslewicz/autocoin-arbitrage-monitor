@@ -53,7 +53,7 @@ private val currencyPairsForArbitrage = mapOf(
 
 data class AppConfig(
         val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
-        val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = if (getPropertyThenEnv("APP_USE_HARDOCODED_TWO_LEG_ARBITRAGE_PAIRS", "false").toBoolean()) currencyPairsForArbitrage else emptyMap(),
+        val twoLegArbitragePairs: Map<CurrencyPair, List<ExchangePair>> = if (getPropertyThenEnv("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_PAIRS", "false").toBoolean()) currencyPairsForArbitrage else emptyMap(),
         val tickerApiUrl: String = getPropertyThenEnv("TICKER_API_URL", "https://orders-api.autocoin-trader.com"),
         val exchangeMetadataServiceHostWithPort: String = getPropertyThenEnv("  EXCHANGE_METADATA_SERVICE_HOST_WITH_PORT", "https://orders-api.autocoin-trader.com"),
         val arbitrageMonitorOauth2ClientId: String = getPropertyThenEnv("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
