@@ -20,16 +20,18 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     private val currencyPairWithExchangePair3 = CurrencyPairWithExchangePair(currencyPair2, exchangePair3)
     private val currencyPairWithExchangePair4 = CurrencyPairWithExchangePair(currencyPair1, exchangePair3)
 
-    private val noProfitSample = TwoLegOrderBookArbitrageProfit(
+    private val noProfitSample = TwoLegArbitrageProfitOpportunity(
+        buyAtExchange = currencyPairWithExchangePair1.exchangePair.firstExchange,
+        sellAtExchange = currencyPairWithExchangePair1.exchangePair.secondExchange,
         currencyPairWithExchangePair = currencyPairWithExchangePair1,
         usd24hVolumeAtFirstExchange = 1000.0.toBigDecimal(),
         usd24hVolumeAtSecondExchange = 1500.0.toBigDecimal(),
-        orderBookArbitrageProfitHistogram = listOf(),
+        profitOpportunityHistogram = listOf(),
         calculatedAtMillis = 1,
     )
 
     private val sampleProfit = noProfitSample.copy(
-        orderBookArbitrageProfitHistogram = listOf(
+        profitOpportunityHistogram = listOf(
             null,
             mock()
         )
@@ -39,7 +41,7 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     fun shouldRemoveTooOldProfits() {
         // given
         val timeMillis = ArrayDeque(listOf(3L, 7L, 9L))
-        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
+        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
         profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 1))
         profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
@@ -56,7 +58,7 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCountWhenNoOpportunities() {
         // given
-        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
         profitsCache.setProfitOpportunity(noProfitSample)
         profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
         profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
@@ -83,7 +85,7 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCount() {
         // given
-        val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
         profitsCache.setProfitOpportunity(sampleProfit)
         profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
         profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))

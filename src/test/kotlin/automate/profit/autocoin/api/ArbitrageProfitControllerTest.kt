@@ -4,7 +4,7 @@ import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.config.ObjectMapperProvider
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitOpportunityCache
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
@@ -51,12 +51,12 @@ class ArbitrageProfitControllerTest {
             )
         }
         val arbitrageProfitController = ArbitrageProfitController(
-            twoLegOrderBookArbitrageProfitOpportunityCache = mock(),
+            twoLegArbitrageProfitOpportunityCache = mock(),
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
             oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),
             commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
-            clientTwoLegArbitrageProfits = ClientTwoLegArbitrageProfits(BigDecimal("0.01")),
+            clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(BigDecimal("0.01")),
             freePlanRelativeProfitPercentCutOff = "0.01",
             isUserInProPlanFunction = { _ -> false },
         )
@@ -89,47 +89,45 @@ class ArbitrageProfitControllerTest {
     }
 
     @Test
-    fun shouldSendArbitrageOpportunities() {
+    fun shouldGetArbitrageProfitOpportunities() {
         // given
-        val twoLegOrderBookArbitrageProfitOpportunityCache = mock<TwoLegOrderBookArbitrageProfitOpportunityCache>().apply {
+        val twoLegArbitrageProfitOpportunityCache = mock<TwoLegArbitrageProfitOpportunityCache>().apply {
             whenever(this.getAllProfits()).thenReturn(mock())
         }
         val arbitrageProfitController = ArbitrageProfitController(
-            twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
+            twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
             oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),
             commonExchangeCurrencyPairsService = mock(),
             isUserInProPlanFunction = { _ -> true },
-            clientTwoLegArbitrageProfits = mock<ClientTwoLegArbitrageProfits>().apply {
+            clientTwoLegArbitrageProfitOpportunities = mock<ClientTwoLegArbitrageProfitOpportunities>().apply {
                 whenever(this.process(any(), eq(true))).thenReturn(
                     listOf(
-                        TwoLegArbitrageProfitDto(
+                        TwoLegArbitrageProfitOpportunityDto(
                             baseCurrency = "A",
                             counterCurrency = "B",
-                            firstExchange = BINANCE,
-                            secondExchange = BITTREX,
-                            usd24hVolumeAtFirstExchange = "12000.00",
-                            usd24hVolumeAtSecondExchange = "13000.00",
-                            arbitrageProfitHistogram = listOf(
-                                TwoLegOrderBookArbitrageOpportunityDto(
+                            buyAtExchange = BINANCE,
+                            sellAtExchange = BITTREX,
+                            usd24hVolumeAtBuyExchange = "12000.00",
+                            usd24hVolumeAtSellExchange = "13000.00",
+                            profitOpportunityHistogram = listOf(
+                                TwoLegArbitrageProfitOpportunityAtDepthDto(
                                     sellPrice = "0.15",
                                     sellAmount = "21",
-                                    sellAtExchange = BINANCE,
                                     buyPrice = "0.3",
                                     buyAmount = "18",
-                                    buyAtExchange = BITTREX,
                                     relativeProfitPercent = "0.015",
                                     profitUsd = "5.2",
                                     usdDepthUpTo = "15000",
-                                    areDetailsHidden = false,
-                                    fees = TwoLegOrderBookArbitrageOpportunityFeesDto(
+                                    fees = TwoLegArbitrageProfitOpportunityFeesDto(
                                         buyFee = "0.5",
                                         withdrawalFee = "0.1",
                                         sellFee = "0.2",
                                     )
                                 )
                             ),
+                            areDetailsHidden = false,
                             calculatedAtMillis = 15L,
                         )
                     )
@@ -152,30 +150,28 @@ class ArbitrageProfitControllerTest {
         val response = httpClientWithoutAuthorization.newCall(request).execute()
         // then
         response.use {
-            val twoLegArbitrageResponseDto = objectMapper.readValue(it.body?.string(), TwoLegArbitrageResponseDto::class.java)
-            assertThat(twoLegArbitrageResponseDto.profits).hasSize(1)
-            twoLegArbitrageResponseDto.profits.first()!!.apply {
+            val twoLegArbitrageProfitOpportunitiesResponseDto = objectMapper.readValue(it.body?.string(), TwoLegArbitrageProfitOpportunitiesResponseDto::class.java)
+            assertThat(twoLegArbitrageProfitOpportunitiesResponseDto.profits).hasSize(1)
+            twoLegArbitrageProfitOpportunitiesResponseDto.profits.first()!!.apply {
                 SoftAssertions().apply {
                     assertThat(baseCurrency).isEqualTo("A")
                     assertThat(counterCurrency).isEqualTo("B")
-                    assertThat(firstExchange).isEqualTo(BINANCE)
-                    assertThat(secondExchange).isEqualTo(BITTREX)
-                    assertThat(usd24hVolumeAtFirstExchange).isEqualTo("12000.00")
-                    assertThat(usd24hVolumeAtSecondExchange).isEqualTo("13000.00")
-                    assertThat(arbitrageProfitHistogram).hasSize(1)
-                    assertThat(arbitrageProfitHistogram.first()!!.sellPrice).isEqualTo("0.15")
-                    assertThat(arbitrageProfitHistogram.first()!!.sellAmount).isEqualTo("21")
-                    assertThat(arbitrageProfitHistogram.first()!!.sellAtExchange).isEqualTo("BINANCE")
-                    assertThat(arbitrageProfitHistogram.first()!!.buyPrice).isEqualTo("0.3")
-                    assertThat(arbitrageProfitHistogram.first()!!.buyAmount).isEqualTo("18")
-                    assertThat(arbitrageProfitHistogram.first()!!.buyAtExchange).isEqualTo("BITTREX")
-                    assertThat(arbitrageProfitHistogram.first()!!.relativeProfitPercent).isEqualTo("0.015")
-                    assertThat(arbitrageProfitHistogram.first()!!.profitUsd).isEqualTo("5.5")
-                    assertThat(arbitrageProfitHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
-                    assertThat(arbitrageProfitHistogram.first()!!.areDetailsHidden).isFalse
-                    assertThat(arbitrageProfitHistogram.first()!!.fees.buyFee).isEqualTo("0.5")
-                    assertThat(arbitrageProfitHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.1")
-                    assertThat(arbitrageProfitHistogram.first()!!.fees.sellFee).isEqualTo("0.2")
+                    assertThat(buyAtExchange).isEqualTo(BINANCE)
+                    assertThat(sellAtExchange).isEqualTo(BITTREX)
+                    assertThat(usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
+                    assertThat(usd24hVolumeAtSellExchange).isEqualTo("13000.00")
+                    assertThat(areDetailsHidden).isFalse
+                    assertThat(profitOpportunityHistogram).hasSize(1)
+                    assertThat(profitOpportunityHistogram.first()!!.sellPrice).isEqualTo("0.15")
+                    assertThat(profitOpportunityHistogram.first()!!.sellAmount).isEqualTo("21")
+                    assertThat(profitOpportunityHistogram.first()!!.buyPrice).isEqualTo("0.3")
+                    assertThat(profitOpportunityHistogram.first()!!.buyAmount).isEqualTo("18")
+                    assertThat(profitOpportunityHistogram.first()!!.relativeProfitPercent).isEqualTo("0.015")
+                    assertThat(profitOpportunityHistogram.first()!!.profitUsd).isEqualTo("5.5")
+                    assertThat(profitOpportunityHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
+                    assertThat(profitOpportunityHistogram.first()!!.fees.buyFee).isEqualTo("0.5")
+                    assertThat(profitOpportunityHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.1")
+                    assertThat(profitOpportunityHistogram.first()!!.fees.sellFee).isEqualTo("0.2")
                 }
             }
         }

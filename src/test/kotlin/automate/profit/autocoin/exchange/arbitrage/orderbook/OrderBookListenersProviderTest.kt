@@ -2,7 +2,7 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
-import automate.profit.autocoin.exchange.arbitrage.TwoLegOrderBookArbitrageMonitorProvider
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
 import com.nhaarman.mockitokotlin2.mock
@@ -25,7 +25,7 @@ class OrderBookListenersProviderTest {
                     ExchangePair(firstExchange = KUCOIN, secondExchange = POLONIEX)
             )
     )
-    private val twoLegOrderBookArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
+    private val twoLegArbitrageProfitOpportunitiesMonitorsProvider = TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
             profitCache = mock(),
             profitCalculator = mock(),
             metricsService = mock()
@@ -35,7 +35,7 @@ class OrderBookListenersProviderTest {
     fun shouldPrepareListeners() {
         // given
         val tested = OrderBookListenersProvider()
-        tested.prepareOrderBookListeners(twoLegOrderBookArbitrageMonitorProvider.getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges))
+        tested.prepareOrderBookListeners(twoLegArbitrageProfitOpportunitiesMonitorsProvider.getTwoLegArbitrageOpportunitiesMonitors(commonCurrencyPairsAtExchanges))
         // when-then
         assertThat(tested.getOrderBookListeners(BIBOX, grinUsdt)).hasSize(4)
         assertThat(tested.getOrderBookListeners(BITTREX, grinUsdt)).hasSize(4)

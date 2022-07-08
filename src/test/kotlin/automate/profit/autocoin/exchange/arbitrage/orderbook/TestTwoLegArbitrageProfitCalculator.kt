@@ -11,14 +11,14 @@ import java.math.RoundingMode
  * - trade fee
  * - if wallet at exchange allows withdrawal
  */
-class TestTwoLegArbitrageRelativeProfitCalculator : TwoLegArbitrageRelativeProfitCalculator {
+class TestTwoLegArbitrageProfitCalculator : TwoLegArbitrageProfitCalculator {
     override fun getProfitBuyAtSecondExchangeSellAtFirst(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
-    ): TwoLegArbitrageRelativeProfit {
+    ): TwoLegArbitrageProfit {
         val baseCurrencyAmountBeforeTransfer = secondOrderBookSellPrice.baseCurrencyAmount.min(firstOrderBookBuyPrice.baseCurrencyAmount)
-        return TwoLegArbitrageRelativeProfit(
+        return TwoLegArbitrageProfit(
             relativeProfit = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer,
@@ -32,9 +32,9 @@ class TestTwoLegArbitrageRelativeProfitCalculator : TwoLegArbitrageRelativeProfi
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookSellPrice: OrderBookAveragePrice,
         secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): TwoLegArbitrageRelativeProfit {
+    ): TwoLegArbitrageProfit {
         val baseCurrencyAmountBeforeTransfer = secondOrderBookBuyPrice.baseCurrencyAmount.min(firstOrderBookSellPrice.baseCurrencyAmount)
-        return TwoLegArbitrageRelativeProfit(
+        return TwoLegArbitrageProfit(
             relativeProfit = secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer,

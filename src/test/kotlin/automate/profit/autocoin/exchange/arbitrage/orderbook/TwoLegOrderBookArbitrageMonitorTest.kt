@@ -27,13 +27,13 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val secondOrderBook = mock<OrderBook>()
         val orderBoookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
         val tickerPair = TickerPair(first = mock(), second = mock())
-        val profitCache = mock<TwoLegOrderBookArbitrageProfitOpportunityCache>()
-        val profit = mock<TwoLegOrderBookArbitrageProfit>()
-        val profitCalculator = mock<TwoLegOrderBookArbitrageProfitCalculator>().apply {
+        val profitCache = mock<TwoLegArbitrageProfitOpportunityCache>()
+        val profit = mock<TwoLegArbitrageProfitOpportunity>()
+        val profitCalculator = mock<TwoLegArbitrageProfitOpportunityCalculator>().apply {
             whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
         }
 
-        val twoLegArbitrageMonitor = TwoLegOrderBookArbitrageMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock())
+        val twoLegArbitrageMonitor = TwoLegArbitrageOpportunitiesMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock())
         val orderBookListeners = twoLegArbitrageMonitor.getOrderBookListeners()
         val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
 

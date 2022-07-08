@@ -66,13 +66,13 @@ class CurrencyWithdrawalAndDepositStatusChecker(private val metadataService: Exc
  * - trade fee
  * - TODO currency withdrawal status at exchange
  */
-class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
+class TwoLegArbitrageProfitCalculatorWithMetadata(
     private val firstExchangeTransactionFeeAmountFunction: TransactionFeeAmountFunction,
     private val firstExchangeWithdrawalFeeAmountFunction: WithdrawalFeeAmountFunction,
     private val secondExchangeTransactionFeeAmountFunction: TransactionFeeAmountFunction,
     private val secondExchangeWithdrawalFeeAmountFunction: WithdrawalFeeAmountFunction,
     private val currencyWithdrawalAndDepositStatusChecker: CurrencyWithdrawalAndDepositStatusChecker,
-) : TwoLegArbitrageRelativeProfitCalculator {
+) : TwoLegArbitrageProfitCalculator {
     private val noProfit = -BigDecimal.ONE
 
     class DefaultBuilder(
@@ -104,7 +104,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             }
         }
 
-        fun build(): TwoLegArbitrageRelativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
+        fun build(): TwoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata(
             firstExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = withdrawalFeeAmountFunction,
             secondExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
@@ -117,7 +117,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
-    ): TwoLegArbitrageRelativeProfit {
+    ): TwoLegArbitrageProfit {
         val relativeProfitWithoutFees = when {
             currencyWithdrawalAndDepositStatusChecker.areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair) -> noProfit
             else -> firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
@@ -146,7 +146,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         val relativeProfit = amountWithAllFeesAppliedPlusProfit
             .divide(baseCurrencyAmountBeforeTransfer, RoundingMode.HALF_EVEN)
             .minus(BigDecimal.ONE)
-        return TwoLegArbitrageRelativeProfit(
+        return TwoLegArbitrageProfit(
             relativeProfit = relativeProfit,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,
@@ -161,7 +161,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookSellPrice: OrderBookAveragePrice,
         secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): TwoLegArbitrageRelativeProfit {
+    ): TwoLegArbitrageProfit {
         val relativeProfitWithoutFees = when {
             currencyWithdrawalAndDepositStatusChecker.areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair) -> noProfit
             else -> secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
@@ -190,7 +190,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         val relativeProfit = amountWithAllFeesAppliedPlusProfit
             .divide(baseCurrencyAmountBeforeTransfer, RoundingMode.HALF_EVEN)
             .minus(BigDecimal.ONE)
-        return TwoLegArbitrageRelativeProfit(
+        return TwoLegArbitrageProfit(
             relativeProfit = relativeProfit,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
             baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,

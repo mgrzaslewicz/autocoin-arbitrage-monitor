@@ -2,14 +2,14 @@ package automate.profit.autocoin.exchange.orderbook
 
 import automate.profit.autocoin.exchange.ExchangeWithCurrencyPair
 import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageMonitor
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageOpportunitiesMonitor
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 
 class OrderBookListenersProvider {
     private val orderBookListenersCache = HashMap<ExchangeWithCurrencyPair, MutableList<OrderBookListener>>()
 
-    fun prepareOrderBookListeners(twoLegOrderBookArbitrageMonitors: List<TwoLegOrderBookArbitrageMonitor>) {
-        twoLegOrderBookArbitrageMonitors.forEach { monitor ->
+    fun prepareOrderBookListeners(twoLegArbitrageOpportunitiesMonitors: List<TwoLegArbitrageOpportunitiesMonitor>) {
+        twoLegArbitrageOpportunitiesMonitors.forEach { monitor ->
             val orderBookListenersPair = monitor.getOrderBookListeners()
             val firstExchangeWithCurrencyPair = ExchangeWithCurrencyPair(
                     exchange = monitor.currencyPairWithExchangePair.exchangePair.firstExchange,

@@ -4,12 +4,10 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import java.math.BigDecimal
 
-data class TwoLegOrderBookArbitrageOpportunity(
+data class TwoLegArbitrageProfitOpportunityAtDepth(
         val sellPrice: BigDecimal,
-        val sellAtExchange: SupportedExchange,
         val baseCurrencyAmountAtSellExchange: BigDecimal,
         val buyPrice: BigDecimal,
-        val buyAtExchange: SupportedExchange,
         val baseCurrencyAmountAtBuyExchange: BigDecimal,
         val relativeProfit: BigDecimal,
         val profitUsd: BigDecimal,
@@ -19,11 +17,13 @@ data class TwoLegOrderBookArbitrageOpportunity(
         val transactionFeeAmountAfterTransfer: BigDecimal?,
 )
 
-data class TwoLegOrderBookArbitrageProfit(
+data class TwoLegArbitrageProfitOpportunity(
+        val buyAtExchange: SupportedExchange,
+        val sellAtExchange: SupportedExchange,
         val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         val usd24hVolumeAtFirstExchange: BigDecimal,
         val usd24hVolumeAtSecondExchange: BigDecimal,
-        val orderBookArbitrageProfitHistogram: List<TwoLegOrderBookArbitrageOpportunity?>,
+        val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepth?>,
         val calculatedAtMillis: Long,
 ) {
 
