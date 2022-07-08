@@ -46,6 +46,7 @@ class TwoLegArbitrageProfitOpportunityCalculator(
     private val staleOrderBooksDetector: StaleOrderBooksDetector = StaleOrderBooksDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val staleTickerDetector: StaleTickerDetector = StaleTickerDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val relativeProfitCalculator: TwoLegArbitrageProfitCalculator,
+    private val opportunityCutOff: TwoLegArbitrageProfitOpportunityCutOff,
     private val metricsService: MetricsService,
 ) {
     companion object {
@@ -63,6 +64,14 @@ class TwoLegArbitrageProfitOpportunityCalculator(
         logger.debug { "Calculating profit for $currencyPairWithExchangePair" }
 
         if (staleTickerDetector.oneOfTickersIsTooOld(tickerPair) || staleOrderBooksDetector.orderBooksAreTooOld(orderBookPair)) {
+            return null
+        }
+        val usd24hVolumeAtFirstExchange =
+            if (tickerPair.first != null) priceService.getUsdValue(tickerPair.first.currencyPair.counter, tickerPair.first.counterCurrency24hVolume) else null
+        val usd24hVolumeAtSecondExchange =
+            if (tickerPair.second != null) priceService.getUsdValue(tickerPair.second.currencyPair.counter, tickerPair.second.counterCurrency24hVolume) else null
+
+        if (opportunityCutOff.isUsd24hVolumeTooLow(usd24hVolumeAtFirstExchange, usd24hVolumeAtSecondExchange)) {
             return null
         }
 
@@ -84,30 +93,34 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                     val profitBuyAtSecondSellAtFirst =
                         relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(currencyPairWithExchangePair, firstOrderBookBuyPrice, secondOrderBookSellPrice)
                     if (profitBuyAtSecondSellAtFirst.relativeProfit > BigDecimal.ZERO) {
-                        buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange
-                        sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange
+                        if (opportunityCutOff.isRelativeProfitWithinAllowedRange(profitBuyAtSecondSellAtFirst.relativeProfit)) {
+                            buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange
+                            sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange
 
-                        TwoLegArbitrageProfitOpportunityAtDepth(
-                            sellPrice = firstOrderBookBuyPrice.averagePrice,
-                            baseCurrencyAmountAtSellExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountAfterTransfer,
+                            TwoLegArbitrageProfitOpportunityAtDepth(
+                                sellPrice = firstOrderBookBuyPrice.averagePrice,
+                                baseCurrencyAmountAtSellExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountAfterTransfer,
 
-                            buyPrice = secondOrderBookSellPrice.averagePrice,
-                            baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
+                                buyPrice = secondOrderBookSellPrice.averagePrice,
+                                baseCurrencyAmountAtBuyExchange = profitBuyAtSecondSellAtFirst.baseCurrencyAmountBeforeTransfer,
 
-                            relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
-                            profitUsd = profitBuyAtSecondSellAtFirst.relativeProfit.multiply(usdDepthTo),
-                            usdDepthUpTo = usdDepthTo,
+                                relativeProfit = profitBuyAtSecondSellAtFirst.relativeProfit,
+                                profitUsd = profitBuyAtSecondSellAtFirst.relativeProfit.multiply(usdDepthTo),
+                                usdDepthUpTo = usdDepthTo,
 
-                            transactionFeeAmountBeforeTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountBeforeTransfer,
-                            transferFeeAmount = profitBuyAtSecondSellAtFirst.transferFeeAmount,
-                            transactionFeeAmountAfterTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountAfterTransfer,
-                            isDefaultTransactionFeeAmountBeforeTransferUsed = profitBuyAtSecondSellAtFirst.isDefaultTransactionFeeAmountBeforeTransferUsed,
-                            isDefaultTransactionFeeAmountAfterTransferUsed = profitBuyAtSecondSellAtFirst.isDefaultTransactionFeeAmountAfterTransferUsed,
-                        )
+                                transactionFeeAmountBeforeTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountBeforeTransfer,
+                                transferFeeAmount = profitBuyAtSecondSellAtFirst.transferFeeAmount,
+                                transactionFeeAmountAfterTransfer = profitBuyAtSecondSellAtFirst.transactionFeeAmountAfterTransfer,
+                                isDefaultTransactionFeeAmountBeforeTransferUsed = profitBuyAtSecondSellAtFirst.isDefaultTransactionFeeAmountBeforeTransferUsed,
+                                isDefaultTransactionFeeAmountAfterTransferUsed = profitBuyAtSecondSellAtFirst.isDefaultTransactionFeeAmountAfterTransferUsed,
+                            )
+                        } else {
+                            null
+                        }
                     } else {
                         val profitBuyAtFirstSellAtSecond =
                             relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice)
-                        if (profitBuyAtFirstSellAtSecond.relativeProfit > BigDecimal.ZERO) {
+                        if (opportunityCutOff.isRelativeProfitWithinAllowedRange(profitBuyAtFirstSellAtSecond.relativeProfit)) {
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange
 
@@ -140,8 +153,6 @@ class TwoLegArbitrageProfitOpportunityCalculator(
                 return null
             }
 
-            val usd24hVolumeAtFirstExchange = if (tickerPair.first != null) priceService.getUsdValue(tickerPair.first.currencyPair.counter, tickerPair.first.counterCurrency24hVolume) else null
-            val usd24hVolumeAtSecondExchange = if (tickerPair.second != null) priceService.getUsdValue(tickerPair.second.currencyPair.counter, tickerPair.second.counterCurrency24hVolume) else null
 
             return TwoLegArbitrageProfitOpportunity(
                 buyAtExchange = buyAtExchange,
