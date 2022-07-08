@@ -136,7 +136,7 @@ class FileStatsdClient(private val metricsFolder: String, private val currentTim
     }
 
     override fun count(aspect: String, delta: Long, vararg tags: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        addToBuffer(aspect, delta, *tags)
     }
 
     override fun count(aspect: String, delta: Long, sampleRate: Double, vararg tags: String) {

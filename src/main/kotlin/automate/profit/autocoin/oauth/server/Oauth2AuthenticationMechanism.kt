@@ -7,8 +7,11 @@ import io.undertow.security.api.SecurityContext
 import io.undertow.server.HttpServerExchange
 import io.undertow.util.HeaderMap
 import io.undertow.util.StatusCodes
+import mu.KLogging
 
 class Oauth2AuthenticationMechanism(private val accessTokenChecker: AccessTokenChecker) : AuthenticationMechanism {
+    private companion object : KLogging()
+
     private val mechanismName = "Oauth2Authentication"
 
     override fun sendChallenge(exchange: HttpServerExchange?, securityContext: SecurityContext?) = AuthenticationMechanism.ChallengeResult(true, StatusCodes.UNAUTHORIZED)
@@ -29,6 +32,7 @@ class Oauth2AuthenticationMechanism(private val accessTokenChecker: AccessTokenC
                     NOT_AUTHENTICATED
                 }
             } catch (e: Exception) {
+                logger.error(e) { "Oauth2 authentication went wrong" }
                 NOT_AUTHENTICATED
             }
         } else {

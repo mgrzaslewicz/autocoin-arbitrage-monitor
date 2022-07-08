@@ -15,6 +15,7 @@ import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegis
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
 import automate.profit.autocoin.exchange.ticker.TickerFetcher
 import automate.profit.autocoin.metrics.FileStatsdClient
+import automate.profit.autocoin.metrics.Oauth2MetricsHandlerWrapper
 import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
 import automate.profit.autocoin.oauth.client.AccessTokenInterceptor
 import automate.profit.autocoin.oauth.client.ClientCredentialsAccessTokenProvider
@@ -78,8 +79,9 @@ class AppContext(appConfig: AppConfig) {
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
-    val arbitrageProfitController = ArbitrageProfitController(twoLegOrderBookArbitrageProfitCache, appConfig.orderBookUsdAmountThresholds, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
-    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(twoLegArbitrageProfitStatisticsCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
+    val oauth2MetricsHandlerWrapper = Oauth2MetricsHandlerWrapper(statsdClient)
+    val arbitrageProfitController = ArbitrageProfitController(twoLegOrderBookArbitrageProfitCache, appConfig.orderBookUsdAmountThresholds, objectMapper, oauth2BearerTokenAuthHandlerWrapper, oauth2MetricsHandlerWrapper)
+    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(twoLegArbitrageProfitStatisticsCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper, oauth2MetricsHandlerWrapper)
 
     val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
 
