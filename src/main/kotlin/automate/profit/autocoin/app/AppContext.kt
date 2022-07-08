@@ -47,7 +47,7 @@ class AppContext(val appConfig: AppConfig) {
     val accessTokenProvider = ClientCredentialsAccessTokenProvider(
         httpClient = httpClientWithoutAuthorization,
         objectMapper = objectMapper,
-        oauth2ServerUrl = appConfig.oauth2ServerUrl,
+        oauth2ServerUrl = appConfig.oauth2ApiBaseUrl,
         oauthClientId = appConfig.arbitrageMonitorOauth2ClientId,
         oauthClientSecret = appConfig.arbitrageMonitorOauth2ClientSecret
     )
@@ -76,7 +76,7 @@ class AppContext(val appConfig: AppConfig) {
 
     val priceService = CachingPriceService(
         decorated = RestPriceService(
-            priceApiUrl = appConfig.exchangeMediatorApiUrl,
+            priceApiUrl = appConfig.exchangeMediatorApiBaseUrl,
             httpClient = oauth2HttpClient,
             metricsService = metricsService,
             objectMapper = objectMapper
@@ -86,7 +86,7 @@ class AppContext(val appConfig: AppConfig) {
     val exchangeMetadataService = CachingExchangeMetadataService(
         decorated = RestExchangeMetadataService(
             httpClient = oauth2HttpClient,
-            exchangeMetadataServiceHostWithPort = appConfig.exchangeMediatorApiUrl,
+            exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiBaseUrl,
             objectMapper = objectMapper
         )
     )
@@ -131,7 +131,7 @@ class AppContext(val appConfig: AppConfig) {
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
 
     val orderBookSseStreamService = OrderBookSseStreamService(
-        orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
+        orderBookApiBaseUrl = appConfig.exchangeMediatorApiBaseUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
         orderBookListeners = orderBookListeners,
@@ -139,7 +139,7 @@ class AppContext(val appConfig: AppConfig) {
         executorForReconnecting = threadForStreamReconnecting
     )
     val tickerSseStreamService = TickerSseStreamService(
-        tickerApiBaseUrl = appConfig.exchangeMediatorApiUrl,
+        tickerApiBaseUrl = appConfig.exchangeMediatorApiBaseUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
         tickerListeners = tickerListeners,
