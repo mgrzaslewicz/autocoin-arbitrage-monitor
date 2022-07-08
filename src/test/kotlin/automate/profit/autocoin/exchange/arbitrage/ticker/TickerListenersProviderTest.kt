@@ -12,23 +12,23 @@ import org.junit.jupiter.api.Test
 class TickerListenersProviderTest {
     private val grinUsdt = CurrencyPair.Companion.of("GRIN/USD")
     private val commonCurrencyPairsAtExchanges = mapOf(
-            grinUsdt to setOf(
-                    ExchangePair(firstExchange = BIBOX, secondExchange = BITTREX),
-                    ExchangePair(firstExchange = BIBOX, secondExchange = GATEIO),
-                    ExchangePair(firstExchange = BIBOX, secondExchange = KUCOIN),
-                    ExchangePair(firstExchange = BIBOX, secondExchange = POLONIEX),
-                    ExchangePair(firstExchange = BITTREX, secondExchange = GATEIO),
-                    ExchangePair(firstExchange = BITTREX, secondExchange = KUCOIN),
-                    ExchangePair(firstExchange = BITTREX, secondExchange = POLONIEX),
-                    ExchangePair(firstExchange = GATEIO, secondExchange = KUCOIN),
-                    ExchangePair(firstExchange = GATEIO, secondExchange = POLONIEX),
-                    ExchangePair(firstExchange = KUCOIN, secondExchange = POLONIEX)
-            )
+        grinUsdt to setOf(
+            ExchangePair(firstExchange = BIBOX, secondExchange = BITTREX),
+            ExchangePair(firstExchange = BIBOX, secondExchange = GATEIO),
+            ExchangePair(firstExchange = BIBOX, secondExchange = KUCOIN),
+            ExchangePair(firstExchange = BIBOX, secondExchange = POLONIEX),
+            ExchangePair(firstExchange = BITTREX, secondExchange = GATEIO),
+            ExchangePair(firstExchange = BITTREX, secondExchange = KUCOIN),
+            ExchangePair(firstExchange = BITTREX, secondExchange = POLONIEX),
+            ExchangePair(firstExchange = GATEIO, secondExchange = KUCOIN),
+            ExchangePair(firstExchange = GATEIO, secondExchange = POLONIEX),
+            ExchangePair(firstExchange = KUCOIN, secondExchange = POLONIEX)
+        )
     )
     private val twoLegOrderBookArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
-            profitCache = mock(),
-            profitCalculators = listOf(mock()),
-            metricsService = mock()
+        profitCache = mock(),
+        profitCalculator = mock(),
+        metricsService = mock()
     )
 
     @Test

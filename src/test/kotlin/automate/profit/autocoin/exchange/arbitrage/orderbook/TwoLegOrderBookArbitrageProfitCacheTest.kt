@@ -2,7 +2,6 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import com.nhaarman.mockitokotlin2.mock
@@ -41,31 +40,29 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
         // given
         val timeMillis = ArrayDeque(listOf(3L, 7L, 9L))
         val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
-        val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(calculatedAtMillis = 1))
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 1))
+        profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGroup)).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGroup)).containsOnly(currencyPairWithExchangePair2)
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).containsOnly(currencyPairWithExchangePair2)
         // when-then
         profitsCache.removeTooOldProfits()
-        assertThat(profitsCache.getCurrencyPairWithExchangePairs(cacheGroup)).isEmpty()
+        assertThat(profitsCache.getCurrencyPairWithExchangePairs()).isEmpty()
     }
 
     @Test
     fun shouldGetExchangePairsOpportunityCountWhenNoOpportunities() {
         // given
         val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
-        val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample)
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
-        profitsCache.setProfitOpportunity(cacheGroup, noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
+        profitsCache.setProfitOpportunity(noProfitSample)
+        profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
+        profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
         // when
-        val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount(cacheGroup)
+        val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount()
         // then
         assertThat(exchangePairsOpportunityCount).containsExactlyInAnyOrder(
             ExchangePairWithOpportunityCount(
@@ -87,13 +84,12 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     fun shouldGetExchangePairsOpportunityCount() {
         // given
         val profitsCache = TwoLegOrderBookArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
-        val cacheGroup = INACCURATE_NOT_USING_METADATA
-        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit)
-        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
-        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
-        profitsCache.setProfitOpportunity(cacheGroup, sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
+        profitsCache.setProfitOpportunity(sampleProfit)
+        profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
+        profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
+        profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair4))
         // when
-        val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount(cacheGroup)
+        val exchangePairsOpportunityCount = profitsCache.getExchangePairsOpportunityCount()
         // then
         assertThat(exchangePairsOpportunityCount).containsExactlyInAnyOrder(
             ExchangePairWithOpportunityCount(

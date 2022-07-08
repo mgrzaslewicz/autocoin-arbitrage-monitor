@@ -52,12 +52,10 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val tickerPair = TickerPair(first = exchangeATicker, second = exchangeBTicker)
 
     private val orderBookUsdAmountThresholds = listOf(BigDecimal("100.0"), BigDecimal("500.0"))
-    private val profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA
     private val twoLegArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(
         priceService = pricesService,
         orderBookUsdAmountThresholds = orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata(),
-        profitGroup = profitGroup,
+        relativeProfitCalculator = TestTwoLegArbitrageRelativeProfitCalculator(),
         metricsService = mock(),
     )
     private val buyOrderExchangeA = OrderBookExchangeOrder(
@@ -83,7 +81,6 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(true) },
             staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(false) },
             relativeProfitCalculator = mock(),
-            profitGroup = profitGroup,
             metricsService = mock(),
         )
         // then
@@ -102,7 +99,6 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             staleOrdersDetector = mock<StaleOrdersDetector>().apply { whenever(this.ordersAreTooOld(any())).thenReturn(false) },
             staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(true) },
             relativeProfitCalculator = mock(),
-            profitGroup = profitGroup,
             metricsService = mock(),
         )
         // then

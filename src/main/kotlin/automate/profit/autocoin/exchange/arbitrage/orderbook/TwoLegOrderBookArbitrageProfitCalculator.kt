@@ -32,13 +32,6 @@ interface TwoLegArbitrageRelativeProfitCalculator {
 
 }
 
-/**
- * The way to distinguish how detailed arbitrage opportunities are (for free VS paid)
- */
-enum class TwoLegArbitrageRelativeProfitGroup {
-    ACCURATE_USING_METADATA,
-    INACCURATE_NOT_USING_METADATA,
-}
 
 class TwoLegOrderBookArbitrageProfitCalculator(
     private val priceService: PriceService,
@@ -48,7 +41,6 @@ class TwoLegOrderBookArbitrageProfitCalculator(
     private val staleTickerDetector: StaleTickerDetector = StaleTickerDetector(currentTimeMillisFunction = currentTimeMillisFunction),
     private val relativeProfitCalculator: TwoLegArbitrageRelativeProfitCalculator,
     private val metricsService: MetricsService,
-    val profitGroup: TwoLegArbitrageRelativeProfitGroup,
 ) {
     companion object {
         private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()

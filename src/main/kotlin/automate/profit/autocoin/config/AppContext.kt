@@ -2,6 +2,7 @@ package automate.profit.autocoin.config
 
 import autocoin.metrics.JsonlFileStatsDClient
 import automate.profit.autocoin.api.ArbitrageProfitController
+import automate.profit.autocoin.api.ClientTwoLegArbitrageProfits
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
@@ -28,6 +29,7 @@ import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.sse.EventSources
+import java.math.BigDecimal
 import java.net.SocketAddress
 import java.nio.file.Path
 import java.time.Duration
@@ -84,18 +86,10 @@ class AppContext(private val appConfig: AppConfig) {
         )
     )
 
-    val twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata = TwoLegOrderBookArbitrageProfitCalculator(
-        priceService = priceService,
-        orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata(),
-        profitGroup = TwoLegArbitrageRelativeProfitGroup.INACCURATE_NOT_USING_METADATA,
-        metricsService = metricsService,
-    )
     val twoLegOrderBookArbitrageProfitCalculatorWithMetadata = TwoLegOrderBookArbitrageProfitCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
-        profitGroup = TwoLegArbitrageRelativeProfitGroup.ACCURATE_USING_METADATA,
         metricsService = metricsService,
     )
 
@@ -114,7 +108,7 @@ class AppContext(private val appConfig: AppConfig) {
     val tickerListenersProvider = TickerListenersProvider()
     val twoLegArbitrageMonitorProvider = TwoLegOrderBookArbitrageMonitorProvider(
         profitCache = twoLegOrderBookArbitrageProfitOpportunityCache,
-        profitCalculators = listOf(twoLegOrderBookArbitrageProfitCalculatorWithoutMetadata, twoLegOrderBookArbitrageProfitCalculatorWithMetadata),
+        profitCalculator = twoLegOrderBookArbitrageProfitCalculatorWithMetadata,
         metricsService = metricsService
     )
 
@@ -154,12 +148,15 @@ class AppContext(private val appConfig: AppConfig) {
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
 
+    val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
         twoLegOrderBookArbitrageProfitOpportunityCache = twoLegOrderBookArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         objectMapper = objectMapper,
-        oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper
+        oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
+        clientTwoLegArbitrageProfits = ClientTwoLegArbitrageProfits(freePlanRelativeProfitCutOff),
+        freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString()
     )
 
     val controllers = listOf(arbitrageProfitController)

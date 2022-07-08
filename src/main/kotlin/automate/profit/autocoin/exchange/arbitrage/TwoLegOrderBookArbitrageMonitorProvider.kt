@@ -10,20 +10,18 @@ import automate.profit.autocoin.metrics.MetricsService
 
 class TwoLegOrderBookArbitrageMonitorProvider(
     private val profitCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
-    private val profitCalculators: List<TwoLegOrderBookArbitrageProfitCalculator>,
+    private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
     private val metricsService: MetricsService
 ) {
     fun getTwoLegOrderBookArbitrageMonitors(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>): List<TwoLegOrderBookArbitrageMonitor> {
         return commonCurrencyPairsAtExchanges.flatMap {
-            it.value.flatMap { exchangePair ->
-                profitCalculators.map { profitCalculator ->
-                    TwoLegOrderBookArbitrageMonitor(
-                        currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
-                        profitCache = profitCache,
-                        profitCalculator = profitCalculator,
-                        metricsService = metricsService
-                    )
-                }
+            it.value.map { exchangePair ->
+                TwoLegOrderBookArbitrageMonitor(
+                    currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
+                    profitCache = profitCache,
+                    profitCalculator = profitCalculator,
+                    metricsService = metricsService
+                )
             }
         }
     }

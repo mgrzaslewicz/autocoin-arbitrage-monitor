@@ -4,7 +4,6 @@ import autocoin.metrics.MetricsService
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import com.timgroup.statsd.StatsDClient
 
@@ -15,29 +14,25 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         statsDClient.gauge("orderbook-sell-size,$tags", sellOrderbookSize)
     }
 
-    fun recordArbitrageProfitCalculationTime(millis: Long, tags: String) {
-        statsDClient.recordExecutionTime("profit,$tags", millis)
-    }
-
     fun recordFetchPriceTime(millis: Long, tags: String) {
         statsDClient.recordExecutionTime("fetch-price-duration,$tags", millis)
     }
 
-    fun recordExchangePairOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchangePairWithOpportunityCount: ExchangePairWithOpportunityCount) {
+    fun recordExchangePairOpportunityCount(exchangePairWithOpportunityCount: ExchangePairWithOpportunityCount) {
         val exchangePairTag =
             "${exchangePairWithOpportunityCount.exchangePair.firstExchange.exchangeName}-${exchangePairWithOpportunityCount.exchangePair.secondExchange.exchangeName}"
-        statsDClient.gauge("exchange-pair-opportunity-count,exchangePair=$exchangePairTag,profitGroup=$profitGroup", exchangePairWithOpportunityCount.opportunityCount)
+        statsDClient.gauge("exchange-pair-opportunity-count,exchangePair=$exchangePairTag", exchangePairWithOpportunityCount.opportunityCount)
     }
 
-    fun recordExchangeOpportunityCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchange: SupportedExchange, opportunityCount: Long) {
-        statsDClient.gauge("exchange-opportunity-count,exchange=${exchange.exchangeName},profitGroup=$profitGroup", opportunityCount)
+    fun recordExchangeOpportunityCount(exchange: SupportedExchange, opportunityCount: Long) {
+        statsDClient.gauge("exchange-opportunity-count,exchange=${exchange.exchangeName}", opportunityCount)
     }
 
     /**
      * When exchange has value 0 in statistics it means it was not calculated at all
      */
-    fun recordExchangeNoOpportunityFoundCount(profitGroup: TwoLegArbitrageRelativeProfitGroup, exchange: SupportedExchange, noOpportunityFoundCount: Long) {
-        statsDClient.gauge("exchange-no-opportunity-found-count,exchange=${exchange.exchangeName},profitGroup=$profitGroup", noOpportunityFoundCount)
+    fun recordExchangeNoOpportunityFoundCount(exchange: SupportedExchange, noOpportunityFoundCount: Long) {
+        statsDClient.gauge("exchange-no-opportunity-found-count,exchange=${exchange.exchangeName}", noOpportunityFoundCount)
     }
 
     fun recordNoOrderBookForTwoLegProfitOpportunityCalculation(

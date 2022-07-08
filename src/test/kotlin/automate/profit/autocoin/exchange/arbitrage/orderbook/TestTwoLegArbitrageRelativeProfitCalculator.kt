@@ -11,7 +11,7 @@ import java.math.RoundingMode
  * - trade fee
  * - if wallet at exchange allows withdrawal
  */
-class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata : TwoLegArbitrageRelativeProfitCalculator {
+class TestTwoLegArbitrageRelativeProfitCalculator : TwoLegArbitrageRelativeProfitCalculator {
     override fun getProfitBuyAtSecondExchangeSellAtFirst(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookBuyPrice: OrderBookAveragePrice,
