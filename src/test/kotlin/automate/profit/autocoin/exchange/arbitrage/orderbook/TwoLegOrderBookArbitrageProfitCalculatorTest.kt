@@ -84,12 +84,15 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             metricsService = mock(),
         )
         // then
-        assertThat(twoLegArbitrageProfitCalculator.calculateProfit(
-            currencyPairWithExchangePair = mock(),
-            orderBookPair = mock(),
-            tickerPair = mock()
-        )).isNull()
+        assertThat(
+            twoLegArbitrageProfitCalculator.calculateProfit(
+                currencyPairWithExchangePair = mock(),
+                orderBookPair = mock(),
+                tickerPair = mock()
+            )
+        ).isNull()
     }
+
     @Test
     fun shouldFindNoProfitWhenTickerTooOld() {
         // given
@@ -102,11 +105,13 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             metricsService = mock(),
         )
         // then
-        assertThat(twoLegArbitrageProfitCalculator.calculateProfit(
-            currencyPairWithExchangePair = mock(),
-            orderBookPair = mock(),
-            tickerPair = mock()
-        )).isNull()
+        assertThat(
+            twoLegArbitrageProfitCalculator.calculateProfit(
+                currencyPairWithExchangePair = mock(),
+                orderBookPair = mock(),
+                tickerPair = mock()
+            )
+        ).isNull()
     }
 
 

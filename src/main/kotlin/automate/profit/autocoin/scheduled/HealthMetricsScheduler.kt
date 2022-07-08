@@ -7,9 +7,9 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class HealthMetricsScheduler(
-        private val orderBookSseStreamService: OrderBookSseStreamService,
-        private val metricsService: MetricsService,
-        private val executorService: ScheduledExecutorService
+    private val orderBookSseStreamService: OrderBookSseStreamService,
+    private val metricsService: MetricsService,
+    private val executorService: ScheduledExecutorService
 ) {
     companion object : KLogging()
 

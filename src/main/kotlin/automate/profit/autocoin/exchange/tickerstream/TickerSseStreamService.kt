@@ -64,8 +64,8 @@ class TickerSseStreamService(
         logger.info { "Requesting ticker SSE stream" }
 
         val request = Request.Builder()
-                .url("$tickerApiBaseUrl/ticker-sse-stream")
-                .build()
+            .url("$tickerApiBaseUrl/ticker-sse-stream")
+            .build()
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, tickerJson: String) {
@@ -113,10 +113,10 @@ class TickerSseStreamService(
             exchangesWithCurrencyPairs[exchangePair.secondExchange.exchangeName] = currencyPairStringList
         }
         val request = Request.Builder()
-                .url("$tickerApiBaseUrl/listener/tickers")
-                .header("Content-Type", "application/json")
-                .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
-                .build()
+            .url("$tickerApiBaseUrl/listener/tickers")
+            .header("Content-Type", "application/json")
+            .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
+            .build()
         return try {
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {

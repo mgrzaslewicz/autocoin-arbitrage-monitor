@@ -20,13 +20,13 @@ data class TwoLegArbitrageProfitOpportunityAtDepth(
 )
 
 data class TwoLegArbitrageProfitOpportunity(
-        val buyAtExchange: SupportedExchange,
-        val sellAtExchange: SupportedExchange,
-        val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        val usd24hVolumeAtFirstExchange: BigDecimal,
-        val usd24hVolumeAtSecondExchange: BigDecimal,
-        val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepth?>,
-        val calculatedAtMillis: Long,
+    val buyAtExchange: SupportedExchange,
+    val sellAtExchange: SupportedExchange,
+    val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
+    val usd24hVolumeAtFirstExchange: BigDecimal,
+    val usd24hVolumeAtSecondExchange: BigDecimal,
+    val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepth?>,
+    val calculatedAtMillis: Long,
 ) {
 
     val minUsd24hVolumeOfBothExchanges = usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)

@@ -8,15 +8,15 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
 data class CommonExchangeCurrencyPairs(
-        val currencyPairsToExchangePairs: Map<CurrencyPair, Set<ExchangePair>>,
-        val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>
+    val currencyPairsToExchangePairs: Map<CurrencyPair, Set<ExchangePair>>,
+    val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>
 )
 
 class CommonExchangeCurrencyPairsService(
-        private val exchangeMetadataService: ExchangeMetadataService,
-        private val exchanges: List<SupportedExchange>,
-        private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
-        private val staticTwoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
+    private val exchangeMetadataService: ExchangeMetadataService,
+    private val exchanges: List<SupportedExchange>,
+    private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
+    private val staticTwoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
 ) {
 
     companion object : KLogging()
@@ -28,8 +28,8 @@ class CommonExchangeCurrencyPairsService(
         if (staticTwoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
             logger.warn { "Using static list of currency pairs for monitoring profits provided at runtime" }
             return CommonExchangeCurrencyPairs(
-                    currencyPairsToExchangePairs = staticTwoLegArbitrageCurrencyAndExchangePairs,
-                    exchangePairsToCurrencyPairs = emptyMap()
+                currencyPairsToExchangePairs = staticTwoLegArbitrageCurrencyAndExchangePairs,
+                exchangePairsToCurrencyPairs = emptyMap()
             )
         }
         val currencyPairsToExchangePairs: MutableMap<CurrencyPair, MutableSet<ExchangePair>> = mutableMapOf()
@@ -37,7 +37,8 @@ class CommonExchangeCurrencyPairsService(
         val exchangesWithCurrencyPairs = fetchExchangesWithCurrencyPairs()
         for (i in exchangesWithCurrencyPairs.indices) {
             for (j in i + 1 until exchangesWithCurrencyPairs.size) {
-                val exchangePair = ExchangePair(SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[i].first), SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[j].first))
+                val exchangePair =
+                    ExchangePair(SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[i].first), SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[j].first))
                 val commonCurrencyPairs = findCommonCurrencyPairs(exchangesWithCurrencyPairs[i].second, exchangesWithCurrencyPairs[j].second)
                 exchangePairsToCurrencyPairs[exchangePair] = commonCurrencyPairs
                 commonCurrencyPairs.forEach {
@@ -47,15 +48,15 @@ class CommonExchangeCurrencyPairsService(
             }
         }
         lastCalculatedCommonExchangeCurrencyPairs = CommonExchangeCurrencyPairs(
-                currencyPairsToExchangePairs = currencyPairsToExchangePairs,
-                exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs
+            currencyPairsToExchangePairs = currencyPairsToExchangePairs,
+            exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs
         )
         return lastCalculatedCommonExchangeCurrencyPairs
     }
 
     private fun findCommonCurrencyPairs(firstExchangeCurrencyPairs: Set<CurrencyPair>, secondExchangeCurrencyPairs: Set<CurrencyPair>): Set<CurrencyPair> {
         val currencyPairs = firstExchangeCurrencyPairs
-                .filter { it in secondExchangeCurrencyPairs }.toSet()
+            .filter { it in secondExchangeCurrencyPairs }.toSet()
         return if (currencyPairsWhiteList.isEmpty()) {
             currencyPairs
         } else {
@@ -68,11 +69,11 @@ class CommonExchangeCurrencyPairsService(
         runBlocking {
             exchanges.map {
                 launch {
-                        try {
-                            metadataList.add(Pair(it.exchangeName, exchangeMetadataService.getMetadata(it.exchangeName)))
-                        } catch (e: Exception) {
-                            logger.error(e) { "${it.exchangeName} Could not get metadata" }
-                        }
+                    try {
+                        metadataList.add(Pair(it.exchangeName, exchangeMetadataService.getMetadata(it.exchangeName)))
+                    } catch (e: Exception) {
+                        logger.error(e) { "${it.exchangeName} Could not get metadata" }
+                    }
                 }
             }.forEach { it.join() }
         }

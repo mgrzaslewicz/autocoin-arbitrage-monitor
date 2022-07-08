@@ -20,16 +20,16 @@ class Oauth2BearerTokenAuthHandlerWrapper(private val oauth2AuthenticationMechan
 
     override fun wrap(handler: HttpHandler): HttpHandler {
         return SecurityInitialHandler(
-                AuthenticationMode.PRO_ACTIVE,
-                object : IdentityManager {
-                    override fun verify(account: Account) = account
-                    override fun verify(id: String?, credential: Credential?) = null
-                    override fun verify(credential: Credential?) = null
-                },
-                AuthenticationMechanismsHandler(
-                        AuthenticationConstraintHandler(AuthenticationCallHandler(handler)),
-                        listOf(oauth2AuthenticationMechanism)
-                )
+            AuthenticationMode.PRO_ACTIVE,
+            object : IdentityManager {
+                override fun verify(account: Account) = account
+                override fun verify(id: String?, credential: Credential?) = null
+                override fun verify(credential: Credential?) = null
+            },
+            AuthenticationMechanismsHandler(
+                AuthenticationConstraintHandler(AuthenticationCallHandler(handler)),
+                listOf(oauth2AuthenticationMechanism)
+            )
         )
     }
 

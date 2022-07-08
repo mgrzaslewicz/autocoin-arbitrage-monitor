@@ -66,8 +66,8 @@ class OrderBookSseStreamService(
         logger.info { "Requesting order book SSE stream" }
 
         val request = Request.Builder()
-                .url("$orderBookApiBaseUrl/order-book-sse-stream")
-                .build()
+            .url("$orderBookApiBaseUrl/order-book-sse-stream")
+            .build()
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, orderBookJson: String) {
@@ -114,10 +114,10 @@ class OrderBookSseStreamService(
             exchangesWithCurrencyPairs[exchangePair.secondExchange.exchangeName] = currencyPairStringList
         }
         val request = Request.Builder()
-                .url("$orderBookApiBaseUrl/listener/order-books")
-                .header("Content-Type", "application/json")
-                .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
-                .build()
+            .url("$orderBookApiBaseUrl/listener/order-books")
+            .header("Content-Type", "application/json")
+            .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
+            .build()
         return try {
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {

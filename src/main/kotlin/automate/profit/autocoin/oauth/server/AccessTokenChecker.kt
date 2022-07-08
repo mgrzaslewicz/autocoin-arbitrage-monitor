@@ -11,26 +11,28 @@ import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class UserAccountDto(
-        val userAccountId: String
+    val userAccountId: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CheckTokenDto(
-        @JsonProperty("user_name")
-        val userName: String,
-        val authorities: Set<String>,
-        val userAccount: UserAccountDto
+    @JsonProperty("user_name")
+    val userName: String,
+    val authorities: Set<String>,
+    val userAccount: UserAccountDto
 )
 
 class AccessTokenChecker(
-        private val httpClient: OkHttpClient,
-        private val objectMapper: ObjectMapper,
-        private val appConfig: AppConfig
+    private val httpClient: OkHttpClient,
+    private val objectMapper: ObjectMapper,
+    private val appConfig: AppConfig
 ) {
-    private val base64EncodedClientIdAndSecret = Base64.getEncoder().encodeToString("${appConfig.arbitrageMonitorOauth2ClientId}:${appConfig.arbitrageMonitorOauth2ClientSecret}".toByteArray())
+    private val base64EncodedClientIdAndSecret =
+        Base64.getEncoder().encodeToString("${appConfig.arbitrageMonitorOauth2ClientId}:${appConfig.arbitrageMonitorOauth2ClientSecret}".toByteArray())
 
     fun checkToken(bearerToken: String): CheckTokenDto? {
-        val tokenCheckResponse = httpClient.newCall(Request.Builder()
+        val tokenCheckResponse = httpClient.newCall(
+            Request.Builder()
                 .post(FormBody.Builder().add("token", bearerToken).build())
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Authorization", "Basic $base64EncodedClientIdAndSecret")
