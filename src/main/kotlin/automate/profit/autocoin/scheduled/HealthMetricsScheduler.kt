@@ -6,7 +6,7 @@ import mu.KLogging
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class MetricsScheduler(
+class HealthMetricsScheduler(
         private val orderBookSseStreamService: OrderBookSseStreamService,
         private val metricsService: MetricsService,
         private val executorService: ScheduledExecutorService

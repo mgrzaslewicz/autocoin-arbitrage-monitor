@@ -20,7 +20,8 @@ import automate.profit.autocoin.oauth.client.ClientCredentialsAccessTokenProvide
 import automate.profit.autocoin.oauth.server.AccessTokenChecker
 import automate.profit.autocoin.oauth.server.Oauth2AuthenticationMechanism
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
-import automate.profit.autocoin.scheduled.MetricsScheduler
+import automate.profit.autocoin.scheduled.HealthMetricsScheduler
+import automate.profit.autocoin.scheduled.TwoLegOrderBookArbitrageProfitCacheScheduler
 import com.timgroup.statsd.NoOpStatsDClient
 import com.timgroup.statsd.NonBlockingStatsDClient
 import mu.KLogging
@@ -90,7 +91,14 @@ class AppContext(private val appConfig: AppConfig) {
     )
 
     val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
-    val scheduledExecutorService = Executors.newScheduledThreadPool(3)
+
+    val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
+
+    private val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
+        scheduledExecutorService = scheduledJobsxecutorService,
+        ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
+        twoLegOrderBookArbitrageProfitCache = twoLegOrderBookArbitrageProfitCache
+    )
 
     val orderBookListenersProvider = OrderBookListenersProvider()
     val tickerListenersProvider = TickerListenersProvider()
@@ -126,10 +134,10 @@ class AppContext(private val appConfig: AppConfig) {
         executorForReconnecting = threadForStreamReconnecting
     )
 
-    val metricsScheduler = MetricsScheduler(
+    val healthMetricsScheduler = HealthMetricsScheduler(
         orderBookSseStreamService = orderBookSseStreamService,
         metricsService = metricsService,
-        executorService = scheduledExecutorService
+        executorService = scheduledJobsxecutorService
     )
 
     val accessTokenChecker = AccessTokenChecker(httpClientWithoutAuthorization, objectMapper, appConfig)
@@ -164,7 +172,8 @@ class AppContext(private val appConfig: AppConfig) {
         logger.info { "Scheduling jobs" }
         orderBookSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
         tickerSseStreamService.scheduleReconnectOnFailure(commonCurrencyPairs)
-        metricsScheduler.scheduleSendingMetrics()
+        healthMetricsScheduler.scheduleSendingMetrics()
+        twoLegOrderBookArbitrageProfitCacheScheduler.scheduleRemovingTooOldAndSendingMetrics()
 
         logger.info { "Starting server" }
         server.start()

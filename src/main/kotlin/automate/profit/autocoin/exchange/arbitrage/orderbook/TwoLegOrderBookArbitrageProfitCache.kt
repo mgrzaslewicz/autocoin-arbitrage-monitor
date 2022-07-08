@@ -1,12 +1,13 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
 import java.util.concurrent.ConcurrentHashMap
 
 class TwoLegOrderBookArbitrageProfitCache(
     private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
-    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis
+    private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
 ) {
     private val profitGroups: Map<TwoLegArbitrageRelativeProfitGroup, ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>> =
         TwoLegArbitrageRelativeProfitGroup
@@ -36,6 +37,10 @@ class TwoLegOrderBookArbitrageProfitCache(
     }
 
     fun getCurrencyPairWithExchangePairs(profitGroup: TwoLegArbitrageRelativeProfitGroup) = profitGroups[profitGroup]!!.keys.toList()
+
+    fun getExchangePairsOpportunityCount(): Map<ExchangePair, Int> {
+        TODO()
+    }
 
     fun removeTooOldProfits() {
         val currentTimeMs = currentTimeMillisFunction()
