@@ -55,10 +55,10 @@ class TwoLegArbitrageOpportunitiesMonitor(
 
     private fun onFirstExchangeTicker(ticker: Ticker) {
         if (firstTimeFirstExchangeTicker) {
-            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeTicker of $currencyPairWithExchangePair" }
             firstTimeFirstExchangeTicker = false
         } else {
-            logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+            logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeTicker of $currencyPairWithExchangePair" }
         }
         firstExchangeTicker = ticker
         recalculateProfit()
@@ -66,10 +66,10 @@ class TwoLegArbitrageOpportunitiesMonitor(
 
     private fun onSecondExchangeTicker(ticker: Ticker) {
         if (firstTimeSecondExchangeTicker) {
-            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+            logger.info { "[${exchangePair.firstExchange}-${currencyPair}] First time onSecondExchangeTicker of $currencyPairWithExchangePair" }
             firstTimeSecondExchangeTicker = false
         }
-        logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
+        logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onSecondExchangeTicker of $currencyPairWithExchangePair" }
         secondExchangeTicker = ticker
         recalculateProfit()
     }

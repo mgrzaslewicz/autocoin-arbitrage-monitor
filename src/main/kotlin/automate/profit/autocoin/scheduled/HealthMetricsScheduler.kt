@@ -1,6 +1,7 @@
 package automate.profit.autocoin.scheduled
 
 import automate.profit.autocoin.api.health.HealthService
+import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
@@ -39,6 +40,18 @@ class HealthMetricsScheduler(
         }
     }
 
+    private fun recordExchangeReceivedOrderBooksSinceStart(receivedOrderBooksSinceStart: Map<SupportedExchange, Long>) {
+        receivedOrderBooksSinceStart.forEach {
+            metricsService.recordReceivedOrderBooksSinceStart(it.key.exchangeName, it.value)
+        }
+    }
+
+    private fun recordExchangeReceivedTickersSinceStart(receivedTickersSinceStart: Map<SupportedExchange, Long>) {
+        receivedTickersSinceStart.forEach {
+            metricsService.recordReceivedTickersSinceStart(it.key.exchangeName, it.value)
+        }
+    }
+
     fun scheduleSendingMetrics() {
         logger.info { "Scheduling sending metrics every ${interval}: health, memory usage, threads count, open files count, exchange opportunity counts" }
         executorService.scheduleAtFixedRate({
@@ -49,10 +62,13 @@ class HealthMetricsScheduler(
                 reportThreadsUsage()
                 reportDescriptorsUsage()
                 recordExchangePairOpportunityCounts(health.twoLegArbitrageOpportunities.exchangePairsWithOpportunityCount)
+                recordExchangeReceivedTickersSinceStart(health.receivedTickersSinceStart)
+                recordExchangeReceivedOrderBooksSinceStart(health.receivedOrderBooksSinceStart)
             } catch (e: Exception) {
                 logger.error(e) { "Something went wrong when sending metrics" }
             }
         }, 0, interval.seconds, TimeUnit.SECONDS)
 
     }
+
 }
