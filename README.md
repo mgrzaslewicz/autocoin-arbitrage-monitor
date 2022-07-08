@@ -14,6 +14,11 @@ Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a
 Add blockchain type to metadata
 
 ## What are users asking for?
+- Ogunleke, [16.05.2022 12:11]
+That triangular arbitrage is the best
+- İsmayıl, [16.05.2022 12:01]
+Hi, I have one question about arbitrage, can we make arbitraje in a same exchange? For ex,maning a triangular arbitrage: Buy btc, convert to eth, sell eth to usdt, then repeat again. Is this software able to find this kind of opportunities?
+
 - [15.05.2022 19:36]
 can I filter the ERc20 token?
 
