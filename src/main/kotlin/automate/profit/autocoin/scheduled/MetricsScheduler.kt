@@ -1,11 +1,13 @@
 package automate.profit.autocoin.scheduled
 
 import autocoin.metrics.MetricsService
+import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import mu.KLogging
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 class MetricsScheduler(
+        private val orderBookSseStreamService: OrderBookSseStreamService,
         private val metricsService: MetricsService,
         private val executorService: ScheduledExecutorService
 ) {
@@ -16,7 +18,7 @@ class MetricsScheduler(
     }
 
     fun reportHealth() {
-        metricsService.recordHealth(true)
+        metricsService.recordHealth(orderBookSseStreamService.isConnected())
     }
 
     fun reportDescriptorsUsage() {

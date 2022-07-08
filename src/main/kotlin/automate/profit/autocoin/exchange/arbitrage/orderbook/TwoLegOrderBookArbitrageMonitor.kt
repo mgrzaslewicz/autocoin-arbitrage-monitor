@@ -4,7 +4,6 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.orderbook.DeprecatedOrderBookListener
 import automate.profit.autocoin.exchange.orderbook.OrderBook
-import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.metrics.MetricsService
 import mu.KLogging
@@ -28,12 +27,14 @@ class TwoLegOrderBookArbitrageMonitor(
     private var secondExchangeOrderBook: OrderBook? = null
 
     private fun onFirstExchangeOrderBook(orderBook: OrderBook) {
+        logger.debug { "[${exchangePair.firstExchange}-${currencyPair}] onFirstExchangeOrderBook of $currencyPairWithExchangePair" }
         firstExchangeOrderBook = orderBook
         metricsService.recordArbitrageOrderbooksSize(orderBook.buyOrders.size.toLong(), orderBook.sellOrders.size.toLong(), commonTags)
         onOrderBooks()
     }
 
     private fun onSecondExchangeOrderBook(orderBook: OrderBook) {
+        logger.debug { "[${exchangePair.secondExchange}-${currencyPair}] onSecondExchangeOrderBook of $currencyPairWithExchangePair" }
         secondExchangeOrderBook = orderBook
         onOrderBooks()
     }

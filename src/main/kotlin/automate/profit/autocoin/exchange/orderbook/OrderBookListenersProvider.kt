@@ -23,7 +23,7 @@ class OrderBookListenersProvider(
 
     fun prepareOrderBookListeners(commonCurrencyPairsAtExchanges: Map<CurrencyPair, Set<ExchangePair>>) {
         commonCurrencyPairsAtExchanges.forEach {
-            it.value.flatMap { exchangePair ->
+            it.value.forEach { exchangePair ->
                 val monitor = TwoLegOrderBookArbitrageMonitor(
                         currencyPairWithExchangePair = CurrencyPairWithExchangePair(it.key, exchangePair),
                         profitCache = profitCache,

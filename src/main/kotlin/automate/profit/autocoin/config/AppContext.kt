@@ -119,11 +119,6 @@ class AppContext(private val appConfig: AppConfig) {
             metricsService = metricsService
     )
 
-    val metricsScheduler = MetricsScheduler(
-            metricsService = metricsService,
-            executorService = scheduledExecutorService
-    )
-
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
             exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
@@ -140,6 +135,12 @@ class AppContext(private val appConfig: AppConfig) {
             orderBookListenersProvider = orderBookListenersProvider,
             objectMapper = objectMapper,
             executorForReconnecting = threadForOrderStreamReconnecting
+    )
+
+    val metricsScheduler = MetricsScheduler(
+            orderBookSseStreamService = orderBookSseStreamService,
+            metricsService = metricsService,
+            executorService = scheduledExecutorService
     )
 
     val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
