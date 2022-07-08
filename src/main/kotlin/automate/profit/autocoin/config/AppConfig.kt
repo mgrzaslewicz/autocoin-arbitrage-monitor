@@ -70,7 +70,7 @@ data class AppConfig(
         val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()).toLong(),
         val ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_REPOSITORY_MS", Duration.of(24, ChronoUnit.HOURS).toMillis().toString()).toLong(),
         val saveMetricsToFileEveryNSeconds: Long = getPropertyThenEnv("APP_SAVE_METRICS_TO_FILE_EVERY_N_SECONDS", Duration.of(5, ChronoUnit.MINUTES).toSeconds().toString()).toLong(),
-        val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,bleutrade,coinbasepro,exmo,gateio,gemini,hitbtc,kraken,kucoin,livecoin")
+        val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibox,binance,bitbay,bitmex,bitstamp,bittrex,bleutrade,coinbasepro,exmo,gateio,gemini,hitbtc,kraken,kucoin,livecoin,luno")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
         val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0")
