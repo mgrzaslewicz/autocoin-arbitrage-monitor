@@ -28,4 +28,10 @@ class MetricsScheduler(
         logger.info { "Will record descriptor usage metrics every $interval seconds" }
         executorService.scheduleAtFixedRate({ metricsService.recordDescriptors() }, 0, interval, TimeUnit.SECONDS)
     }
+
+    fun reportThreadsUsage() {
+        val interval = 60L
+        logger.info { "Will record threads usage metrics every $interval seconds" }
+        executorService.scheduleAtFixedRate({ metricsService.recordThreadCount() }, 0, interval, TimeUnit.SECONDS)
+    }
 }

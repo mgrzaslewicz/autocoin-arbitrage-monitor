@@ -178,6 +178,7 @@ class AppContext(private val appConfig: AppConfig) {
         metricsScheduler.reportHealth()
         metricsScheduler.reportMemoryUsage()
         metricsScheduler.reportDescriptorsUsage()
+        metricsScheduler.reportThreadsUsage()
 
         logger.info { "Starting server" }
         server.start()
