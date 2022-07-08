@@ -16,7 +16,7 @@ import mu.KLogging
  */
 class TwoLegOrderBookArbitrageMonitor(
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-    private val profitCache: TwoLegOrderBookArbitrageProfitCache,
+    private val profitCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
     private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
     private val metricsService: MetricsService
 ) {
@@ -79,9 +79,9 @@ class TwoLegOrderBookArbitrageMonitor(
                 val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
                 if (profit == null) {
                     logger.debug { "No profit found for $currencyPairWithExchangePair" }
-                    profitCache.removeProfit(profitCalculator.profitGroup, currencyPairWithExchangePair)
+                    profitCache.removeProfitOpportunity(profitCalculator.profitGroup, currencyPairWithExchangePair)
                 } else {
-                    profitCache.setProfit(profitCalculator.profitGroup, profit)
+                    profitCache.setProfitOpportunity(profitCalculator.profitGroup, profit)
                 }
         }
     }

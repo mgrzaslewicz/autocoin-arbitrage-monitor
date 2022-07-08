@@ -4,7 +4,7 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
-import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -50,7 +50,7 @@ data class TwoLegArbitrageMetadataDto(
 )
 
 class ArbitrageProfitController(
-    private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
+    private val twoLegOrderBookArbitrageProfitOpportunityCache: TwoLegOrderBookArbitrageProfitOpportunityCache,
     private val orderBookUsdAmountThresholds: List<BigDecimal>,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val objectMapper: ObjectMapper,
@@ -100,11 +100,11 @@ class ArbitrageProfitController(
 
         override val httpHandler = HttpHandler { httpServerExchange ->
             val profitGroup = getProfitGroupForUser(httpServerExchange)
-            val profits = twoLegOrderBookArbitrageProfitCache
+            val profits = twoLegOrderBookArbitrageProfitOpportunityCache
                 .getCurrencyPairWithExchangePairs(profitGroup)
                 .asSequence()
                 .mapNotNull { currencyPairWithExchangePair ->
-                    val profit = twoLegOrderBookArbitrageProfitCache
+                    val profit = twoLegOrderBookArbitrageProfitOpportunityCache
                         .getProfit(profitGroup, currencyPairWithExchangePair)
                     if (profit?.orderBookArbitrageProfitHistogram
                             ?.any { opportunity ->

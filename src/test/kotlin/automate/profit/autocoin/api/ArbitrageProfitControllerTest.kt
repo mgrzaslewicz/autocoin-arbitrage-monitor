@@ -43,7 +43,7 @@ class ArbitrageProfitControllerTest {
             )
         }
         val arbitrageProfitController = ArbitrageProfitController(
-                twoLegOrderBookArbitrageProfitCache = mock(),
+                twoLegOrderBookArbitrageProfitOpportunityCache = mock(),
                 orderBookUsdAmountThresholds = listOf(),
                 objectMapper = objectMapper,
                 oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),

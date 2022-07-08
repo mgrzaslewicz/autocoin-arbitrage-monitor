@@ -28,7 +28,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val secondOrderBook = mock<OrderBook>()
         val orderBoookPair = OrderBookPair(first = firstOrderBook, second = secondOrderBook)
         val tickerPair = TickerPair(first = mock(), second = mock())
-        val profitCache = mock<TwoLegOrderBookArbitrageProfitCache>()
+        val profitCache = mock<TwoLegOrderBookArbitrageProfitOpportunityCache>()
         val profit = mock<TwoLegOrderBookArbitrageProfit>()
         val profitCalculator = mock<TwoLegOrderBookArbitrageProfitCalculator>().apply {
             whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair, tickerPair)).thenReturn(profit)
@@ -45,7 +45,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
         orderBookListeners.second.onOrderBook(secondExchange, currencyPair, secondOrderBook)
         tickerListeners.second.onTicker(secondExchange, currencyPair, tickerPair.second)
         // then
-        verify(profitCache).setProfit(INACCURATE_NOT_USING_METADATA, profit)
+        verify(profitCache).setProfitOpportunity(INACCURATE_NOT_USING_METADATA, profit)
     }
 
 }
