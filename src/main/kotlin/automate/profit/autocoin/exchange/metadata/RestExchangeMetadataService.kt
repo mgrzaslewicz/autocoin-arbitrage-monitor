@@ -8,19 +8,35 @@ import okhttp3.Request
 
 class RestExchangeMetadataService(
     private val httpClient: OkHttpClient,
-    private val exchangeMetadataServiceHostWithPort: String,
+    private val exchangeMetadataApiBaseurl: String,
     private val objectMapper: ObjectMapper
 ) : ExchangeMetadataService {
 
     private val logger = KotlinLogging.logger {}
 
-    override fun getMetadata(exchangeName: String): ExchangeMetadata {
-        val exchangeMetadataApiUrl = "$exchangeMetadataServiceHostWithPort/metadata/$exchangeName"
-        logger.debug { "[$exchangeName] Requesting exchange metadata @$exchangeMetadataApiUrl" }
+    override fun getAllExchangesMetadata(): List<ExchangeMetadata> {
+        val exchangesMetadataEndpointUrl = "$exchangeMetadataApiBaseurl/metadata/exchanges"
+        logger.debug { "Requesting all exchanges metadata @$exchangesMetadataEndpointUrl" }
         val metadataResponse = httpClient.newCall(
             Request.Builder()
                 .get()
-                .url(exchangeMetadataApiUrl)
+                .url(exchangesMetadataEndpointUrl)
+                .build()
+        ).execute()
+        metadataResponse.use {
+            check(metadataResponse.isSuccessful) { "Could not get all exchanges metadata response, code=${metadataResponse.code}" }
+            return objectMapper.readValue(metadataResponse.body?.string(), Array<ExchangeMetadataDto>::class.java)
+                .map { it.toExchangeMetadata() }
+        }
+    }
+
+    override fun getMetadata(exchangeName: String): ExchangeMetadata {
+        val exchangeMetadataEndpointUrl = "$exchangeMetadataApiBaseurl/metadata/$exchangeName"
+        logger.debug { "[$exchangeName] Requesting exchange metadata @$exchangeMetadataEndpointUrl" }
+        val metadataResponse = httpClient.newCall(
+            Request.Builder()
+                .get()
+                .url(exchangeMetadataEndpointUrl)
                 .build()
         ).execute()
         metadataResponse.use {
