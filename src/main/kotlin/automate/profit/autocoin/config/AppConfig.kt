@@ -68,6 +68,7 @@ data class AppConfig(
         val oauth2ServerUrl: String = getPropertyThenEnv("OAUTH2_SERVER_URL", "https://users-apiv2.autocoin-trader.com"),
         val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
         val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long = getPropertyThenEnv("APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()).toLong(),
+        val saveMetricsToFileEveryNSeconds: Long = getPropertyThenEnv("APP_SAVE_METRICS_TO_FILE_EVERY_N_SECONDS", Duration.of(5, ChronoUnit.MINUTES).toSeconds().toString()).toLong(),
         val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "binance,bittrex,kucoin,bitbay,bitmex,bitstamp,gateio,kraken")
                 .split(",")
                 .map { SupportedExchange.fromExchangeName(it) },
