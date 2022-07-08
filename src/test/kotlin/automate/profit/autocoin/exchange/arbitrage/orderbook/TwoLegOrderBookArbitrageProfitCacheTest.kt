@@ -28,7 +28,7 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldRemoveTooOldProfits() {
         // given
-        val timeMillis = ArrayDeque<Long>(listOf(3L, 7L, 9L))
+        val timeMillis = ArrayDeque(listOf(3L, 7L, 9L))
         val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
         val cacheGrup = INACCURATE_NOT_USING_METADATA
         profitsCache.setProfit(cacheGrup, sampleProfit.copy(calculatedAtMillis = 1))
