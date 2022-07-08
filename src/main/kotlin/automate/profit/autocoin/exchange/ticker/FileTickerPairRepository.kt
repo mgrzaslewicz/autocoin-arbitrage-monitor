@@ -197,12 +197,13 @@ class FileTickerPairRepository(
         fileToCopy.useLines { lines ->
             var firstLineNotToSkipFound = false
             lines.forEach { line ->
+                val lineToAppend = StringBuffer(line).appendln().toString()
                 if (firstLineNotToSkipFound) { // don't parse, just write strings
-                    newFile.appendText(line)
+                    newFile.appendText(lineToAppend)
                 } else {
                     val tickerPair = line.toTickerPair(currencyPairWithExchangePair.currencyPair)
                     if (!tickerPair.isOlderThan(ageOfOldestTickerPairToKeepMs, currentTimeMillis)) {
-                        newFile.appendText(line)
+                        newFile.appendText(lineToAppend)
                     } else {
                         firstLineNotToSkipFound = true
                     }

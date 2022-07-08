@@ -27,6 +27,10 @@ class FileTickerPairRepositoryTest {
             Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1005)),
             Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1005))
     )
+    private val tickerPair3 = TickerPair(
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1006)),
+            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1006))
+    )
     private val tickerPairsToSave = listOf(tickerPair1, tickerPair2)
     private lateinit var tickerPairRepository: FileTickerPairRepository
     private lateinit var tickersFolder: File
@@ -113,15 +117,17 @@ class FileTickerPairRepositoryTest {
         // given
         val timeMillis = ArrayDeque<Long>(listOf(1010L, 1015L, 1017L))
         val tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath, 12L) { timeMillis.pollFirst() }
-        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave + tickerPair3)
         // when
         tickerPairRepository.removeTooOldTickers(currencyPairWithExchangePair)
         // then
         val tickerPairsAfterRemoval = tickerPairRepository.getTickerPairs(currencyPairWithExchangePair)
         // then
-        assertThat(tickerPairsAfterRemoval).hasSize(1)
+        assertThat(tickerPairsAfterRemoval).hasSize(2)
         assertThat(tickerPairsAfterRemoval[0].first.timestamp).isEqualTo(tickerPair2.first.timestamp)
         assertThat(tickerPairsAfterRemoval[0].second.timestamp).isEqualTo(tickerPair2.second.timestamp)
+        assertThat(tickerPairsAfterRemoval[1].first.timestamp).isEqualTo(tickerPair3.first.timestamp)
+        assertThat(tickerPairsAfterRemoval[1].second.timestamp).isEqualTo(tickerPair3.second.timestamp)
     }
 
 
