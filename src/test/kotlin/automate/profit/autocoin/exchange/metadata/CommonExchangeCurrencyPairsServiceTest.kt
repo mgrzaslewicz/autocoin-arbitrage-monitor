@@ -65,7 +65,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         // given
         val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
+        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs).doesNotContainKey(onlyAtBinance)
         assertThat(commonCurrencyPairs).doesNotContainKey(onlyAtBittrex)
@@ -77,7 +77,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         // given
         val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
+        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndKucoin)).containsOnly(ExchangePair(BITTREX, KUCOIN))
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndBinance)).containsOnly(ExchangePair(BINANCE, BITTREX))
@@ -89,7 +89,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         // given
         val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
+        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs.getValue(commonForAllExchanges))
                 .containsOnly(
@@ -109,7 +109,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         }
         val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
+        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs).isEmpty()
     }

@@ -7,37 +7,46 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
+data class CommonExchangeCurrencyPairs(
+        val currencyPairsToExchangePairs: Map<CurrencyPair, Set<ExchangePair>>,
+        val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>
+)
+
 class CommonExchangeCurrencyPairsService(
         private val exchangeMetadataService: ExchangeMetadataService,
         private val exchanges: List<SupportedExchange>,
         private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
-        private val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, List<ExchangePair>> = emptyMap()
+        private val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
 ) {
-    private var cachedResult: MutableMap<CurrencyPair, MutableList<ExchangePair>>? = null
 
     companion object : KLogging()
 
-    fun getCommonCurrencyPairs(): Map<CurrencyPair, List<ExchangePair>> {
-        if (cachedResult != null) {
-            return cachedResult!!
-        }
+    fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
         if (twoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
             logger.warn { "Using hardcoded currency pairs for monitoring profits" }
-            return twoLegArbitrageCurrencyAndExchangePairs
+            return CommonExchangeCurrencyPairs(
+                    currencyPairsToExchangePairs = twoLegArbitrageCurrencyAndExchangePairs,
+                    exchangePairsToCurrencyPairs = emptyMap()
+            )
         }
-        cachedResult = mutableMapOf()
+        val currencyPairsToExchangePairs: MutableMap<CurrencyPair, MutableSet<ExchangePair>> = mutableMapOf()
+        val exchangePairsToCurrencyPairs: MutableMap<ExchangePair, Set<CurrencyPair>> = mutableMapOf()
         val exchangesWithCurrencyPairs = fetchExchangesWithCurrencyPairs()
         for (i in exchangesWithCurrencyPairs.indices) {
             for (j in i + 1 until exchangesWithCurrencyPairs.size) {
                 val exchangePair = ExchangePair(SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[i].first), SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[j].first))
                 val commonCurrencyPairs = findCommonCurrencyPairs(exchangesWithCurrencyPairs[i].second, exchangesWithCurrencyPairs[j].second)
+                exchangePairsToCurrencyPairs[exchangePair] = commonCurrencyPairs
                 commonCurrencyPairs.forEach {
-                    cachedResult!!.putIfAbsent(it, mutableListOf())
-                    cachedResult!![it]!!.add(exchangePair)
+                    currencyPairsToExchangePairs.putIfAbsent(it, mutableSetOf())
+                    currencyPairsToExchangePairs[it]!!.add(exchangePair)
                 }
             }
         }
-        return cachedResult!!
+        return CommonExchangeCurrencyPairs(
+                currencyPairsToExchangePairs = currencyPairsToExchangePairs,
+                exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs
+        )
     }
 
     private fun findCommonCurrencyPairs(firstExchangeCurrencyPairs: Set<CurrencyPair>, secondExchangeCurrencyPairs: Set<CurrencyPair>): Set<CurrencyPair> {

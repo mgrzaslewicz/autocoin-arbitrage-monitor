@@ -16,36 +16,36 @@ data class ExchangePair(
 )
 
 private val currencyPairsForArbitrage = mapOf(
-        CurrencyPair.of("LSK/BTC") to listOf(
+        CurrencyPair.of("LSK/BTC") to setOf(
                 ExchangePair(BITTREX, BINANCE),
                 ExchangePair(BITTREX, KUCOIN),
                 ExchangePair(KUCOIN, BINANCE)
         ),
-        CurrencyPair.of("LSK/ETH") to listOf(
+        CurrencyPair.of("LSK/ETH") to setOf(
                 ExchangePair(KUCOIN, BINANCE)
         ),
-        CurrencyPair.of("GNT/ETH") to listOf(
+        CurrencyPair.of("GNT/ETH") to setOf(
                 ExchangePair(BINANCE, BITTREX)
         ),
-        CurrencyPair.of("GNT/BTC") to listOf(
+        CurrencyPair.of("GNT/BTC") to setOf(
                 ExchangePair(BINANCE, BITTREX)
         ),
-        CurrencyPair.of("EOS/BTC") to listOf(
+        CurrencyPair.of("EOS/BTC") to setOf(
                 ExchangePair(BITTREX, BINANCE),
                 ExchangePair(BITTREX, KUCOIN),
                 ExchangePair(KUCOIN, BINANCE)
         ),
-        CurrencyPair.of("EOS/ETH") to listOf(
+        CurrencyPair.of("EOS/ETH") to setOf(
                 ExchangePair(BITTREX, BINANCE),
                 ExchangePair(BITTREX, KUCOIN),
                 ExchangePair(KUCOIN, BINANCE)
         ),
-        CurrencyPair.of("TRX/BTC") to listOf(
+        CurrencyPair.of("TRX/BTC") to setOf(
                 ExchangePair(BITTREX, BINANCE),
                 ExchangePair(BITTREX, KUCOIN),
                 ExchangePair(KUCOIN, BINANCE)
         ),
-        CurrencyPair.of("TRX/ETH") to listOf(
+        CurrencyPair.of("TRX/ETH") to setOf(
                 ExchangePair(BITTREX, BINANCE),
                 ExchangePair(BITTREX, KUCOIN),
                 ExchangePair(KUCOIN, BINANCE)
@@ -54,7 +54,7 @@ private val currencyPairsForArbitrage = mapOf(
 
 data class AppConfig(
         val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
-        val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, List<ExchangePair>> = if (getPropertyThenEnv("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS", "false").toBoolean()) currencyPairsForArbitrage else emptyMap(),
+        val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = if (getPropertyThenEnv("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS", "false").toBoolean()) currencyPairsForArbitrage else emptyMap(),
         val arbitrageCurrencyPairsWhiteList: Set<CurrencyPair> = getPropertyThenEnv("APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST",
                 { propertyValue ->
                     propertyValue.split(",")
