@@ -22,18 +22,6 @@ interface TwoLegArbitrageRelativeProfitCalculator {
         secondOrderBookBuyPrice: OrderBookAveragePrice
     ): BigDecimal
 
-    fun shouldBuyAtFirstExchangeAndSellAtSecond(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookSellPrice: OrderBookAveragePrice,
-        secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): Boolean
-
-    fun shouldBuyAtSecondExchangeAndSellAtFirst(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookBuyPrice: OrderBookAveragePrice,
-        secondOrderBookSellPrice: OrderBookAveragePrice
-    ): Boolean
-
 }
 
 /**
@@ -75,9 +63,12 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 val firstOrderBookSellPrice = orderBookPair.first.getWeightedAverageSellPrice(otherCurrencyAmount = usdDepthTo, otherCurrencyPrice = usdPrice)
                 val secondOrderBookBuyPrice = orderBookPair.second.getWeightedAverageBuyPrice(otherCurrencyAmount = usdDepthTo, otherCurrencyPrice = usdPrice)
                 val secondOrderBookSellPrice = orderBookPair.second.getWeightedAverageSellPrice(otherCurrencyAmount = usdDepthTo, otherCurrencyPrice = usdPrice)
-                when {
-                    (firstOrderBookBuyPrice == null || firstOrderBookSellPrice == null || secondOrderBookBuyPrice == null || secondOrderBookSellPrice == null) -> null
-                    relativeProfitCalculator.shouldBuyAtSecondExchangeAndSellAtFirst(currencyPairWithExchangePair, firstOrderBookBuyPrice, secondOrderBookSellPrice) ->
+                return@map if (firstOrderBookBuyPrice == null || firstOrderBookSellPrice == null || secondOrderBookBuyPrice == null || secondOrderBookSellPrice == null) {
+                    null
+                } else {
+                    val profitBuyAtSecondSellAtFirst =
+                        relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(currencyPairWithExchangePair, firstOrderBookBuyPrice, secondOrderBookSellPrice)
+                    if (profitBuyAtSecondSellAtFirst > BigDecimal.ZERO) {
                         TwoLegOrderBookArbitrageOpportunity(
                             sellPrice = firstOrderBookBuyPrice.averagePrice,
                             sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
@@ -87,31 +78,28 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
                             baseCurrencyAmountAtBuyExchange = secondOrderBookSellPrice.baseCurrencyAmount,
 
-                            relativeProfit = relativeProfitCalculator.getProfitBuyAtSecondExchangeSellAtFirst(
-                                currencyPairWithExchangePair,
-                                firstOrderBookBuyPrice,
-                                secondOrderBookSellPrice
-                            ),
+                            relativeProfit = profitBuyAtSecondSellAtFirst,
                             usdDepthUpTo = usdDepthTo
                         )
-                    relativeProfitCalculator.shouldBuyAtFirstExchangeAndSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice) ->
-                        TwoLegOrderBookArbitrageOpportunity(
-                            sellPrice = secondOrderBookBuyPrice.averagePrice,
-                            sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
-                            baseCurrencyAmountAtSellExchange = secondOrderBookBuyPrice.baseCurrencyAmount,
+                    } else {
+                       val profitBuyAtFirstSellAtSecond = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice)
+                        if (profitBuyAtFirstSellAtSecond > BigDecimal.ZERO) {
+                            TwoLegOrderBookArbitrageOpportunity(
+                                sellPrice = secondOrderBookBuyPrice.averagePrice,
+                                sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
+                                baseCurrencyAmountAtSellExchange = secondOrderBookBuyPrice.baseCurrencyAmount,
 
-                            buyPrice = firstOrderBookSellPrice.averagePrice,
-                            buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
-                            baseCurrencyAmountAtBuyExchange = firstOrderBookSellPrice.baseCurrencyAmount,
+                                buyPrice = firstOrderBookSellPrice.averagePrice,
+                                buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
+                                baseCurrencyAmountAtBuyExchange = firstOrderBookSellPrice.baseCurrencyAmount,
 
-                            relativeProfit = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(
-                                currencyPairWithExchangePair,
-                                firstOrderBookSellPrice,
-                                secondOrderBookBuyPrice
-                            ),
-                            usdDepthUpTo = usdDepthTo
-                        )
-                    else -> null
+                                relativeProfit = profitBuyAtFirstSellAtSecond,
+                                usdDepthUpTo = usdDepthTo
+                            )
+                        } else {
+                            null
+                        }
+                    }
                 }
             }
 

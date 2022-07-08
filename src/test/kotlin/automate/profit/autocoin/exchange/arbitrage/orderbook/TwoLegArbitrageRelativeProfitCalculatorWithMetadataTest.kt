@@ -26,33 +26,6 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     }
 
     @Test
-    fun shouldBuyAtFirstExchangeAndSellAtSecond() {
-        // given
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
-            firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-            secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-        )
-        val sellPriceAtFirstExchange = "10.0".toBigDecimal()
-        val priceBiggerThanSellPriceAtFirstExchange = sellPriceAtFirstExchange.plus(BigDecimal.ONE)
-        // when
-        val shouldBuyAtFirstExchangeAndSellAtSecond = tested.shouldBuyAtFirstExchangeAndSellAtSecond(
-            currencyPairWithExchangePair = mock(),
-            firstOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = sellPriceAtFirstExchange,
-                baseCurrencyAmount = mock()
-            ),
-            secondOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = priceBiggerThanSellPriceAtFirstExchange,
-                baseCurrencyAmount = mock()
-            ),
-        )
-        // then
-        assertThat(shouldBuyAtFirstExchangeAndSellAtSecond).isTrue
-    }
-
-    @Test
     fun shouldCalculateProfitWhenBuyAtFirstExchangeWhenNoFeesAvailable() {
         // given
         val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
@@ -77,16 +50,23 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
         )
         // then
-        assertThat(profit.compareTo("0.03".toBigDecimal())).isZero
+        assertThat(profit).isEqualByComparingTo("0.03".toBigDecimal())
     }
 
     @ParameterizedTest
     @CsvSource(
-        // transactionFeeRatio, withdrawalFeeAmount, expectedRelativeProfit
-        "0.008,0.02,0.07819118",
-        "0.008,1.50,-0.23847078"
+        "5.0,10.0,11.0,0.1,0.0,-0.1090", // transaction fee eating profit that was initially 10%
+        "5.0,10.0,11.0,0.0,1.0,-0.1200", // withdrawal fee eating profit that was initially 10%
+        "5.0,10.0,11.0,0.1,1.0,-0.3070", // both transaction and withdrawal fee eating profit that was initially 10%
     )
-    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange(transactionFeeRatio: BigDecimal, withdrawalFeeAmount: BigDecimal, expectedRelativeProfit: BigDecimal) {
+    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange(
+        baseCurrencyAmount: BigDecimal,
+        firstOrderBookAverageSellPrice: BigDecimal,
+        secondOrderBookAverageBuyPrice: BigDecimal,
+        transactionFeeRatio: BigDecimal,
+        withdrawalFeeAmount: BigDecimal,
+        expectedRelativeProfit: BigDecimal
+    ) {
         // given
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
@@ -128,43 +108,16 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
             ),
             firstOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = "10.00".toBigDecimal(),
-                baseCurrencyAmount = "5.1".toBigDecimal()
+                averagePrice = firstOrderBookAverageSellPrice,
+                baseCurrencyAmount = baseCurrencyAmount,
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = "11.0".toBigDecimal(),
-                baseCurrencyAmount = "5.1".toBigDecimal()
+                averagePrice = secondOrderBookAverageBuyPrice,
+                baseCurrencyAmount = baseCurrencyAmount,
             ),
         )
         // then
         assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
-    }
-
-    @Test
-    fun shouldBuyBuyAtSecondExchangeAndSellAtFirst() {
-        // given
-        val tested = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
-            firstExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
-            firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-            secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
-        )
-        val sellPriceAtSecondExchange = "9.55".toBigDecimal()
-        val buyPriceHigherThanSellPriceAtSecondExchange = sellPriceAtSecondExchange.plus(BigDecimal.ONE)
-        // when
-        val shouldBuyAtSecondExchange = tested.shouldBuyAtSecondExchangeAndSellAtFirst(
-            currencyPairWithExchangePair = mock(),
-            firstOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = buyPriceHigherThanSellPriceAtSecondExchange,
-                baseCurrencyAmount = mock()
-            ),
-            secondOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = sellPriceAtSecondExchange,
-                baseCurrencyAmount = mock()
-            ),
-        )
-        // then
-        assertThat(shouldBuyAtSecondExchange).isTrue
     }
 
     @Test
@@ -192,16 +145,24 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             ),
         )
         // then
-        assertThat(profit.compareTo("0.03".toBigDecimal())).isZero
+        assertThat(profit).isEqualByComparingTo("0.03".toBigDecimal())
     }
 
     @ParameterizedTest
     @CsvSource(
-        // transactionFeeRatio, withdrawalFeeAmount, expectedRelativeProfit
-        "0.005,0.01,0.018749702",
-        "0.005,1.00,-0.077879012"
+        "5.0,11.0,10.0,0.005,0.01,0.08683850",
+        "5.0,11.0,10.0,0.1,0.0,-0.1090", // transaction fee eating profit that was initially 10%
+        "5.0,11.0,10.0,0.0,1.0,-0.1200", // withdrawal fee eating profit that was initially 10%
+        "5.0,11.0,10.0,0.1,1.0,-0.3070", // both transaction and withdrawal fee eating profit that was initially 10%
     )
-    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange(transactionFeeRatio: BigDecimal, withdrawalFeeAmount: BigDecimal, expectedRelativeProfit: BigDecimal) {
+    fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange(
+        baseCurrencyAmount: BigDecimal,
+        firstOrderBookAverageBuyPrice: BigDecimal,
+        secondOrderBookAverageSellPrice: BigDecimal,
+        transactionFeeRatio: BigDecimal,
+        withdrawalFeeAmount: BigDecimal,
+        expectedRelativeProfit: BigDecimal
+    ) {
         // given
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
@@ -243,12 +204,12 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
             ),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = "9.85".toBigDecimal(),
-                baseCurrencyAmount = "10.5".toBigDecimal()
+                averagePrice = firstOrderBookAverageBuyPrice,
+                baseCurrencyAmount = baseCurrencyAmount,
             ),
             secondOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = "9.55".toBigDecimal(),
-                baseCurrencyAmount = "10.5".toBigDecimal()
+                averagePrice = secondOrderBookAverageSellPrice,
+                baseCurrencyAmount = baseCurrencyAmount,
             ),
         )
         // then

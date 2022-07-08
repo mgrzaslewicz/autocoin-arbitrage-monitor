@@ -28,20 +28,4 @@ class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata: TwoLegArbitrageRel
         return secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
     }
 
-    override fun shouldBuyAtFirstExchangeAndSellAtSecond(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookSellPrice: OrderBookAveragePrice,
-        secondOrderBookBuyPrice: OrderBookAveragePrice
-    ): Boolean {
-        return secondOrderBookBuyPrice.averagePrice > firstOrderBookSellPrice.averagePrice
-    }
-
-    override fun shouldBuyAtSecondExchangeAndSellAtFirst(
-        currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-        firstOrderBookBuyPrice: OrderBookAveragePrice,
-        secondOrderBookSellPrice: OrderBookAveragePrice
-    ): Boolean {
-        return firstOrderBookBuyPrice.averagePrice > secondOrderBookSellPrice.averagePrice
-    }
-
 }

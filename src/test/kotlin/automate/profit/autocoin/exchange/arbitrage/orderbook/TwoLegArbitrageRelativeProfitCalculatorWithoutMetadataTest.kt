@@ -3,85 +3,54 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import com.nhaarman.mockitokotlin2.mock
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.math.BigDecimal
 
 class TwoLegArbitrageRelativeProfitCalculatorWithoutMetadataTest {
     private val tested = TwoLegArbitrageRelativeProfitCalculatorWithoutMetadata()
 
-    @Test
-    fun shouldBuyAtFirstExchangeAndSellAtSecond() {
-        val sellPriceAtFirstExchange = "10.0".toBigDecimal()
-        val priceBiggerThanSellPriceAtFirstExchange = sellPriceAtFirstExchange.plus(BigDecimal.ONE)
-        // when
-        val shouldBuyAtFirstExchangeAndSellAtSecond = tested.shouldBuyAtFirstExchangeAndSellAtSecond(
-            currencyPairWithExchangePair = mock(),
-            firstOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = sellPriceAtFirstExchange,
-                baseCurrencyAmount = mock()
-            ),
-            secondOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = priceBiggerThanSellPriceAtFirstExchange,
-                baseCurrencyAmount = mock()
-            ),
-        )
-        // then
-        assertThat(shouldBuyAtFirstExchangeAndSellAtSecond).isTrue
-    }
-
-    @Test
-    fun shouldCalculateProfitWhenBuyAtFirstExchange() {
+    @ParameterizedTest
+    @CsvSource(
+        "18.0,20.0,0.1",
+        "20.0,18.0,-0.1",
+    )
+    fun shouldCalculateProfitWhenBuyAtFirstExchange(firstOrderBookAverageSellPrice: BigDecimal, secondOrderBookAverageBuyPrice: BigDecimal, expectedRelativeProfit: BigDecimal) {
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = mock(),
             firstOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = "9.55".toBigDecimal(),
+                averagePrice = firstOrderBookAverageSellPrice,
                 baseCurrencyAmount = mock()
             ),
             secondOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = "9.85".toBigDecimal(),
+                averagePrice = secondOrderBookAverageBuyPrice,
                 baseCurrencyAmount = mock()
             ),
         )
         // then
-        assertThat(profit).isEqualTo("0.03".toBigDecimal())
+        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
     }
 
-    @Test
-    fun shouldBuyBuyAtSecondExchangeAndSellAtFirst() {
-        val sellPriceAtSecondExchange = "9.55".toBigDecimal()
-        val buyPriceHigherThanSellPriceAtSecondExchange = sellPriceAtSecondExchange.plus(BigDecimal.ONE)
-        // when
-        val shouldBuyAtSecondExchange = tested.shouldBuyAtSecondExchangeAndSellAtFirst(
-            currencyPairWithExchangePair = mock(),
-            firstOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = buyPriceHigherThanSellPriceAtSecondExchange,
-                baseCurrencyAmount = mock()
-            ),
-            secondOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = sellPriceAtSecondExchange,
-                baseCurrencyAmount = mock()
-            ),
-        )
-        // then
-        assertThat(shouldBuyAtSecondExchange).isTrue
-    }
-
-    @Test
-    fun shouldCalculateProfitWhenBuyAtSecondExchange() {
+    @ParameterizedTest
+    @CsvSource(
+        "10.0,8.0,0.2",
+        "8.0,10.0,-0.2",
+    )
+    fun shouldCalculateProfitWhenBuyAtSecondExchange(firstOrderBookAverageBuyPrice: BigDecimal, secondOrderBookAverageSellPrice: BigDecimal, expectedRelativeProfit: BigDecimal) {
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = mock(),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
-                averagePrice = "9.85".toBigDecimal(),
+                averagePrice = firstOrderBookAverageBuyPrice,
                 baseCurrencyAmount = mock()
             ),
             secondOrderBookSellPrice = OrderBookAveragePrice(
-                averagePrice = "9.55".toBigDecimal(),
+                averagePrice = secondOrderBookAverageSellPrice,
                 baseCurrencyAmount = mock()
             ),
         )
         // then
-        assertThat(profit).isEqualTo("0.03".toBigDecimal())
+        assertThat(profit).isEqualByComparingTo(expectedRelativeProfit)
     }
 }
