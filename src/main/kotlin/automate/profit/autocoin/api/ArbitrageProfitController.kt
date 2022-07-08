@@ -85,16 +85,18 @@ class ArbitrageProfitController(
         override val httpHandler = HttpHandler {
             val profits = twoLegOrderBookArbitrageProfitCache
                     .getCurrencyPairWithExchangePairs()
+                    .asSequence()
                     .mapNotNull { currencyPairWithExchangePair ->
                         val profit = twoLegOrderBookArbitrageProfitCache.getProfit(currencyPairWithExchangePair)
-                        if (profit.orderBookArbitrageProfitHistogram
-                                        .any { opportunity ->
+                        if (profit?.orderBookArbitrageProfitHistogram
+                                        ?.any { opportunity ->
                                             (opportunity?.relativeProfit ?: ZERO) > minRelativeProfit
-                                        }
+                                        } == true
                                 && profit.minUsd24hVolumeOfBothExchanges > minUsd24hVolume) {
                             profit.toDto()
                         } else null
                     }
+                    .toList()
             val result = TwoLegArbitrageResponseDto(
                     usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
                     profits = profits
