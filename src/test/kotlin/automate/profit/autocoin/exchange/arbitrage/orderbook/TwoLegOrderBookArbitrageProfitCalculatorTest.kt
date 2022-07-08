@@ -25,7 +25,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val exchangeB = BINANCE
     private val exchangePair = ExchangePair(exchangeA, exchangeB)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
-    private val usdValueFromPriceService = BigDecimal("2.0")
+    private val usdValueFromPriceService = BigDecimal("2000.0")
     private val pricesService = mock<RestPriceService>().apply {
         whenever(getUsdValue(eq("Y"), any())).thenReturn(usdValueFromPriceService)
         whenever(getUsdPrice(eq("Y"))).thenReturn(BigDecimal(0.3))
