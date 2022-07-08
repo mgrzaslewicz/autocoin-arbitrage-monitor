@@ -33,6 +33,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
             secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
+            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply { whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(false) }
         )
         // when
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
@@ -57,12 +58,19 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
 
     @ParameterizedTest
     @CsvSource(
-        "5.01,5.0,10.0,11.0,0.005,0.01,0.08902750,5.0,4.9850",
-        "1001.0,1000.0,10.0,11.0,0.02,20.0,0.035958,1000.0,981.000",
-        "1000.5,1000.0,10.0,11.0,0.02,20.0,0.035419,1000.0,980.500",
-        "4.99,5.0,10.0,11.0,0.1,0.0,-0.1090,4.99,4.491", // transaction fee eating profit that was initially 10%
-        "4.99,5.0,10.0,11.0,0.0,1.0,-0.12044,4.99,4.99", // withdrawal fee eating profit that was initially 10%
-        "4.99,5.0,10.0,11.0,0.1,1.0,-0.30740,4.99,4.491", // both transaction and withdrawal fee eating profit that was initially 10%
+        "5.01,5.0,10.0,11.0,0.005,0.01,true,true,0.08902750,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,false,true,-1.0,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,true,false,-1.0,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,false,false,-1.0,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,false,,-1.0,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,true,,0.08902750,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,,false,-1.0,5.0,4.9850",
+        "5.01,5.0,10.0,11.0,0.005,0.01,,true,0.08902750,5.0,4.9850",
+        "1001.0,1000.0,10.0,11.0,0.02,20.0,true,true,0.035958,1000.0,981.000",
+        "1000.5,1000.0,10.0,11.0,0.02,20.0,true,true,0.035419,1000.0,980.500",
+        "4.99,5.0,10.0,11.0,0.1,0.0,true,true,-0.1090,4.99,4.491", // transaction fee eating profit that was initially 10%
+        "4.99,5.0,10.0,11.0,0.0,1.0,true,true,-0.12044,4.99,4.99", // withdrawal fee eating profit that was initially 10%
+        "4.99,5.0,10.0,11.0,0.1,1.0,true,true,-0.30740,4.99,4.491", // both transaction and withdrawal fee eating profit that was initially 10%
     )
     fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtFirstExchange(
         firstOrderBookBaseCurrencyAmount: BigDecimal,
@@ -71,6 +79,8 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         secondOrderBookAverageBuyPrice: BigDecimal,
         transactionFeeRatio: BigDecimal,
         withdrawalFeeAmount: BigDecimal,
+        depositEnabled: Boolean?,
+        withdrawalEnabled: Boolean?,
         expectedRelativeProfit: BigDecimal,
         expectedBaseCurrencyAmountBeforeTransfer: BigDecimal,
         expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
@@ -104,7 +114,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 CurrencyMetadata(
                     scale = intValueWhichDoesNotMatter,
                     withdrawalFeeAmount = withdrawalFeeAmount,
-                    minWithdrawalAmount = null
+                    minWithdrawalAmount = null,
+                    withdrawalEnabled = withdrawalEnabled,
+                    depositEnabled = depositEnabled,
                 )
             )
         }
@@ -138,6 +150,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
             secondExchangeTransactionFeeAmountFunction = nullTransactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
             secondExchangeWithdrawalFeeAmountFunction = nullWithdrawalFeeAmountFunction,
+            currencyWithdrawalAndDepositStatusChecker = mock<CurrencyWithdrawalAndDepositStatusChecker>().apply { whenever(this.areWithdrawalsAndDepositsDisabled(any())).thenReturn(false) }
         )
         // when
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
@@ -162,12 +175,18 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
 
     @ParameterizedTest
     @CsvSource(
-        "5.0,5.01,11.0,10.0,0.005,0.01,0.08683850,5.0,4.9401750",
-        "50.0,50.1,11.0,10.0,0.005,0.01,0.08880860,50.0,49.4913000",
-        "500.0,501.2,11.0,10.0,0.005,0.01,0.08900561,500.0,495.0025500",
-        "5.0,4.98,11.0,10.0,0.1,0.0,-0.1090,4.98,4.0338", // transaction fee eating profit that was initially 10%
-        "5.0,5.05,11.0,10.0,0.0,1.0,-0.1200,5.0,4.0", // withdrawal fee eating profit that was initially 10%
-        "5.0,5.0,11.0,10.0,0.1,1.0,-0.3070,5.0,3.150", // both transaction and withdrawal fee eating profit that was initially 10%
+        "5.0,5.01,11.0,10.0,0.005,0.01,true,true,0.08683850,5.0,4.9401750",
+        "50.0,50.1,11.0,10.0,0.005,0.01,false,true,-1.0,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,true,false,-1.0,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,false,false,-1.0,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,false,,-1.0,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,true,,0.08880860,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,,false,-1.0,50.0,49.4913000",
+        "50.0,50.1,11.0,10.0,0.005,0.01,,true,0.08880860,50.0,49.4913000",
+        "500.0,501.2,11.0,10.0,0.005,0.01,true,true,0.08900561,500.0,495.0025500",
+        "5.0,4.98,11.0,10.0,0.1,0.0,true,true,-0.1090,4.98,4.0338", // transaction fee eating profit that was initially 10%
+        "5.0,5.05,11.0,10.0,0.0,1.0,true,true,-0.1200,5.0,4.0", // withdrawal fee eating profit that was initially 10%
+        "5.0,5.0,11.0,10.0,0.1,1.0,true,true,-0.3070,5.0,3.150", // both transaction and withdrawal fee eating profit that was initially 10%
     )
     fun shouldCalculateProfitTakingFeesIntoAccountWhenBuyAtSecondExchange(
         firstOrderBookBaseCurrencyAmount: BigDecimal,
@@ -176,6 +195,8 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         secondOrderBookAverageSellPrice: BigDecimal,
         transactionFeeRatio: BigDecimal,
         withdrawalFeeAmount: BigDecimal,
+        depositEnabled: Boolean?,
+        withdrawalEnabled: Boolean?,
         expectedRelativeProfit: BigDecimal,
         expectedBaseCurrencyAmountBeforeTransfer: BigDecimal,
         expectedBaseCurrencyAmountAfterTransfer: BigDecimal,
@@ -209,7 +230,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                 CurrencyMetadata(
                     scale = intValueWhichDoesNotMatter,
                     withdrawalFeeAmount = withdrawalFeeAmount,
-                    minWithdrawalAmount = null
+                    minWithdrawalAmount = null,
+                    withdrawalEnabled = withdrawalEnabled,
+                    depositEnabled = depositEnabled,
                 )
             )
         }

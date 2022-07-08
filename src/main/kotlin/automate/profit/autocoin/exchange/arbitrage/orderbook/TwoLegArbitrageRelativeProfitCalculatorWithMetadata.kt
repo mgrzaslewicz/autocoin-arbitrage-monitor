@@ -16,6 +16,50 @@ interface WithdrawalFeeAmountFunction {
     fun apply(exchange: SupportedExchange, currency: String, amount: BigDecimal): BigDecimal?
 }
 
+class CurrencyWithdrawalAndDepositStatusChecker(private val metadataService: ExchangeMetadataService) {
+    /**
+     * Mark as disabled only currencies that have false values for withdrawal or deposit status.
+     * There are many null values for depositEnabled and withdrawalEnabled and that should be treated as lack of value,
+     * not false value which will make opportunity not appear
+     */
+    fun areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair: CurrencyPairWithExchangePair): Boolean {
+        val firstExchangeBaseCurrencyMetadata = metadataService.getMetadata(
+            exchangeName = currencyPairWithExchangePair.exchangePair.firstExchange.exchangeName,
+            currency = currencyPairWithExchangePair.currencyPair.base
+        )
+        val firstExchangeCounterCurrencyMetadata = metadataService.getMetadata(
+            exchangeName = currencyPairWithExchangePair.exchangePair.firstExchange.exchangeName,
+            currency = currencyPairWithExchangePair.currencyPair.counter
+        )
+        val firstExchangeBaseCurrencyDepositEnabled = firstExchangeBaseCurrencyMetadata.depositEnabled
+        val firstExchangeCounterCurrencyDepositEnabled = firstExchangeCounterCurrencyMetadata.depositEnabled
+        val firstExchangeBaseCurrencyWithdrawalEnabled = firstExchangeBaseCurrencyMetadata.withdrawalEnabled
+        val firstExchangeCounterCurrencyWithdrawalEnabled = firstExchangeCounterCurrencyMetadata.withdrawalEnabled
+
+        val secondExchangeBaseCurrencyMetadata = metadataService.getMetadata(
+            exchangeName = currencyPairWithExchangePair.exchangePair.secondExchange.exchangeName,
+            currency = currencyPairWithExchangePair.currencyPair.base
+        )
+        val secondExchangeCounterCurrencyMetadata = metadataService.getMetadata(
+            exchangeName = currencyPairWithExchangePair.exchangePair.secondExchange.exchangeName,
+            currency = currencyPairWithExchangePair.currencyPair.counter
+        )
+        val secondExchangeBaseCurrencyDepositEnabled = secondExchangeBaseCurrencyMetadata.depositEnabled
+        val secondExchangeCounterCurrencyDepositEnabled = secondExchangeCounterCurrencyMetadata.depositEnabled
+        val secondExchangeBaseCurrencyWithdrawalEnabled = secondExchangeBaseCurrencyMetadata.withdrawalEnabled
+        val secondExchangeCounterCurrencyWithdrawalEnabled = secondExchangeCounterCurrencyMetadata.withdrawalEnabled
+
+        return (firstExchangeBaseCurrencyDepositEnabled != null && !firstExchangeBaseCurrencyDepositEnabled) ||
+                (firstExchangeCounterCurrencyDepositEnabled != null && !firstExchangeCounterCurrencyDepositEnabled) ||
+                (firstExchangeBaseCurrencyWithdrawalEnabled != null && !firstExchangeBaseCurrencyWithdrawalEnabled) ||
+                (firstExchangeCounterCurrencyWithdrawalEnabled != null && !firstExchangeCounterCurrencyWithdrawalEnabled) ||
+                (secondExchangeBaseCurrencyDepositEnabled != null && !secondExchangeBaseCurrencyDepositEnabled) ||
+                (secondExchangeCounterCurrencyDepositEnabled != null && !secondExchangeCounterCurrencyDepositEnabled) ||
+                (secondExchangeBaseCurrencyWithdrawalEnabled != null && !secondExchangeBaseCurrencyWithdrawalEnabled) ||
+                (secondExchangeCounterCurrencyWithdrawalEnabled != null && !secondExchangeCounterCurrencyWithdrawalEnabled)
+    }
+}
+
 /**
  * Takes into account:
  * - withdrawal fee
@@ -27,7 +71,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
     private val firstExchangeWithdrawalFeeAmountFunction: WithdrawalFeeAmountFunction,
     private val secondExchangeTransactionFeeAmountFunction: TransactionFeeAmountFunction,
     private val secondExchangeWithdrawalFeeAmountFunction: WithdrawalFeeAmountFunction,
+    private val currencyWithdrawalAndDepositStatusChecker: CurrencyWithdrawalAndDepositStatusChecker,
 ) : TwoLegArbitrageRelativeProfitCalculator {
+    private val noProfit = -BigDecimal.ONE
 
     class DefaultBuilder(
         private val metadataService: ExchangeMetadataService,
@@ -56,9 +102,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
 
         fun build(): TwoLegArbitrageRelativeProfitCalculator = TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             firstExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
-            secondExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
             firstExchangeWithdrawalFeeAmountFunction = withdrawalFeeAmountFunction,
+            secondExchangeTransactionFeeAmountFunction = transactionFeeAmountFunction,
             secondExchangeWithdrawalFeeAmountFunction = withdrawalFeeAmountFunction,
+            currencyWithdrawalAndDepositStatusChecker = CurrencyWithdrawalAndDepositStatusChecker(metadataService)
         )
     }
 
@@ -67,7 +114,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         firstOrderBookBuyPrice: OrderBookAveragePrice,
         secondOrderBookSellPrice: OrderBookAveragePrice
     ): TwoLegArbitrageRelativeProfit {
-        val relativeProfitWithoutFees = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+        val relativeProfitWithoutFees = when {
+            currencyWithdrawalAndDepositStatusChecker.areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair) -> noProfit
+            else -> firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+        }
         val baseCurrencyAmountBeforeTransfer = firstOrderBookBuyPrice.baseCurrencyAmount.min(secondOrderBookSellPrice.baseCurrencyAmount)
         val baseCurrencyAmountMinusTransactionFeeAtSecondExchange = baseCurrencyAmountBeforeTransfer - (secondExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
@@ -96,12 +146,16 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         )
     }
 
+
     override fun getProfitBuyAtFirstExchangeSellAtSecond(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         firstOrderBookSellPrice: OrderBookAveragePrice,
         secondOrderBookBuyPrice: OrderBookAveragePrice
     ): TwoLegArbitrageRelativeProfit {
-        val relativeProfitWithoutFees = secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+        val relativeProfitWithoutFees = when {
+            currencyWithdrawalAndDepositStatusChecker.areWithdrawalsAndDepositsDisabled(currencyPairWithExchangePair) -> noProfit
+            else -> secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
+        }
         val baseCurrencyAmountBeforeTransfer = secondOrderBookBuyPrice.baseCurrencyAmount.min(firstOrderBookSellPrice.baseCurrencyAmount)
         val baseCurrencyAmountMinusTransactionFeeAtFirstExchange = firstOrderBookSellPrice.baseCurrencyAmount - (firstExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
