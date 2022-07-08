@@ -35,6 +35,7 @@ class AppContext(appConfig: AppConfig) {
     private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.tickerApiUrl, objectMapper)
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
             exchangeMetadataService = exchangeMetadataService,
+            exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
             twoLegArbitragePairs = appConfig.twoLegArbitragePairs
     )
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath, appConfig.ageOfOldestTickerPairToKeepInRepositoryMs)

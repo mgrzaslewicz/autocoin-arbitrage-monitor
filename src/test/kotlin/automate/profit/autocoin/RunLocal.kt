@@ -12,6 +12,7 @@ fun main() {
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
     setProperty("APP_OAUTH_CLIENT_SECRET", "changeme")
     setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_IN_REPOSITORY_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
+    setProperty("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "binance,bittrex,kucoin")
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker", "DEBUG")
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker.TickerPairCache", "DEBUG")
     main(emptyArray())
