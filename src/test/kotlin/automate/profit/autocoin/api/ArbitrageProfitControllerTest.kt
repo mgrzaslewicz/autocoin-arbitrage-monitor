@@ -8,6 +8,8 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
+import automate.profit.autocoin.exchange.metadata.CurrencyMetadata
+import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
@@ -58,7 +60,10 @@ class ArbitrageProfitControllerTest {
             objectMapper = objectMapper,
             oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),
             commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
-            clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(BigDecimal("0.01")),
+            clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(
+                freePlanRelativeProfitCutOff = BigDecimal("0.01"),
+                exchangeMetadataService = mock(),
+            ),
             freePlanRelativeProfitPercentCutOff = "0.01",
             isUserInProPlanFunction = { false },
             transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001"),
@@ -115,6 +120,8 @@ class ArbitrageProfitControllerTest {
                             counterCurrency = "B",
                             buyAtExchange = BINANCE,
                             sellAtExchange = BITTREX,
+                            withdrawalEnabled = true,
+                            depositEnabled = null,
                             usd24hVolumeAtBuyExchange = "12000.00",
                             usd24hVolumeAtSellExchange = "13000.00",
                             profitOpportunityHistogram = listOf(
@@ -168,6 +175,8 @@ class ArbitrageProfitControllerTest {
                     assertThat(counterCurrency).isEqualTo("B")
                     assertThat(buyAtExchange).isEqualTo(BINANCE)
                     assertThat(sellAtExchange).isEqualTo(BITTREX)
+                    assertThat(withdrawalEnabled).isTrue
+                    assertThat(depositEnabled).isNull()
                     assertThat(usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
                     assertThat(usd24hVolumeAtSellExchange).isEqualTo("13000.00")
                     assertThat(areDetailsHidden).isFalse

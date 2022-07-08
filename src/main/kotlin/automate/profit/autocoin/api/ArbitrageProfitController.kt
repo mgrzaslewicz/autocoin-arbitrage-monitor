@@ -5,6 +5,7 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
+import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.security.api.SecurityContext
@@ -41,6 +42,8 @@ data class TwoLegArbitrageProfitOpportunityDto(
     val counterCurrency: String,
     val buyAtExchange: SupportedExchange,
     val sellAtExchange: SupportedExchange?,
+    val withdrawalEnabled: Boolean?,
+    val depositEnabled: Boolean?,
     val usd24hVolumeAtBuyExchange: String?,
     val usd24hVolumeAtSellExchange: String?,
     val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepthDto?>,
@@ -67,6 +70,7 @@ private fun SecurityContext.authenticatedUserHasRole(roleName: String) = this.au
 
 class ClientTwoLegArbitrageProfitOpportunities(
     private val freePlanRelativeProfitCutOff: BigDecimal,
+    private val exchangeMetadataService: ExchangeMetadataService,
     private val timeMillisFunction: () -> Long = { System.currentTimeMillis() },
 ) {
 
@@ -94,6 +98,8 @@ class ClientTwoLegArbitrageProfitOpportunities(
         counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
         buyAtExchange = buyAtExchange,
         sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
+        withdrawalEnabled = exchangeMetadataService.getCurrencyMetadata(buyAtExchange.exchangeName, currencyPairWithExchangePair.currencyPair.base)?.withdrawalEnabled,
+        depositEnabled = exchangeMetadataService.getCurrencyMetadata(sellAtExchange.exchangeName, currencyPairWithExchangePair.currencyPair.counter)?.depositEnabled,
         usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
         usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSellExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
         profitOpportunityHistogram = profitOpportunityHistogram.map {
