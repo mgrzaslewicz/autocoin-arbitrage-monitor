@@ -160,9 +160,4 @@ class TwoLegOrderBookArbitrageProfitCalculator(
         }
     }
 
-    private fun shouldBuyAtFirstExchangeAndSellAtSecond(secondOrderBookBuyPrice: OrderBookAveragePrice, firstOrderBookSellPrice: OrderBookAveragePrice): Boolean {
-        return secondOrderBookBuyPrice.averagePrice > firstOrderBookSellPrice.averagePrice
-    }
-
-
 }
