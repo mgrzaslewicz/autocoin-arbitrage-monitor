@@ -1,18 +1,18 @@
-package automate.profit.autocoin.exchange.arbitrage.ticker
+package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
 import java.util.concurrent.ConcurrentHashMap
 
-class TwoLegTickerArbitrageProfitCache(
+class TwoLegOrderBookArbitrageProfitCache(
         private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
         private val currentTimeMillis: () -> Long = System::currentTimeMillis
 ) {
-    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegTickerArbitrageProfit>()
+    private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegOrderBookArbitrageProfit>()
 
     companion object : KLogging()
 
-    fun addProfit(profit: TwoLegTickerArbitrageProfit) {
+    fun setProfit(profit: TwoLegOrderBookArbitrageProfit) {
         logger.debug { "Setting profit $profit" }
         synchronized(profits) {
             profits[profit.currencyPairWithExchangePair] = profit
@@ -28,7 +28,7 @@ class TwoLegTickerArbitrageProfitCache(
         }
     }
 
-    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegTickerArbitrageProfit {
+    fun getProfit(currencyPairWithExchangePair: CurrencyPairWithExchangePair): TwoLegOrderBookArbitrageProfit {
         return profits.getValue(currencyPairWithExchangePair)
     }
 

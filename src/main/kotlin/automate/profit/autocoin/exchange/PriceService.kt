@@ -31,11 +31,15 @@ class PriceService(private val priceApiUrl: String,
 
     companion object : KLogging()
 
-    fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
+    fun getUsdPrice(currencyCode: String): BigDecimal {
         if (currencyCode == "USD") {
-            return amount
+            return BigDecimal.ONE
         }
+        fetchPrice(currencyCode)
+        return priceCache.getValue(currencyCode).value
+    }
 
+    private fun fetchPrice(currencyCode: String) {
         synchronized(priceCache) {
             if (priceCache.containsKey(currencyCode)) {
                 val valueWithTimestamp = priceCache[currencyCode]!!
@@ -51,7 +55,13 @@ class PriceService(private val priceApiUrl: String,
                 )
             }
         }
+    }
 
+    fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
+        if (currencyCode == "USD") {
+            return amount
+        }
+        fetchPrice(currencyCode)
         val price = priceCache.getValue(currencyCode).value
         return amount.multiply(price)
     }

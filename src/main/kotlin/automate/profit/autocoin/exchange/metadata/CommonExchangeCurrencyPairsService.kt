@@ -2,7 +2,6 @@ package automate.profit.autocoin.exchange.metadata
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

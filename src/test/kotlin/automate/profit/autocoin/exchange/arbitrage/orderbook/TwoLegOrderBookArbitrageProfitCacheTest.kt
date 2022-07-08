@@ -1,35 +1,26 @@
-package automate.profit.autocoin.exchange.arbitrage.ticker
+package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
-import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfit
-import automate.profit.autocoin.exchange.arbitrage.ticker.TwoLegTickerArbitrageProfitCache
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.util.*
 
-class TwoLegTickerArbitrageProfitCacheTest {
+class TwoLegOrderBookArbitrageProfitCacheTest {
     private val currencyPair1 = CurrencyPair.of("A/B")
     private val currencyPair2 = CurrencyPair.of("C/D")
     private val exchangePair1 = ExchangePair(BITTREX, BINANCE)
     private val exchangePair2 = ExchangePair(KUCOIN, BINANCE)
     private val currencyPairWithExchangePair1 = CurrencyPairWithExchangePair(currencyPair1, exchangePair1)
     private val currencyPairWithExchangePair2 = CurrencyPairWithExchangePair(currencyPair2, exchangePair2)
-    private val doesNotMatter = BigDecimal.ONE
-    private val exchangeDoesNotMatter = BINANCE
-    private val firstProfit = TwoLegTickerArbitrageProfit(
-            currencyPair = currencyPair1,
-            exchangePair = exchangePair1,
-            sellPrice = doesNotMatter,
-            buyPrice = doesNotMatter,
-            sellAtExchange = exchangeDoesNotMatter,
-            usd24hVolumeAtSellExchange = doesNotMatter,
-            buyAtExchange = exchangeDoesNotMatter,
-            usd24hVolumeAtBuyExchange = doesNotMatter,
-            relativeProfit = doesNotMatter,
+
+    private val sampleProfit = TwoLegOrderBookArbitrageProfit(
+            currencyPairWithExchangePair = currencyPairWithExchangePair1,
+            usd24hVolumeAtFirstExchange = 1000.0.toBigDecimal(),
+            usd24hVolumeAtSecondExchange = 1500.0.toBigDecimal(),
+            orderBookArbitrageProfitHistogram = listOf(),
             calculatedAtMillis = 1
     )
 
@@ -37,9 +28,9 @@ class TwoLegTickerArbitrageProfitCacheTest {
     fun shouldRemoveTooOldProfits() {
         // given
         val timeMillis = ArrayDeque<Long>(listOf(3L, 7L, 9L))
-        val profitsCache = TwoLegTickerArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
-        profitsCache.addProfit(firstProfit.copy(calculatedAtMillis = 1, currencyPair = currencyPair1, exchangePair = exchangePair1))
-        profitsCache.addProfit(firstProfit.copy(calculatedAtMillis = 3, currencyPair = currencyPair2, exchangePair = exchangePair2))
+        val profitsCache = TwoLegOrderBookArbitrageProfitCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
+        profitsCache.setProfit(sampleProfit.copy(calculatedAtMillis = 1))
+        profitsCache.setProfit(sampleProfit.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
         profitsCache.removeTooOldProfits()
         assertThat(profitsCache.getCurrencyPairWithExchangePairs()).containsOnly(currencyPairWithExchangePair1, currencyPairWithExchangePair2)

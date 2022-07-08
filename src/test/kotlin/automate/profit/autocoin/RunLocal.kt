@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit
  */
 fun main() {
     //    setProperty("OAUTH2_SERVER_URL", "http://localhost:9002")
-//    setProperty("TICKER_API_URL", "http://localhost:9001")
+//    setProperty("EXCHANGE_MEDIATOR_API_URL", "http://localhost:9001")
     setProperty("APP_OAUTH_CLIENT_ID", "changeme")
     setProperty("APP_OAUTH_CLIENT_SECRET", "changeme")
     setProperty("APP_AGE_OF_OLDEST_TICKER_PAIR_TO_KEEP_IN_REPOSITORY_MS", Duration.of(5, ChronoUnit.MINUTES).toMillis().toString())
