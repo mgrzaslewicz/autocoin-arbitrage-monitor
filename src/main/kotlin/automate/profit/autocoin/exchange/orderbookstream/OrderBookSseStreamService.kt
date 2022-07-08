@@ -29,6 +29,7 @@ class OrderBookSseStreamService(
     private companion object : KLogging()
 
     private val isConnected = AtomicBoolean(false)
+    private val isFirstOrderBookLoggedAfterConnect = AtomicBoolean(false)
 
     fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
         logger.info { "Scheduling reconnecting order book stream on failure" }
@@ -41,7 +42,11 @@ class OrderBookSseStreamService(
     }
 
     private fun onOrderBookEvent(orderBookJson: String) {
-        logger.debug { "onEvent orderBook=$orderBookJson" }
+        if (!isFirstOrderBookLoggedAfterConnect.compareAndExchange(false, true)) {
+            logger.info { "First orderBook event since starting the stream" }
+        } else {
+            logger.debug { "OrderBook event=$orderBookJson" }
+        }
         val orderBookDto = objectMapper.readValue(orderBookJson, OrderBookResponseDto::class.java)
         val orderBook = orderBookDto.toOrderBook()
         val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
@@ -72,6 +77,7 @@ class OrderBookSseStreamService(
                         isConnected.set(true)
                     } else {
                         isConnected.set(false)
+                        isFirstOrderBookLoggedAfterConnect.set(false)
                         throw RuntimeException("Could not register for getting order books")
                     }
                 } else {
