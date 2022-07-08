@@ -54,8 +54,8 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         // then
         assertThat(result).hasSize(1)
         SoftAssertions().apply {
-            assertThat(result.first().buyAtExchange).isEqualTo(BINANCE)
-            assertThat(result.first().sellAtExchange).isEqualTo(BITTREX)
+            assertThat(result.first().buyAtExchange).isEqualTo(BITTREX)
+            assertThat(result.first().sellAtExchange).isEqualTo(BINANCE)
             assertThat(result.first().baseCurrency).isEqualTo("ETH")
             assertThat(result.first().counterCurrency).isEqualTo("BTC")
             assertThat(result.first().usd24hVolumeAtBuyExchange).isEqualTo("12000.00")
@@ -88,7 +88,7 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         // then
         assertThat(result).hasSize(1)
         SoftAssertions().apply {
-            assertThat(result.first().buyAtExchange).isEqualTo(BINANCE)
+            assertThat(result.first().buyAtExchange).isEqualTo(BITTREX)
             assertThat(result.first().sellAtExchange).isNull()
             assertThat(result.first().baseCurrency).isEqualTo("ETH")
             assertThat(result.first().counterCurrency).isEqualTo("BTC")
