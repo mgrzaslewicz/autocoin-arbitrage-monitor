@@ -1,7 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.config.ExchangePair
-import automate.profit.autocoin.exchange.PriceService
+import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
@@ -19,7 +19,7 @@ class TwoLegOrderBookArbitrageProfitStatisticsCalculatorTest {
     private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val usd24hVolume = BigDecimal(2000.0)
-    private val pricesService = mock<PriceService>().apply {
+    private val pricesService = mock<RestPriceService>().apply {
         whenever(getUsdValue(eq("B"), any())).thenReturn(usd24hVolume)
     }
     private val currentFixedTimeMs = 10L

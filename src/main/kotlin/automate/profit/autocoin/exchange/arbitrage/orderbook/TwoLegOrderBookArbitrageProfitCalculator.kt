@@ -1,6 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.exchange.PriceService
+import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
@@ -51,6 +52,9 @@ class TwoLegOrderBookArbitrageProfitCalculator(
         private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
     }
 
+    /**
+     * @param tickerPair needed to calculate currency volume in USD at both exchanges
+     */
     fun calculateProfit(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         orderBookPair: OrderBookPair,
