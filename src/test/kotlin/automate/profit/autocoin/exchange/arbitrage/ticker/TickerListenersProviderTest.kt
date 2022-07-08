@@ -5,9 +5,9 @@ import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.TickerListeners
-import com.nhaarman.mockitokotlin2.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
 
 class TickerListenersProviderTest {
     private val grinUsdt = CurrencyPair.Companion.of("GRIN/USD")

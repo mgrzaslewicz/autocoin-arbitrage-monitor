@@ -3,10 +3,10 @@ package automate.profit.autocoin.exchange.metadata
 import automate.profit.autocoin.app.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class CommonExchangeCurrencyPairsServiceTest {
     private val doesNotMatter = mock<CurrencyPairMetadata>()

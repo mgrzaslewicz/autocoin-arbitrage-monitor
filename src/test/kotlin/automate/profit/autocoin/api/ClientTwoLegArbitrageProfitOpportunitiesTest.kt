@@ -9,11 +9,11 @@ import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CurrencyMetadata
 import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 
 class ClientTwoLegArbitrageProfitOpportunitiesTest {

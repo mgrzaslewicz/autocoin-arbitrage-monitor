@@ -8,12 +8,6 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
-import automate.profit.autocoin.exchange.metadata.CurrencyMetadata
-import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.eq
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import io.undertow.server.HttpHandler
 import me.alexpanov.net.FreePortFinder
 import okhttp3.OkHttpClient
@@ -21,6 +15,10 @@ import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 
 
