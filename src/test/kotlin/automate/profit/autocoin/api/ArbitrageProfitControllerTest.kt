@@ -52,6 +52,7 @@ class ArbitrageProfitControllerTest {
             )
         }
         val arbitrageProfitController = ArbitrageProfitController(
+            exchangesToMonitorTwoLegArbitrageOpportunities = listOf(BITTREX, BINANCE),
             twoLegArbitrageProfitOpportunityCache = mock(),
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
@@ -80,6 +81,7 @@ class ArbitrageProfitControllerTest {
             val metadataDto = objectMapper.readValue(it.body?.string(), TwoLegArbitrageMetadataDto::class.java)
             assertThat(metadataDto).isEqualTo(
                 TwoLegArbitrageMetadataDto(
+                    exchangesMonitored = setOf("bittrex", "binance"),
                     baseCurrenciesMonitored = setOf("ABC"),
                     counterCurrenciesMonitored = setOf("DEF"),
                     freePlanProfitPercentCutOff = "0.01",
@@ -98,6 +100,7 @@ class ArbitrageProfitControllerTest {
             whenever(this.getAllProfits()).thenReturn(mock())
         }
         val arbitrageProfitController = ArbitrageProfitController(
+            exchangesToMonitorTwoLegArbitrageOpportunities = emptyList(),
             twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,

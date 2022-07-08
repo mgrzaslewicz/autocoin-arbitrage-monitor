@@ -12,7 +12,7 @@ class StaleTickerDetector(
 
     fun oneOfTickersIsTooOld(tickerPair: TickerPair): Boolean {
         val currentTimeMillis = currentTimeMillisFunction()
-        return currentTimeMillis - tickerPair.oldestTickerReceivedAtOrExchangeMillis() > maxTickerAgeMillis
+        return currentTimeMillis - (tickerPair.oldestTickerReceivedAtOrExchangeMillis()?: Long.MAX_VALUE) > maxTickerAgeMillis
     }
 
 }

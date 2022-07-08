@@ -75,10 +75,10 @@ class TwoLegArbitrageOpportunitiesMonitor(
     }
 
     private fun recalculateProfit() {
-        val isAllRequiredDataPresent = checkIfAllRequiredDataPresentAndSendMetricsIfNot()
-        if (isAllRequiredDataPresent) {
+        val areBothOrderBooksPresent = checkIfBothOrderBooksPresent()
+        if (areBothOrderBooksPresent) {
             val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
-            val tickerPair = TickerPair(firstExchangeTicker!!, secondExchangeTicker!!)
+            val tickerPair = TickerPair(firstExchangeTicker, secondExchangeTicker)
             val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
             if (profit == null) {
                 logger.debug { "No profit found for $currencyPairWithExchangePair" }
@@ -89,22 +89,14 @@ class TwoLegArbitrageOpportunitiesMonitor(
         }
     }
 
-    private fun checkIfAllRequiredDataPresentAndSendMetricsIfNot(): Boolean {
+    private fun checkIfBothOrderBooksPresent(): Boolean {
         return when {
             firstExchangeOrderBook == null -> {
                 logger.debug { "Null firstOrderBook at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
                 false
             }
-            firstExchangeTicker == null -> {
-                logger.debug { "Null firstExchangeTicker at ${exchangePair.firstExchange} for pair $currencyPairWithExchangePair" }
-                false
-            }
             secondExchangeOrderBook == null -> {
                 logger.debug { "Null secondOrderBook at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
-                false
-            }
-            secondExchangeTicker == null -> {
-                logger.debug { "Null secondExchangeTicker at ${exchangePair.secondExchange} for pair $currencyPairWithExchangePair" }
                 false
             }
             else -> true

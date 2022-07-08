@@ -23,13 +23,18 @@ data class TwoLegArbitrageProfitOpportunity(
     val buyAtExchange: SupportedExchange,
     val sellAtExchange: SupportedExchange,
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
-    val usd24hVolumeAtFirstExchange: BigDecimal,
-    val usd24hVolumeAtSecondExchange: BigDecimal,
+    val usd24hVolumeAtFirstExchange: BigDecimal?,
+    val usd24hVolumeAtSecondExchange: BigDecimal?,
     val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepth?>,
     val calculatedAtMillis: Long,
     val olderOrderBookReceivedAtOrExchangeMillis: Long,
 ) {
 
-    val minUsd24hVolumeOfBothExchanges = usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)
+    val minUsd24hVolumeOfBothExchanges = when {
+        usd24hVolumeAtFirstExchange != null && usd24hVolumeAtSecondExchange != null -> usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)
+        usd24hVolumeAtFirstExchange != null && usd24hVolumeAtSecondExchange == null -> usd24hVolumeAtFirstExchange
+        usd24hVolumeAtFirstExchange == null && usd24hVolumeAtSecondExchange != null -> usd24hVolumeAtSecondExchange
+        else -> null
+    }
 
 }
