@@ -20,16 +20,57 @@ class FileTickerPairRepositoryTest {
     private val exchangePair = ExchangePair(BITTREX, BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val tickerPair1 = TickerPair(
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1000)),
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1000))
-    )
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.001"),
+                    bid = BigDecimal("1.0011"),
+                    timestamp = Instant.ofEpochMilli(1000),
+                    baseCurrency24hVolume = BigDecimal("1.5"),
+                    counterCurrency24hVolume = BigDecimal("2.5")
+            ),
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.002"),
+                    bid = BigDecimal("1.0021"),
+                    timestamp = Instant.ofEpochMilli(1000),
+                    baseCurrency24hVolume = BigDecimal("3.5"),
+                    counterCurrency24hVolume = BigDecimal("4.5")
+            ))
     private val tickerPair2 = TickerPair(
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1005)),
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1005))
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.001"),
+                    bid = BigDecimal("1.0011"),
+                    timestamp = Instant.ofEpochMilli(1005),
+                    baseCurrency24hVolume = BigDecimal("5.5"),
+                    counterCurrency24hVolume = BigDecimal("6.5")
+            ),
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.002"),
+                    bid = BigDecimal("1.0021"),
+                    timestamp = Instant.ofEpochMilli(1005),
+                    baseCurrency24hVolume = BigDecimal("7.5"),
+                    counterCurrency24hVolume = BigDecimal("8.5")
+            )
     )
     private val tickerPair3 = TickerPair(
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1006)),
-            Ticker(currencyPair = currencyPair, ask = BigDecimal("1.002"), bid = BigDecimal("1.0021"), timestamp = Instant.ofEpochMilli(1006))
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.001"),
+                    bid = BigDecimal("1.0011"),
+                    timestamp = Instant.ofEpochMilli(1006),
+                    baseCurrency24hVolume = BigDecimal("9.5"),
+                    counterCurrency24hVolume = BigDecimal("10.5")
+            ),
+            Ticker(
+                    currencyPair = currencyPair,
+                    ask = BigDecimal("1.002"),
+                    bid = BigDecimal("1.0021"),
+                    timestamp = Instant.ofEpochMilli(1006),
+                    baseCurrency24hVolume = BigDecimal("11.5"),
+                    counterCurrency24hVolume = BigDecimal("12.5")
+            )
     )
     private val tickerPairsToSave = listOf(tickerPair1, tickerPair2)
     private lateinit var tickerPairRepository: FileTickerPairRepository
@@ -67,8 +108,8 @@ class FileTickerPairRepositoryTest {
     fun shouldSaveTickerPairsToFile() {
         // given
         val expectedContent = """
-1.00100000,1.00110000,1000,1.00200000,1.00210000,1000
-1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
+1.00100000,1.00110000,1.50000000,2.50000000,1000,1.00200000,1.00210000,3.50000000,4.50000000,1000
+1.00100000,1.00110000,5.50000000,6.50000000,1005,1.00200000,1.00210000,7.50000000,8.50000000,1005
         """.trimIndent()
         // when
         tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
@@ -80,10 +121,10 @@ class FileTickerPairRepositoryTest {
     fun shouldAddTickerPairsToFile() {
         // given
         val expectedContent = """
-1.00100000,1.00110000,1000,1.00200000,1.00210000,1000
-1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
-1.00100000,1.00110000,1000,1.00200000,1.00210000,1000
-1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
+1.00100000,1.00110000,1.50000000,2.50000000,1000,1.00200000,1.00210000,3.50000000,4.50000000,1000
+1.00100000,1.00110000,5.50000000,6.50000000,1005,1.00200000,1.00210000,7.50000000,8.50000000,1005
+1.00100000,1.00110000,1.50000000,2.50000000,1000,1.00200000,1.00210000,3.50000000,4.50000000,1000
+1.00100000,1.00110000,5.50000000,6.50000000,1005,1.00200000,1.00210000,7.50000000,8.50000000,1005
         """.trimIndent()
         // when
         tickerPairRepository.addAll(currencyPairWithExchangePair, tickerPairsToSave)
@@ -92,9 +133,11 @@ class FileTickerPairRepositoryTest {
         assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000001.csv")).hasContent(expectedContent)
     }
 
-    fun Ticker.withScaledPrice(scale: Int) = this.copy(
+    fun Ticker.scaled(scale: Int) = this.copy(
             ask = ask.setScale(scale),
-            bid = bid.setScale(scale)
+            bid = bid.setScale(scale),
+            baseCurrency24hVolume = baseCurrency24hVolume.setScale(scale),
+            counterCurrency24hVolume = counterCurrency24hVolume.setScale(8)
     )
 
     @Test
@@ -106,8 +149,8 @@ class FileTickerPairRepositoryTest {
         // then
         assertThat(tickerPairsRead).isEqualTo(tickerPairsToSave.map {
             it.copy(
-                    first = it.first.withScaledPrice(8),
-                    second = it.second.withScaledPrice(8)
+                    first = it.first.scaled(8),
+                    second = it.second.scaled(8)
             )
         })
     }

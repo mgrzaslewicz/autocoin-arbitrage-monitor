@@ -13,7 +13,8 @@ class TickerPairCacheTest {
     private val currencyPair = CurrencyPair.of("A/B")
     private val exchangePair = ExchangePair(BITTREX, BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
-    private val firstTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1))
+    private val volumeDoesNotMatter = BigDecimal.ONE
+    private val firstTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
 
     @Test
     fun shouldGetAndCleanTickerCurrencyPairs() {

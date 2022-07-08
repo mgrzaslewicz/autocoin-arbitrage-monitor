@@ -24,11 +24,12 @@ class TwoLegArbitrageMonitorTest {
         val currencyPair = CurrencyPair.of("TESTA/TESTB")
         val tickerPairCache = mock<TickerPairCache>()
         val exchangePair = ExchangePair(BITTREX, BINANCE)
+        val volumeDoesNotMatter = BigDecimal.ONE
         val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
         val twoLegArbitrageMonitor = TwoLegArbitrageMonitor(currencyPairWithExchangePair, tickerPairCache, mock(), mock())
         val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
-        val firstExchangeTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.5"), bid = BigDecimal("1.52"), timestamp = null)
-        val secondExchangeTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.506"), bid = BigDecimal("1.523"), timestamp = Instant.now())
+        val firstExchangeTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.5"), bid = BigDecimal("1.52"), timestamp = null, baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
+        val secondExchangeTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.506"), bid = BigDecimal("1.523"), timestamp = Instant.now(), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
         // when
         tickerListeners.first.onTicker(firstExchangeTicker)
         tickerListeners.second.onTicker(secondExchangeTicker)

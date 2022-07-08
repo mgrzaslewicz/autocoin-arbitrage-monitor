@@ -25,20 +25,40 @@ class FileTickerPairRepository(
     private fun TickerPair.toCsvLine(): String {
         val firstAsk = first.ask.setScale(8, RoundingMode.HALF_DOWN)
         val firstBid = first.bid.setScale(8, RoundingMode.HALF_DOWN)
+        val firstBaseCurrency24hVolume = first.baseCurrency24hVolume.setScale(8, RoundingMode.HALF_DOWN)
+        val firstCounterCurrency24hVolume = first.counterCurrency24hVolume.setScale(8, RoundingMode.HALF_DOWN)
         val secondAsk = second.ask.setScale(8, RoundingMode.HALF_DOWN)
         val secondBid = second.bid.setScale(8, RoundingMode.HALF_DOWN)
-        return "${firstAsk},${firstBid},${first.timestamp?.toEpochMilli()
-                ?: ""},${secondAsk},${secondBid},${second.timestamp?.toEpochMilli() ?: ""}"
+        val secondBaseCounterCurrency24hVolume = second.baseCurrency24hVolume.setScale(8, RoundingMode.HALF_DOWN)
+        val secondCounterCurrency24hVolume = second.counterCurrency24hVolume.setScale(8, RoundingMode.HALF_DOWN)
+        return "$firstAsk,$firstBid,$firstBaseCurrency24hVolume,$firstCounterCurrency24hVolume,${first.timestamp?.toEpochMilli()
+                ?: ""},$secondAsk,$secondBid,$secondBaseCounterCurrency24hVolume,$secondCounterCurrency24hVolume,${second.timestamp?.toEpochMilli() ?: ""}"
     }
 
     private fun String.toTickerPair(currencyPair: CurrencyPair): TickerPair {
         val values = this.split(",")
-        val firstTimestampString = values[2]
+
+        val firstTimestampString = values[4]
         val firstTimestamp = if (firstTimestampString.isEmpty()) null else Instant.ofEpochMilli(firstTimestampString.toLong())
-        val secondTimestampString = values[5]
+        val firstTicker = Ticker(
+                currencyPair = currencyPair,
+                ask = values[0].toBigDecimal(),
+                bid = values[1].toBigDecimal(),
+                baseCurrency24hVolume = values[2].toBigDecimal(),
+                counterCurrency24hVolume = values[3].toBigDecimal(),
+                timestamp = firstTimestamp
+        )
+
+        val secondTimestampString = values[9]
         val secondTimestamp = if (secondTimestampString.isEmpty()) null else Instant.ofEpochMilli(secondTimestampString.toLong())
-        val firstTicker = Ticker(currencyPair = currencyPair, ask = values[0].toBigDecimal(), bid = values[1].toBigDecimal(), timestamp = firstTimestamp)
-        val secondTicker = Ticker(currencyPair = currencyPair, ask = values[3].toBigDecimal(), bid = values[4].toBigDecimal(), timestamp = secondTimestamp)
+        val secondTicker = Ticker(
+                currencyPair = currencyPair,
+                ask = values[5].toBigDecimal(),
+                bid = values[6].toBigDecimal(),
+                baseCurrency24hVolume = values[7].toBigDecimal(),
+                counterCurrency24hVolume = values[8].toBigDecimal(),
+                timestamp = secondTimestamp
+        )
         return TickerPair(firstTicker, secondTicker)
     }
 

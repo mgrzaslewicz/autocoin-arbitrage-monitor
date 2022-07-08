@@ -12,7 +12,11 @@ data class TwoLegArbitrageProfit(
         val sellPrice: BigDecimal,
         val buyPrice: BigDecimal,
         val sellAtExchange: SupportedExchange,
+        // TODO
+//        val dollar24hVolumeAtSellExchange: Double,
         val buyAtExchange: SupportedExchange,
+        // TODO
+//        val dollar24hVolumeAtBuyExchange: Double,
         val relativeProfit: BigDecimal,
         val calculatedAtMillis: Long
 ) {

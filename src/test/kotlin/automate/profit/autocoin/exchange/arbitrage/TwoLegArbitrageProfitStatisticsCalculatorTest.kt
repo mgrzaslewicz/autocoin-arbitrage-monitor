@@ -21,6 +21,7 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
     private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
+    private val volumeDoesNotMatter = BigDecimal.ONE
     private val tickerPairs = listOf(
             tickerPair(10.0, 11.0, 9.5, 10.5), // relative profit 0.1
             tickerPair(11.0, 12.0, 10.5, 11.5) // relative profit 0
@@ -28,8 +29,8 @@ class TwoLegArbitrageProfitStatisticsCalculatorTest {
 
     private fun tickerPair(buyA: Double, sellA: Double, buyB: Double, sellB: Double): TickerPair {
         return TickerPair(
-                first = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellA.toBigDecimal(), bid = buyA.toBigDecimal()),
-                second = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellB.toBigDecimal(), bid = buyB.toBigDecimal())
+                first = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellA.toBigDecimal(), bid = buyA.toBigDecimal(), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter),
+                second = Ticker(currencyPair = currencyPair, timestamp = null, ask = sellB.toBigDecimal(), bid = buyB.toBigDecimal(), baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
         )
     }
 

@@ -21,8 +21,10 @@ class TwoLegArbitrageProfitCalculatorTest {
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val twoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
     private val doesNotMatter = Instant.now()
+    private val volumeDoesNotMatter = BigDecimal.ONE
+
     private val priceToChangeInTest = BigDecimal.ONE
-    private val sampleTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.011"), bid = priceToChangeInTest, timestamp = doesNotMatter)
+    private val sampleTicker = Ticker(currencyPair = currencyPair, ask = BigDecimal("1.011"), bid = priceToChangeInTest, timestamp = doesNotMatter, baseCurrency24hVolume = volumeDoesNotMatter, counterCurrency24hVolume = volumeDoesNotMatter)
 
     @Test
     fun shouldFindNoProfit() {
