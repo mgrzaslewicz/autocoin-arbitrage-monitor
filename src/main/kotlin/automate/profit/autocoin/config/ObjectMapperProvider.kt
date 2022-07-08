@@ -17,7 +17,8 @@ class CurrencyPairDeserializer : KeyDeserializer() {
 class ObjectMapperProvider {
     fun createObjectMapper(): ObjectMapper {
         return ObjectMapper()
-            .registerModule(KotlinModule.Builder().build())
+                .registerModule(KotlinModule())
+                .registerModule(SimpleModule().addKeyDeserializer(CurrencyPair::class.java, CurrencyPairDeserializer()))
             .registerModule(SimpleModule().addKeyDeserializer(CurrencyPair::class.java, CurrencyPairDeserializer()))
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
