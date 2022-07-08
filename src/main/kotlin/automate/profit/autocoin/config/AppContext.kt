@@ -7,7 +7,9 @@ import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
-import automate.profit.autocoin.exchange.arbitrage.orderbook.*
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitCalculatorWithMetadata
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
@@ -86,10 +88,15 @@ class AppContext(private val appConfig: AppConfig) {
         )
     )
 
+    private val transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
+
     val twoLegArbitrageProfitOpportunityCalculatorWithMetadata = TwoLegArbitrageProfitOpportunityCalculator(
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
-        relativeProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(metadataService = exchangeMetadataService).build(),
+        relativeProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(
+            metadataService = exchangeMetadataService,
+            transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata
+        ).build(),
         metricsService = metricsService,
     )
 
@@ -156,7 +163,8 @@ class AppContext(private val appConfig: AppConfig) {
         objectMapper = objectMapper,
         oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
         clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(freePlanRelativeProfitCutOff),
-        freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString()
+        freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString(),
+        transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata,
     )
 
     val controllers = listOf(arbitrageProfitController)

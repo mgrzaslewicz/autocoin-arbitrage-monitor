@@ -25,6 +25,8 @@ class TestTwoLegArbitrageProfitCalculator : TwoLegArbitrageProfitCalculator {
             transactionFeeAmountBeforeTransfer = null,
             transferFeeAmount = null,
             transactionFeeAmountAfterTransfer = null,
+            isTransactionFeeAmountBeforeTransferEstimated = false,
+            isTransactionFeeAmountAfterTransferEstimated = false,
         )
     }
 
@@ -41,6 +43,8 @@ class TestTwoLegArbitrageProfitCalculator : TwoLegArbitrageProfitCalculator {
             transactionFeeAmountBeforeTransfer = null,
             transferFeeAmount = null,
             transactionFeeAmountAfterTransfer = null,
+            isTransactionFeeAmountBeforeTransferEstimated = false,
+            isTransactionFeeAmountAfterTransferEstimated = false,
         )
     }
 
