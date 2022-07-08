@@ -4,7 +4,7 @@ import io.undertow.server.HttpHandler
 import io.undertow.util.HttpString
 
 interface ApiHandler {
-    fun method(): HttpString
-    fun urlTemplate(): String
-    fun httpHandler(): HttpHandler
+    val method: HttpString
+    val urlTemplate: String
+    val httpHandler: HttpHandler
 }
