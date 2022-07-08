@@ -44,7 +44,7 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
                     exchangeOpportunityCount[it.exchangePair.firstExchange] = exchangeOpportunityCount[it.exchangePair.firstExchange]!! + 1
                     exchangeOpportunityCount[it.exchangePair.secondExchange] = exchangeOpportunityCount[it.exchangePair.secondExchange]!! + 1
                 }
-                exchangeOpportunityCount.forEach {
+                exchangeOpportunityCount.filter { it.value > 0 }.forEach {
                     metricsService.recordExchangeOpportunityCount(profitGroup, it.key, it.value)
                 }
             }
