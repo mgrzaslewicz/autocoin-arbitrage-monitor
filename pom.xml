@@ -18,7 +18,7 @@
         <junit.version>5.8.2</junit.version>
         <jackson.version>2.13.1</jackson.version>
         <autocoin-exchange-api-rest.version>2.0.21</autocoin-exchange-api-rest.version>
-        <autocoin-metrics-client.version>1.1.2</autocoin-metrics-client.version>
+        <autocoin-metrics-client.version>1.1.4</autocoin-metrics-client.version>
         <maven.compiler.source>13</maven.compiler.source>
         <maven.compiler.target>13</maven.compiler.target>
         <maven.compiler.release>13</maven.compiler.release>
