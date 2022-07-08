@@ -91,7 +91,7 @@ class HealthService(
         val twoLegArbitrageExchangePairsOpportunityCount = twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
         val isConnectedToTickerStream = tickerSseStreamService.isConnected()
         val isConnectedToOrderBookStream = orderBookSseStreamService.isConnected()
-        val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
+        val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
         val health = Health(
             healthy = isConnectedToTickerStream && isConnectedToOrderBookStream,
             unhealthyReasons = listOfNotNull(
