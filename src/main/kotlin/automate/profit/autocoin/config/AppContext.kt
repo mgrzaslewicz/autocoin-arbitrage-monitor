@@ -4,7 +4,8 @@ import automate.profit.autocoin.api.ArbitrageProfitController
 import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.PriceService
-import automate.profit.autocoin.exchange.arbitrage.orderbook.FileOrderBookArbitrageProfitRepository
+import automate.profit.autocoin.exchange.arbitrage.orderbook.OrderBookArbitrageProfitRepository
+import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
@@ -15,6 +16,7 @@ import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrarProvider
 import automate.profit.autocoin.exchange.orderbook.DefaultOrderBookListenerRegistrars
 import automate.profit.autocoin.exchange.orderbook.OrderBookListenersProvider
+import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerFetcher
 import automate.profit.autocoin.metrics.MetricsService
 import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
@@ -83,20 +85,12 @@ class AppContext(private val appConfig: AppConfig) {
             objectMapper = objectMapper
     )
 
-    val arbitrageProfitRepository = FileOrderBookArbitrageProfitRepository(
-            tickerRepositoryPath = appConfig.profitsRepositoryPath,
-            ageOfOldestProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs,
-            objectMapper = objectMapper
-    )
-
     private val cachedThreadPool = Executors.newCachedThreadPool()
 
     val orderBookListenersProvider = OrderBookListenersProvider(
             profitCache = twoLegOrderBookArbitrageProfitCache,
             profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
-            metricsService = metricsService,
-            arbitrageProfitRepository = arbitrageProfitRepository,
-            executorService = Executors.newSingleThreadExecutor()
+            metricsService = metricsService
     )
 
     val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(
@@ -127,7 +121,11 @@ class AppContext(private val appConfig: AppConfig) {
     )
 
     val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(
-            profitRepository = arbitrageProfitRepository,
+            profitRepository = object : OrderBookArbitrageProfitRepository {
+                // dummy implementation, it's not a priority right now
+                override fun getAllCurrencyPairsWithExchangePairs(): List<CurrencyPairWithExchangePair> = emptyList()
+                override fun getProfits(currencyPairWithExchangePair: CurrencyPairWithExchangePair): List<TwoLegOrderBookArbitrageProfit>  = emptyList()
+            },
             orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds
     )
     val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()

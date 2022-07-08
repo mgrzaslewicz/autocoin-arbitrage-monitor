@@ -1,12 +1,12 @@
 package automate.profit.autocoin.exchange.arbitrage.statistic
 
-import automate.profit.autocoin.exchange.arbitrage.orderbook.FileOrderBookArbitrageProfitRepository
+import automate.profit.autocoin.exchange.arbitrage.orderbook.OrderBookArbitrageProfitRepository
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class TwoLegArbitrageProfitStatisticsCalculator(
-        private val profitRepository: FileOrderBookArbitrageProfitRepository,
+        private val profitRepository: OrderBookArbitrageProfitRepository,
         private val orderBookUsdAmountThresholds: List<BigDecimal>
 ) {
 
