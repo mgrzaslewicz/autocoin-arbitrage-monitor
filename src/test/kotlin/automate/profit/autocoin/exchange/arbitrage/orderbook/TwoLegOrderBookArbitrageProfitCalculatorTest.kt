@@ -36,7 +36,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val bigDecimalWhichDoesNotMatter = BigDecimal.ONE
     private val counterCurrency24hVolume = BigDecimal("10.0")
     private val tickerFetcher = mock<TickerFetcher>().apply {
-        whenever(getCachedTicker(exchangeA, currencyPair)).thenReturn(Ticker(
+        whenever(getCachedOrFetchTicker(exchangeA, currencyPair)).thenReturn(Ticker(
                 currencyPair = currencyPair,
                 ask = bigDecimalWhichDoesNotMatter,
                 bid = bigDecimalWhichDoesNotMatter,
@@ -44,7 +44,7 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
                 counterCurrency24hVolume = counterCurrency24hVolume,
                 timestamp = Instant.now()
         ))
-        whenever(getCachedTicker(exchangeB, currencyPair)).thenReturn(Ticker(
+        whenever(getCachedOrFetchTicker(exchangeB, currencyPair)).thenReturn(Ticker(
                 currencyPair = currencyPair,
                 ask = bigDecimalWhichDoesNotMatter,
                 bid = bigDecimalWhichDoesNotMatter,

@@ -30,8 +30,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
         logger.debug { "Calculating profit for $currencyPairWithExchangePair" }
         val currentTimeMillis = currentTimeMillis()
 
-        val firstExchangeTicker = tickerFetcher.getCachedTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)
-        val secondExchangeTicker = tickerFetcher.getCachedTicker(currencyPairWithExchangePair.exchangePair.secondExchange, currencyPairWithExchangePair.currencyPair)
+        val firstExchangeTicker = tickerFetcher.getCachedOrFetchTicker(currencyPairWithExchangePair.exchangePair.firstExchange, currencyPairWithExchangePair.currencyPair)
+        val secondExchangeTicker = tickerFetcher.getCachedOrFetchTicker(currencyPairWithExchangePair.exchangePair.secondExchange, currencyPairWithExchangePair.currencyPair)
         if (oneOfTickersIsTooOld(firstExchangeTicker, secondExchangeTicker, currentTimeMillis)) {
             return null
         }

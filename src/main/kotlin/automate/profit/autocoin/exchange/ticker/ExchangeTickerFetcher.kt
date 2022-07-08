@@ -8,6 +8,6 @@ class ExchangeTickerFetcher(
         private val tickerFetcher: TickerFetcher
 ) : UserExchangeTickerService {
     override fun getTicker(currencyPair: CurrencyPair): Ticker {
-        return tickerFetcher.getTicker(supportedExchange, currencyPair)
+        return tickerFetcher.fetchTicker(supportedExchange, currencyPair)
     }
 }

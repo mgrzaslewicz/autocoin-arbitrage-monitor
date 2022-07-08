@@ -28,7 +28,7 @@ class TickerFetcher(
 
     private val tickerCache = ConcurrentHashMap<String, TickerWithTimestamp>()
 
-    fun getTicker(supportedExchange: SupportedExchange, currencyPair: CurrencyPair): Ticker {
+    fun fetchTicker(supportedExchange: SupportedExchange, currencyPair: CurrencyPair): Ticker {
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
         val request = Request.Builder()
@@ -50,18 +50,18 @@ class TickerFetcher(
         }
     }
 
-    fun getCachedTicker(supportedExchange: SupportedExchange, currencyPair: CurrencyPair): Ticker {
+    fun getCachedOrFetchTicker(supportedExchange: SupportedExchange, currencyPair: CurrencyPair): Ticker {
         val cacheKey = "$supportedExchange-$currencyPair"
         if (tickerCache.containsKey(cacheKey)) {
-            val valueWithTimestamp = tickerCache[cacheKey]!!
-            if (isOlderThanMaxCacheAge(valueWithTimestamp.setAtMillis)) {
+            val valueWithTimestamp = tickerCache[cacheKey]
+            if (valueWithTimestamp != null && isOlderThanMaxCacheAge(valueWithTimestamp.setAtMillis)) {
                 tickerCache.remove(cacheKey)
             }
         }
         return tickerCache.computeIfAbsent(cacheKey) {
             TickerWithTimestamp(
                     setAtMillis = currentTimeMillis(),
-                    ticker = getTicker(supportedExchange, currencyPair)
+                    ticker = fetchTicker(supportedExchange, currencyPair)
             )
         }.ticker
     }
