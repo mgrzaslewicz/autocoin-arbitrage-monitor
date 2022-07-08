@@ -63,12 +63,12 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 val secondOrderBookBuyPrice = secondOrderBookAverageBuyPrices[index]
                 val secondOrderBookSellPrice = secondOrderBookAverageSellPrices[index]
                 when {
-                    firstOrderBookBuyPrice?.averagePrice ?: minimum <= ZERO
-                            || firstOrderBookSellPrice?.averagePrice ?: minimum <= ZERO
-                            || secondOrderBookBuyPrice?.averagePrice ?: minimum <= ZERO
-                            || secondOrderBookSellPrice?.averagePrice ?: minimum <= ZERO
+                    (firstOrderBookBuyPrice?.averagePrice ?: minimum) <= ZERO
+                            || (firstOrderBookSellPrice?.averagePrice ?: minimum) <= ZERO
+                            || (secondOrderBookBuyPrice?.averagePrice ?: minimum) <= ZERO
+                            || (secondOrderBookSellPrice?.averagePrice ?: minimum) <= ZERO
                     -> null
-                    firstOrderBookBuyPrice?.averagePrice ?: minimum > secondOrderBookSellPrice?.averagePrice ?: maximum ->
+                    (firstOrderBookBuyPrice?.averagePrice ?: minimum) > (secondOrderBookSellPrice?.averagePrice ?: maximum) ->
                         TwoLegOrderBookArbitrageOpportunity(
                                 sellPrice = firstOrderBookBuyPrice!!.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
@@ -81,7 +81,7 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                                 relativeProfit = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, HALF_EVEN) - ONE,
                                 usdDepthUpTo = usdDepthTo
                         )
-                    secondOrderBookBuyPrice?.averagePrice ?: minimum > firstOrderBookSellPrice?.averagePrice ?: maximum ->
+                    (secondOrderBookBuyPrice?.averagePrice ?: minimum) > (firstOrderBookSellPrice?.averagePrice ?: maximum) ->
                         TwoLegOrderBookArbitrageOpportunity(
                                 sellPrice = secondOrderBookBuyPrice!!.averagePrice,
                                 sellAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,

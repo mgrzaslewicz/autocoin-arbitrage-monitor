@@ -7,7 +7,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 
-private val logger = KotlinLogging.logger {}
 
 class RestExchangeMetadataService(
         private val httpClient: OkHttpClient,
@@ -15,16 +14,18 @@ class RestExchangeMetadataService(
         private val objectMapper: ObjectMapper
 ) : ExchangeMetadataService {
 
+    private val logger = KotlinLogging.logger {}
+
     override fun getMetadata(exchangeName: String): ExchangeMetadata {
         val exchangeMetadataApiUrl = "$exchangeMetadataServiceHostWithPort/metadata/$exchangeName"
-        logger.debug { "Requesting metadata for exchange $exchangeName @$exchangeMetadataApiUrl" }
+        logger.debug { "[$exchangeName] Requesting metadata for exchange @$exchangeMetadataApiUrl" }
         val metadataResponse = httpClient.newCall(Request.Builder()
                 .get()
                 .url(exchangeMetadataApiUrl)
                 .build()
         ).execute()
         metadataResponse.use {
-            check(metadataResponse.isSuccessful) { "Could not get exchange metadata response, code=${metadataResponse.code}" }
+            check(metadataResponse.isSuccessful) { "[$exchangeName] Could not get exchange metadata response, code=${metadataResponse.code}" }
             return objectMapper.readValue(metadataResponse.body?.string(), ExchangeMetadataDto::class.java)
                     .toExchangeMetadata()
         }
