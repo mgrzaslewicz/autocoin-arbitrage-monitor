@@ -11,8 +11,12 @@ To run locally - use RunLocal.kt
 # Backlog
 Refresh exchange metadata periodically. That should be an async operation
 Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a.e.a.o.TwoLegOrderBookArbitrageProfitCalculator - First time could not calculate two leg arbitrage profit for CurrencyPairWithExchangePair(currencyPair=TRX/USDT, exchangePair=ExchangePair(firstExchange=BIBOX, secondExchange=BITTREX))
+Add blockchain type to metadata
 
 ## What are users asking for?
+[8.02.2022 01:52]
+I'm also seeing opportunities that  stil shows up but the wallet is disable on HitBTC
+
 [6.02.2022 00:16]
 By the way, I have a bit of experience  of an arbitrage, within Solana Blockchain.
 However, is it possible to monitor the defi exchanges, such as raydium, serum, orca, or a Jupiter liquidity aggregator?
