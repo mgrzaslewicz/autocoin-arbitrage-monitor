@@ -28,7 +28,7 @@
 
     <logger name="automate.profit.autocoin.exchange.ticker" level="${logging.level.automate.profit.autocoin.exchange.ticker:-WARN}" />
     <logger name="automate.profit.autocoin.exchange.orderbook" level="${logging.level.automate.profit.autocoin.exchange.orderbook:-WARN}" />
-    <root level="INFO">
+    <root level="${logging.level:-INFO}">
         <appender-ref ref="RollingFileAppender"/>
         <appender-ref ref="STDOUT"/>
     </root>

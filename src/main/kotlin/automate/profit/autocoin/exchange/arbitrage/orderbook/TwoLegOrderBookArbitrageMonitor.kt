@@ -36,17 +36,24 @@ class TwoLegOrderBookArbitrageMonitor(
     }
 
     private fun onOrderBooks() {
-        if (firstExchangeOrderBook != null && secondExchangeOrderBook != null) {
-            val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
-            val millis = measureTimeMillis {
-                val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
-                if (profit == null) {
-                    profitCache.removeProfit(currencyPairWithExchangePair)
-                } else {
-                    profitCache.setProfit(profit)
+        if (firstExchangeOrderBook != null) {
+            if (secondExchangeOrderBook != null) {
+                val orderBookPair = OrderBookPair(firstExchangeOrderBook!!, secondExchangeOrderBook!!)
+                val millis = measureTimeMillis {
+                    val profit = profitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair)
+                    if (profit == null) {
+                        logger.debug { "No profit found for $currencyPairWithExchangePair" }
+                        profitCache.removeProfit(currencyPairWithExchangePair)
+                    } else {
+                        profitCache.setProfit(profit)
+                    }
                 }
+                statsDClient.recordExecutionTime("calculateArbitrageProfits", millis, currencyPairMetricsTag, exchangeMetricsTag)
+            } else {
+                logger.debug { "Null secondOrderBook for $currencyPairWithExchangePair" }
             }
-            statsDClient.recordExecutionTime("calculateArbitrageProfits", millis, currencyPairMetricsTag, exchangeMetricsTag)
+        } else {
+            logger.debug { "Null firstOrderBook for $currencyPairWithExchangePair" }
         }
     }
 

@@ -19,5 +19,6 @@ fun main() {
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker", "DEBUG")
     setProperty("logging.level.automate.profit.autocoin.exchange.orderbook", "DEBUG")
     setProperty("logging.level.automate.profit.autocoin.exchange.ticker.TickerPairCache", "DEBUG")
+    setProperty("logging.level", "DEBUG")
     main(emptyArray())
 }
