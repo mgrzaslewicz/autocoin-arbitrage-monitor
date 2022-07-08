@@ -81,12 +81,17 @@ class AppContext(private val appConfig: AppConfig) {
             ageOfOldestProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs,
             objectMapper = objectMapper
     )
+
+    private val cachedThreadPool = Executors.newCachedThreadPool()
+
     val orderBookListenersProvider = OrderBookListenersProvider(
             profitCache = twoLegOrderBookArbitrageProfitCache,
             profitCalculator = twoLegOrderBookArbitrageProfitCalculator,
             statsDClient = statsdClient,
-            arbitrageProfitRepository = arbitrageProfitRepository
+            arbitrageProfitRepository = arbitrageProfitRepository,
+            executorService = Executors.newSingleThreadExecutor()
     )
+
     val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(
             orderBookApiUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = oauth2HttpClient,
@@ -95,7 +100,8 @@ class AppContext(private val appConfig: AppConfig) {
     )
     val orderBookListenerRegistrars = DefaultOrderBookListenerRegistrars(
             initialTickerListenerRegistrarList = emptyList(),
-            orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider
+            orderBookListenerRegistrarProvider = orderBookListenerRegistrarProvider,
+            executorService = cachedThreadPool
     )
     val orderBookFetchScheduler = OrderBookFetchScheduler(
             orderBookListenerRegistrars = orderBookListenerRegistrars,

@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.Test
+import java.util.concurrent.Executors
 
 
 class TwoLegOrderBookArbitrageMonitorTest {
@@ -29,7 +30,7 @@ class TwoLegOrderBookArbitrageMonitorTest {
             whenever(this.calculateProfit(currencyPairWithExchangePair, orderBoookPair)).thenReturn(profit)
         }
 
-        val twoLegArbitrageMonitor = TwoLegOrderBookArbitrageMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock(), mock())
+        val twoLegArbitrageMonitor = TwoLegOrderBookArbitrageMonitor(currencyPairWithExchangePair, profitCache, profitCalculator, mock(), mock(), Executors.newSingleThreadExecutor())
         val listeners = twoLegArbitrageMonitor.getOrderBookListeners()
 
         // when
