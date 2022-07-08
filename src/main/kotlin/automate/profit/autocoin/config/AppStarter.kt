@@ -5,6 +5,7 @@ import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrars
 import automate.profit.autocoin.exchange.ticker.TickerPairCacheLoader
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler
+import io.undertow.Undertow
 import mu.KLogging
 
 class AppStarter(
@@ -12,7 +13,8 @@ class AppStarter(
         private val tickerFetchScheduler: TickerFetchScheduler,
         private val tickerListenerRegistrars: TickerListenerRegistrars,
         private val tickerPairsSaveScheduler: TickerPairsSaveScheduler,
-        private val tickerPairCacheLoader: TickerPairCacheLoader
+        private val tickerPairCacheLoader: TickerPairCacheLoader,
+        private val server: Undertow
 ) {
     companion object : KLogging()
 
@@ -25,5 +27,7 @@ class AppStarter(
         tickerFetchScheduler.scheduleFetchingTickers()
         logger.info { "Scheduling saving tickers to files" }
         tickerPairsSaveScheduler.scheduleSavingTickerPairs()
+        logger.info { "Starting server" }
+        server.start()
     }
 }
