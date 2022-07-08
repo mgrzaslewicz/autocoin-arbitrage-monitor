@@ -1,5 +1,6 @@
 package automate.profit.autocoin.scheduled
 
+import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageRelativeProfitGroup
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
 import automate.profit.autocoin.metrics.MetricsService
@@ -35,14 +36,21 @@ class TwoLegOrderBookArbitrageProfitCacheScheduler(
     private fun sendMetrics() {
         try {
             TwoLegArbitrageRelativeProfitGroup.values().forEach { profitGroup ->
+                val exchangeOpportunityCount = SupportedExchange.values().associateWith { 0L }.toMutableMap()
+
                 val exchangePairsOpportunityCount = twoLegOrderBookArbitrageProfitCache.getExchangePairsOpportunityCount(profitGroup)
                 exchangePairsOpportunityCount.forEach {
                     metricsService.recordExchangePairOpportunityCount(profitGroup, it)
+                    exchangeOpportunityCount[it.exchangePair.firstExchange] = exchangeOpportunityCount[it.exchangePair.firstExchange]!! + 1
+                    exchangeOpportunityCount[it.exchangePair.secondExchange] = exchangeOpportunityCount[it.exchangePair.secondExchange]!! + 1
+                }
+                exchangeOpportunityCount.forEach {
+                    metricsService.recordExchangeOpportunityCount(profitGroup, it.key, it.value)
                 }
             }
-            // TODO add sending metrics to count how many opportunities there are between exchange pairs
         } catch (e: Exception) {
             logger.error(e) { "Could not send metrics" }
         }
     }
+
 }
