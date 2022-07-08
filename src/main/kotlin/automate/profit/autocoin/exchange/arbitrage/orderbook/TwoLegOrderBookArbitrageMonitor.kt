@@ -76,7 +76,7 @@ class TwoLegOrderBookArbitrageMonitor(
             },
             object : DeprecatedOrderBookListener {
                 override fun currencyPair() = currencyPair
-                override fun exchange() = exchangePair.firstExchange
+                override fun exchange() = exchangePair.secondExchange
 
                 override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                     if (orderBook != null) onSecondExchangeOrderBook(orderBook)
