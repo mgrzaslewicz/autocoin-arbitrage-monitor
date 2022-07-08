@@ -9,7 +9,8 @@ import mu.KLogging
 
 data class CommonExchangeCurrencyPairs(
     val currencyPairsToExchangePairs: Map<CurrencyPair, Set<ExchangePair>>,
-    val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>
+    val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>,
+    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<SupportedExchange, Set<CurrencyPair>>,
 )
 
 class CommonExchangeCurrencyPairsService(
@@ -27,13 +28,16 @@ class CommonExchangeCurrencyPairsService(
     fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
         if (staticTwoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
             logger.warn { "Using static list of currency pairs for monitoring profits provided at runtime" }
-            return CommonExchangeCurrencyPairs(
+            lastCalculatedCommonExchangeCurrencyPairs = CommonExchangeCurrencyPairs(
                 currencyPairsToExchangePairs = staticTwoLegArbitrageCurrencyAndExchangePairs,
-                exchangePairsToCurrencyPairs = emptyMap()
+                exchangePairsToCurrencyPairs = emptyMap(),
+                exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange = emptyMap()
             )
+            return lastCalculatedCommonExchangeCurrencyPairs
         }
         val currencyPairsToExchangePairs: MutableMap<CurrencyPair, MutableSet<ExchangePair>> = mutableMapOf()
         val exchangePairsToCurrencyPairs: MutableMap<ExchangePair, Set<CurrencyPair>> = mutableMapOf()
+        val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: MutableMap<SupportedExchange, MutableSet<CurrencyPair>> = mutableMapOf()
         val exchangesWithCurrencyPairs = fetchExchangesWithCurrencyPairs()
         for (i in exchangesWithCurrencyPairs.indices) {
             for (j in i + 1 until exchangesWithCurrencyPairs.size) {
@@ -44,12 +48,18 @@ class CommonExchangeCurrencyPairsService(
                 commonCurrencyPairs.forEach {
                     currencyPairsToExchangePairs.putIfAbsent(it, mutableSetOf())
                     currencyPairsToExchangePairs[it]!!.add(exchangePair)
+
+                    exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange.putIfAbsent(exchangePair.firstExchange, mutableSetOf())
+                    exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange.putIfAbsent(exchangePair.secondExchange, mutableSetOf())
+                    exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange[exchangePair.firstExchange]!!.add(it)
+                    exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange[exchangePair.secondExchange]!!.add(it)
                 }
             }
         }
         lastCalculatedCommonExchangeCurrencyPairs = CommonExchangeCurrencyPairs(
             currencyPairsToExchangePairs = currencyPairsToExchangePairs,
-            exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs
+            exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs,
+            exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange = exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange
         )
         return lastCalculatedCommonExchangeCurrencyPairs
     }

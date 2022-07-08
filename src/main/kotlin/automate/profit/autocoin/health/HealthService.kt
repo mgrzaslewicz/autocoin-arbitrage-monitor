@@ -27,7 +27,14 @@ data class Health(
     val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesCount,
     val receivedOrderBooksSinceStart: Map<SupportedExchange, Long>,
     val receivedTickersSinceStart: Map<SupportedExchange, Long>,
-    val commonCurrencyPairs: Map<String, Int>,
+    /**
+     * e.g. "bittrex-binance" to 100
+     */
+    val commonExchangePairsToCurrencyPairs: Map<String, Int>,
+    /**
+     * e.g. "bittrex" to setOf("XRP/USDT", "ETH/BTC")
+     */
+    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<SupportedExchange, Set<String>>,
 )
 
 class HealthService(
@@ -84,16 +91,22 @@ class HealthService(
         val twoLegArbitrageExchangePairsOpportunityCount = twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
         val isConnectedToTickerStream = tickerSseStreamService.isConnected()
         val isConnectedToOrderBookStream = orderBookSseStreamService.isConnected()
+        val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
         val health = Health(
             healthy = isConnectedToTickerStream && isConnectedToOrderBookStream,
             unhealthyReasons = listOfNotNull(
                 if (isConnectedToTickerStream) null else "Not connected to ticker stream",
                 if (isConnectedToOrderBookStream) null else "Not connected to order book stream",
             ),
-            commonCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.map {
+            commonExchangePairsToCurrencyPairs = lastCalculatedCommonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.map {
                 "${it.key.firstExchange}/${it.key.secondExchange}" to it.value.size
             }
                 .sortedBy { it.second }
+                .toMap(),
+            exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange = lastCalculatedCommonExchangeCurrencyPairs.exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange.map { exchangeToCurrencyPairs ->
+                exchangeToCurrencyPairs.key to exchangeToCurrencyPairs.value.map { it.toString() }.toSortedSet()
+            }
+                .sortedBy { it.first.exchangeName }
                 .toMap(),
             receivedOrderBooksSinceStart = Collections.unmodifiableMap(orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
             receivedTickersSinceStart = Collections.unmodifiableMap(tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
