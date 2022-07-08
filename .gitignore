@@ -27,3 +27,4 @@ log/
 /.nb-gradle/
 
 src/main/**/RunLocal*.kt
+dependency-reduced-pom.xml
