@@ -19,7 +19,6 @@ fun main(args: Array<String>) {
                 tickerFetchScheduler = appContext.tickerFetchScheduler,
                 tickerListenerRegistrars = appContext.tickerListenerRegistrars,
                 tickerPairsSaveScheduler = appContext.tickerPairsSaveScheduler,
-                tickerPairCacheLoader = appContext.tickerPairCacheLoader,
                 server = appContext.server
         )
         appStarter.start()
