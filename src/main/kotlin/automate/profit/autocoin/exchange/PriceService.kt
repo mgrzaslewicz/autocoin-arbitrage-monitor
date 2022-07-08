@@ -8,8 +8,6 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 
 data class PriceDto(
@@ -33,34 +31,28 @@ class PriceService(private val priceApiUrl: String,
 
     companion object : KLogging()
 
-    private val currencyCodeLocks = ConcurrentHashMap<String, ReadWriteLock>()
-
     fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
         if (currencyCode == "USD") {
             return amount
         }
-        val lock = currencyCodeLocks.computeIfAbsent(currencyCode) {
-            ReentrantReadWriteLock()
-        }
 
-        lock.writeLock().lock()
-        if (priceCache.containsKey(currencyCode)) {
-            val valueWithTimestamp = priceCache[currencyCode]!!
-            if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
-                priceCache.remove(currencyCode)
+        synchronized(priceCache) {
+            if (priceCache.containsKey(currencyCode)) {
+                val valueWithTimestamp = priceCache[currencyCode]!!
+                if (isOlderThanMaxCacheAge(valueWithTimestamp.calculatedAtMillis)) {
+                    priceCache.remove(currencyCode)
+                }
+            }
+
+            priceCache.computeIfAbsent(currencyCode) {
+                ValueWithTimestamp(
+                        calculatedAtMillis = currentTimeMillis(),
+                        value = fetchUsdPrice(currencyCode)
+                )
             }
         }
 
-        priceCache.computeIfAbsent(currencyCode) {
-            ValueWithTimestamp(
-                    calculatedAtMillis = currentTimeMillis(),
-                    value = fetchUsdPrice(currencyCode)
-            )
-        }
-        lock.writeLock().unlock()
-
         val price = priceCache.getValue(currencyCode).value
-
         return amount.multiply(price)
     }
 
@@ -83,4 +75,5 @@ class PriceService(private val priceApiUrl: String,
             return priceDto.first().price.toBigDecimal()
         }
     }
+
 }
