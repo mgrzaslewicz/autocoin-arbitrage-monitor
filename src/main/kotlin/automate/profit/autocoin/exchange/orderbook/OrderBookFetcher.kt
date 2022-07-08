@@ -19,6 +19,7 @@ class OrderBookFetcher(
 
     override fun getOrderBook(currencyPair: CurrencyPair): OrderBook {
         logger.debug { "Requesting $supportedExchange-$currencyPair" }
+        // assumption is order book is sorted by price (descending for buy orders, ascending for sell orders)
         val request = Request.Builder()
                 .url("$orderBookApiUrl/order-book/${supportedExchange.exchangeName}/${currencyPair.base}/${currencyPair.counter}")
                 .get()
