@@ -123,21 +123,24 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             else -> firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
         }
         val baseCurrencyAmountBeforeTransfer = firstOrderBookBuyPrice.baseCurrencyAmount.min(secondOrderBookSellPrice.baseCurrencyAmount)
-        val baseCurrencyAmountMinusTransactionFeeAtSecondExchange = baseCurrencyAmountBeforeTransfer - (secondExchangeTransactionFeeAmountFunction.apply(
+        val transactionFeeAmountBeforeTransfer = secondExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountBeforeTransfer
-        ) ?: BigDecimal.ZERO)
-        val baseCurrencyAmountMinusSecondExchangeWithdrawalFee = baseCurrencyAmountMinusTransactionFeeAtSecondExchange - (secondExchangeWithdrawalFeeAmountFunction.apply(
+        )
+        val baseCurrencyAmountMinusTransactionFeeAtSecondExchange = baseCurrencyAmountBeforeTransfer - (transactionFeeAmountBeforeTransfer ?: BigDecimal.ZERO)
+        val transferFeeAmount = secondExchangeWithdrawalFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             currency = currencyPairWithExchangePair.currencyPair.base,
             amount = baseCurrencyAmountMinusTransactionFeeAtSecondExchange
-        ) ?: BigDecimal.ZERO)
-        val baseCurrencyAmountMinusTransactionFeeAtFirstExchange = baseCurrencyAmountMinusSecondExchangeWithdrawalFee - (firstExchangeTransactionFeeAmountFunction.apply(
+        )
+        val baseCurrencyAmountMinusSecondExchangeWithdrawalFee = baseCurrencyAmountMinusTransactionFeeAtSecondExchange - (transferFeeAmount ?: BigDecimal.ZERO)
+        val transactionFeeAmountAfterTransfer = firstExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.secondExchange,
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountMinusSecondExchangeWithdrawalFee
-        ) ?: BigDecimal.ZERO)
+        )
+        val baseCurrencyAmountMinusTransactionFeeAtFirstExchange = baseCurrencyAmountMinusSecondExchangeWithdrawalFee - (transactionFeeAmountAfterTransfer ?: BigDecimal.ZERO)
         val amountWithAllFeesAppliedPlusProfit =
             baseCurrencyAmountMinusTransactionFeeAtFirstExchange.plus(baseCurrencyAmountMinusTransactionFeeAtFirstExchange.multiply(relativeProfitWithoutFees))
         val relativeProfit = amountWithAllFeesAppliedPlusProfit
@@ -146,7 +149,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         return TwoLegArbitrageRelativeProfit(
             relativeProfit = relativeProfit,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
-            baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,
+            transactionFeeAmountBeforeTransfer = transactionFeeAmountBeforeTransfer,
+            transferFeeAmount = transferFeeAmount,
+            transactionFeeAmountAfterTransfer = transactionFeeAmountAfterTransfer,
         )
     }
 
@@ -161,21 +167,24 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
             else -> secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE
         }
         val baseCurrencyAmountBeforeTransfer = secondOrderBookBuyPrice.baseCurrencyAmount.min(firstOrderBookSellPrice.baseCurrencyAmount)
-        val baseCurrencyAmountMinusTransactionFeeAtFirstExchange = firstOrderBookSellPrice.baseCurrencyAmount - (firstExchangeTransactionFeeAmountFunction.apply(
+        val transactionFeeAmountBeforeTransfer = firstExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountBeforeTransfer
-        ) ?: BigDecimal.ZERO)
-        val baseCurrencyAmountMinusFirstExchangeWithdrawalFee = baseCurrencyAmountMinusTransactionFeeAtFirstExchange - (firstExchangeWithdrawalFeeAmountFunction.apply(
+        )
+        val baseCurrencyAmountMinusTransactionFeeAtFirstExchange = firstOrderBookSellPrice.baseCurrencyAmount - (transactionFeeAmountBeforeTransfer ?: BigDecimal.ZERO)
+        val transferFeeAmount = firstExchangeWithdrawalFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.firstExchange,
             currency = currencyPairWithExchangePair.currencyPair.base,
             amount = baseCurrencyAmountMinusTransactionFeeAtFirstExchange
-        ) ?: BigDecimal.ZERO)
-        val baseCurrencyAmountMinusTransactionFeeAtSecondExchange = baseCurrencyAmountMinusFirstExchangeWithdrawalFee - (secondExchangeTransactionFeeAmountFunction.apply(
+        )
+        val baseCurrencyAmountMinusFirstExchangeWithdrawalFee = baseCurrencyAmountMinusTransactionFeeAtFirstExchange - (transferFeeAmount ?: BigDecimal.ZERO)
+        val transactionFeeAmountAfterTransfer = secondExchangeTransactionFeeAmountFunction.apply(
             exchange = currencyPairWithExchangePair.exchangePair.secondExchange,
             currencyPair = currencyPairWithExchangePair.currencyPair,
             amount = baseCurrencyAmountMinusFirstExchangeWithdrawalFee
-        ) ?: BigDecimal.ZERO)
+        )
+        val baseCurrencyAmountMinusTransactionFeeAtSecondExchange = baseCurrencyAmountMinusFirstExchangeWithdrawalFee - (transactionFeeAmountAfterTransfer ?: BigDecimal.ZERO)
         val amountWithAllFeesAppliedPlusProfit =
             baseCurrencyAmountMinusTransactionFeeAtSecondExchange.plus(baseCurrencyAmountMinusTransactionFeeAtSecondExchange.multiply(relativeProfitWithoutFees))
         val relativeProfit = amountWithAllFeesAppliedPlusProfit
@@ -184,7 +193,10 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadata(
         return TwoLegArbitrageRelativeProfit(
             relativeProfit = relativeProfit,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
-            baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountMinusTransactionFeeAtFirstExchange,
+            transactionFeeAmountBeforeTransfer = transactionFeeAmountBeforeTransfer,
+            transferFeeAmount = transferFeeAmount,
+            transactionFeeAmountAfterTransfer = transactionFeeAmountAfterTransfer,
         )
     }
 

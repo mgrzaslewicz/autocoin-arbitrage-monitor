@@ -16,6 +16,13 @@ import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_DOWN
 import java.math.RoundingMode.HALF_EVEN
 
+
+data class TwoLegOrderBookArbitrageOpportunityFeesDto(
+    val buyFee: String?,
+    val withdrawalFee: String?,
+    val sellFee: String?,
+)
+
 data class TwoLegOrderBookArbitrageOpportunityDto(
     val sellPrice: String?,
     val sellAmount: String?,
@@ -25,7 +32,8 @@ data class TwoLegOrderBookArbitrageOpportunityDto(
     val buyAtExchange: SupportedExchange,
     val relativeProfitPercent: String,
     val areDetailsHidden: Boolean,
-    val usdDepthUpTo: String
+    val usdDepthUpTo: String,
+    val fees: TwoLegOrderBookArbitrageOpportunityFeesDto,
 )
 
 data class TwoLegArbitrageProfitDto(
@@ -68,7 +76,12 @@ class ClientTwoLegArbitrageProfits(private val freePlanRelativeProfitCutOff: Big
         buyAtExchange = buyAtExchange,
         relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
         areDetailsHidden = shouldHideOpportunityDetails,
-        usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString()
+        usdDepthUpTo = usdDepthUpTo.setScale(2, HALF_DOWN).toPlainString(),
+        fees = TwoLegOrderBookArbitrageOpportunityFeesDto(
+            buyFee = this.transactionFeeAmountBeforeTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
+            withdrawalFee = this.transferFeeAmount?.setScale(8, HALF_EVEN)?.toPlainString(),
+            sellFee = this.transactionFeeAmountAfterTransfer?.setScale(8, HALF_EVEN)?.toPlainString(),
+        )
     )
 
     private fun TwoLegOrderBookArbitrageProfit.toDto(shouldHideOpportunityDetails: Boolean) = TwoLegArbitrageProfitDto(

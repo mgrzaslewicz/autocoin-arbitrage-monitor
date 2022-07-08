@@ -122,6 +122,11 @@ class ArbitrageProfitControllerTest {
                                     relativeProfitPercent = "0.015",
                                     usdDepthUpTo = "15000",
                                     areDetailsHidden = false,
+                                    fees = TwoLegOrderBookArbitrageOpportunityFeesDto(
+                                        buyFee = "0.5",
+                                        withdrawalFee = "0.1",
+                                        sellFee = "0.2",
+                                    )
                                 )
                             ),
                             calculatedAtMillis = 15L,
@@ -156,7 +161,19 @@ class ArbitrageProfitControllerTest {
                     assertThat(secondExchange).isEqualTo(BITTREX)
                     assertThat(usd24hVolumeAtFirstExchange).isEqualTo("12000.00")
                     assertThat(usd24hVolumeAtSecondExchange).isEqualTo("13000.00")
-                    assertAll()
+                    assertThat(arbitrageProfitHistogram).hasSize(1)
+                    assertThat(arbitrageProfitHistogram.first()!!.sellPrice).isEqualTo("0.15")
+                    assertThat(arbitrageProfitHistogram.first()!!.sellAmount).isEqualTo("21")
+                    assertThat(arbitrageProfitHistogram.first()!!.sellAtExchange).isEqualTo("BINANCE")
+                    assertThat(arbitrageProfitHistogram.first()!!.buyPrice).isEqualTo("0.3")
+                    assertThat(arbitrageProfitHistogram.first()!!.buyAmount).isEqualTo("18")
+                    assertThat(arbitrageProfitHistogram.first()!!.buyAtExchange).isEqualTo("BITTREX")
+                    assertThat(arbitrageProfitHistogram.first()!!.relativeProfitPercent).isEqualTo("0.015")
+                    assertThat(arbitrageProfitHistogram.first()!!.usdDepthUpTo).isEqualTo("15000")
+                    assertThat(arbitrageProfitHistogram.first()!!.areDetailsHidden).isFalse
+                    assertThat(arbitrageProfitHistogram.first()!!.fees.buyFee).isEqualTo("0.5")
+                    assertThat(arbitrageProfitHistogram.first()!!.fees.withdrawalFee).isEqualTo("0.1")
+                    assertThat(arbitrageProfitHistogram.first()!!.fees.sellFee).isEqualTo("0.2")
                 }
             }
         }

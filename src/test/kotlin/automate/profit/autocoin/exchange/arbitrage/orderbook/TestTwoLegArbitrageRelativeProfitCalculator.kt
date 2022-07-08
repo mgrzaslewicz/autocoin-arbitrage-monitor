@@ -21,7 +21,10 @@ class TestTwoLegArbitrageRelativeProfitCalculator : TwoLegArbitrageRelativeProfi
         return TwoLegArbitrageRelativeProfit(
             relativeProfit = firstOrderBookBuyPrice.averagePrice.divide(secondOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
-            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer,
+            transactionFeeAmountBeforeTransfer = null,
+            transferFeeAmount = null,
+            transactionFeeAmountAfterTransfer = null,
         )
     }
 
@@ -34,7 +37,10 @@ class TestTwoLegArbitrageRelativeProfitCalculator : TwoLegArbitrageRelativeProfi
         return TwoLegArbitrageRelativeProfit(
             relativeProfit = secondOrderBookBuyPrice.averagePrice.divide(firstOrderBookSellPrice.averagePrice, RoundingMode.HALF_EVEN) - BigDecimal.ONE,
             baseCurrencyAmountBeforeTransfer = baseCurrencyAmountBeforeTransfer,
-            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer
+            baseCurrencyAmountAfterTransfer = baseCurrencyAmountBeforeTransfer,
+            transactionFeeAmountBeforeTransfer = null,
+            transferFeeAmount = null,
+            transactionFeeAmountAfterTransfer = null,
         )
     }
 
