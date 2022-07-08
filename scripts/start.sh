@@ -2,36 +2,34 @@
 
 preconditions() {
   if [[ -f "env.properties" ]]; then
-    . "./env.properties"
+    . "env.properties"
   else
-    echo "env.properties not found"
-    exit 9
+    echo "Can't find env.properties. Maybe forgot to create one in scripts dir?"
+    exit 100
   fi
 
   declare -a requiredVariables=(
-    "APP_PORT_ON_HOST"
-    "LOG_PATH"
     "APP_DATA_PATH"
-    "SERVICE_NAME"
     "APP_OAUTH_CLIENT_ID"
     "APP_OAUTH_CLIENT_SECRET"
+    "APP_PORT_ON_HOST"
+    "LOG_PATH"
+    "SERVICE_NAME"
   )
 
   for requiredVariable in "${requiredVariables[@]}"; do
-    if [ -z "$requiredVariable" ]; then
+    if [ -z "${!requiredVariable}" ]; then
       echo "$requiredVariable not set. Please edit env.properties file in deployment directory."
-      exit 99
+      exit 1
     fi
   done
 
-  if [[ -z "$VERSION" ]]; then
-    VERSION="latest"
-  else
-    VERSION="${SERVICE_NAME}-${VERSION}"
-  fi
+
 }
 
 preconditions
+
+VERSION_TAG="${SERVICE_NAME}-${VERSION}"
 
 # Run new container
 echo "Starting new version of container. Using version: ${VERSION}"
@@ -40,15 +38,14 @@ echo "Using port: ${APP_PORT_ON_HOST}"
 # Use JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" to prevent from running when any of threads runs of out memory and dies
 
 docker run --name ${SERVICE_NAME} -d \
-  -p 127.0.0.1:${APP_PORT_ON_HOST}:10021 \
-  -e BASIC_PASS=${BASIC_PASS} \
-  -e DOCKER_TAG=${VERSION} \
-  -e JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" \
-  -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
-  -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
-  -v ${LOG_PATH}:/app/log \
-  -v ${APP_DATA_PATH}:/app/data \
-  --memory=1200m \
-  --restart=no \
-  --network autocoin-services-admin \
-  localhost:5000/autocoin-arbitrage-monitor:${VERSION}
+-p ${APP_PORT_ON_HOST}:10021 \
+-e BASIC_PASS=${BASIC_PASS} \
+-e DOCKER_TAG=${VERSION_TAG} \
+-e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
+-e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
+-v ${LOG_PATH}:/app/log \
+-v ${APP_DATA_PATH}:/app/data \
+--memory=1400m \
+--restart=no \
+--network autocoin-services-admin \
+localhost:5000/${SERVICE_NAME}:${VERSION_TAG}
