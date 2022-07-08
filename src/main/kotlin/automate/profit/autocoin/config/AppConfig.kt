@@ -54,6 +54,7 @@ private val currencyPairsForArbitrage = mapOf(
 
 data class AppConfig(
         val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
+        val serviceName: String = getPropertyThenEnv("SERVICE_NAME"),
         val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = if (getPropertyThenEnv("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS", "false").toBoolean()) currencyPairsForArbitrage else emptyMap(),
         val arbitrageCurrencyPairsWhiteList: Set<CurrencyPair> = getPropertyThenEnv("APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST",
                 { propertyValue ->
@@ -76,7 +77,8 @@ data class AppConfig(
         val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv("APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS", "100.0,500.0,1000.0,1500.0")
                 .split(",")
                 .map { BigDecimal(it) },
-        val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits"
+        val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits",
+        val useMetrics: Boolean = getPropertyThenEnv("USE_METRICS", "true").toBoolean()
 )
 
 fun loadConfig(): AppConfig {

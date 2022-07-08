@@ -5,8 +5,6 @@ import automate.profit.autocoin.exchange.arbitrage.statistic.ProfitOpportunityCo
 import automate.profit.autocoin.exchange.arbitrage.statistic.ProfitStatisticHistogramByUsdDepth
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatistic
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
-import automate.profit.autocoin.metrics.Oauth2MetricsHandlerWrapper
-import automate.profit.autocoin.metrics.countEndpointUsage
 import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -40,8 +38,7 @@ data class TwoLegArbitrageProfitStatisticDto(
 class ArbitrageProfitStatisticsController(
         private val twoLegArbitrageProfitStatisticsCache: TwoLegArbitrageProfitStatisticsCache,
         private val objectMapper: ObjectMapper,
-        private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper,
-        private val oauth2MetricsHandlerWrapper: Oauth2MetricsHandlerWrapper
+        private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper
 ) : ApiController {
 
     val minRelativeProfit = 0.003.toBigDecimal()
@@ -97,7 +94,6 @@ class ArbitrageProfitStatisticsController(
                     .map { it.toDto() }
             serverExchange.responseSender.send(objectMapper.writeValueAsString(profits))
         }
-                .countEndpointUsage(oauth2MetricsHandlerWrapper)
                 .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 

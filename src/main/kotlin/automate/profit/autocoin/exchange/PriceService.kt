@@ -1,7 +1,6 @@
 package automate.profit.autocoin.exchange
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.timgroup.statsd.StatsDClient
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -21,7 +20,6 @@ data class CurrencyPriceDto(
 class PriceService(private val priceApiUrl: String,
                    private val httpClient: OkHttpClient,
                    private val objectMapper: ObjectMapper,
-                   private val statsDClient: StatsDClient,
                    private val maxPriceCacheAgeMs: Long = Duration.of(1, ChronoUnit.HOURS).toMillis(),
                    private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
 
@@ -59,7 +57,8 @@ class PriceService(private val priceApiUrl: String,
                     )
                 }
             }
-            statsDClient.recordExecutionTime("fetchPrice", millis, currencyCode)
+            // TODO do we really need this? State a case or remove
+            //statsDClient.recordExecutionTime("fetchPrice", millis, currencyCode)
         }
     }
 

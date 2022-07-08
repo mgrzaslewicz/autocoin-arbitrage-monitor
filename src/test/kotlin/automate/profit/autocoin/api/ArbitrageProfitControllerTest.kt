@@ -6,6 +6,7 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
+import automate.profit.autocoin.metrics.MetricsService
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import io.undertow.server.HttpHandler
@@ -47,12 +48,12 @@ class ArbitrageProfitControllerTest {
                 orderBookUsdAmountThresholds = listOf(),
                 objectMapper = objectMapper,
                 oauth2BearerTokenAuthHandlerWrapper = NoopHttpHandlerWrapper(),
-                oauth2MetricsHandlerWrapper = NoopHttpHandlerWrapper(),
                 commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService
         )
         val serverBuilder = ServerBuilder(
                 appServerPort = getFreePort(),
-                apiControllers = listOf(arbitageProfitController)
+                apiControllers = listOf(arbitageProfitController),
+                metricsService = mock()
         )
         val server = serverBuilder.build()
         server.start()
