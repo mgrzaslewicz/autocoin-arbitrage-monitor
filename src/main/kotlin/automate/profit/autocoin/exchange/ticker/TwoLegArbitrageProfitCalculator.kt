@@ -1,7 +1,9 @@
 package automate.profit.autocoin.exchange.ticker
 
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfit
+import java.math.BigDecimal
 import java.math.BigDecimal.ONE
+import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_UP
 
 class TwoLegArbitrageProfitCalculator(private val currentTimeMillis: () -> Long = System::currentTimeMillis) {
@@ -21,7 +23,7 @@ class TwoLegArbitrageProfitCalculator(private val currentTimeMillis: () -> Long 
                         buyAtExchange = currencyPairWithExchangePair.exchangePair.secondExchange,
                         buyPrice = tickerPair.second.bid,
                         sellPrice = tickerPair.first.bid,
-                        relativeProfit = tickerPair.first.bid.divide(tickerPair.second.bid, HALF_UP) - ONE,
+                        relativeProfit = if (tickerPair.second.bid > ZERO) tickerPair.first.bid.divide(tickerPair.second.bid, HALF_UP) - ONE else ZERO,
                         calculatedAtMillis = currentTimeMillis
                 )
             tickerPair.second.bid > tickerPair.first.bid -> // sell on second, buy on first
@@ -32,7 +34,7 @@ class TwoLegArbitrageProfitCalculator(private val currentTimeMillis: () -> Long 
                         buyAtExchange = currencyPairWithExchangePair.exchangePair.firstExchange,
                         buyPrice = tickerPair.first.bid,
                         sellPrice = tickerPair.second.bid,
-                        relativeProfit = tickerPair.second.bid.divide(tickerPair.first.bid, HALF_UP) - ONE,
+                        relativeProfit = if (tickerPair.first.bid > ZERO) tickerPair.second.bid.divide(tickerPair.first.bid, HALF_UP) - ONE else ZERO,
                         calculatedAtMillis = currentTimeMillis
                 )
             else -> null
