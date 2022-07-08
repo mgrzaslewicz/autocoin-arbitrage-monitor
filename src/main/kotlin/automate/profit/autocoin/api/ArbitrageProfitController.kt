@@ -4,9 +4,8 @@ import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfit
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
-import automate.profit.autocoin.metrics.Oauth2MetricsHandlerWrapper
+import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.metrics.countEndpointUsage
-import automate.profit.autocoin.oauth.server.Oauth2BearerTokenAuthHandlerWrapper
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.server.HttpHandler
@@ -43,12 +42,18 @@ data class TwoLegArbitrageResponseDto(
         val profits: List<TwoLegArbitrageProfitDto?>
 )
 
+data class TwoLegArbitrageMetadataDto(
+        val baseCurrenciesMonitored: Set<String>,
+        val counterCurrenciesMonitored: Set<String>
+)
+
 class ArbitrageProfitController(
         private val twoLegOrderBookArbitrageProfitCache: TwoLegOrderBookArbitrageProfitCache,
         private val orderBookUsdAmountThresholds: List<BigDecimal>,
+        private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
         private val objectMapper: ObjectMapper,
-        private val oauth2BearerTokenAuthHandlerWrapper: Oauth2BearerTokenAuthHandlerWrapper,
-        private val oauth2MetricsHandlerWrapper: Oauth2MetricsHandlerWrapper
+        private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper,
+        private val oauth2MetricsHandlerWrapper: HttpHandlerWrapper
 ) : ApiController {
 
     private val minRelativeProfit = 0.002.toBigDecimal()
@@ -107,8 +112,29 @@ class ArbitrageProfitController(
                 .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
     }
 
+    private fun getTwoLegAribtrageMetadata() = object : ApiHandler {
+        override val method = GET
+        override val urlTemplate = "/two-leg-arbitrage-metadata"
+
+        override val httpHandler = HttpHandler { httpServerExchange ->
+            val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
+
+            val baseCurrencies = lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.base }.toSet()
+            val counterCurrencies = lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.counter }.toSet()
+
+            val response = TwoLegArbitrageMetadataDto(
+                    baseCurrenciesMonitored = baseCurrencies,
+                    counterCurrenciesMonitored = counterCurrencies
+            )
+            httpServerExchange.responseSender.send(objectMapper.writeValueAsString(response))
+        }
+                .countEndpointUsage(oauth2MetricsHandlerWrapper)
+                .authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper)
+    }
+
     override fun apiHandlers(): List<ApiHandler> = listOf(
-            getTwoLegArbitrageProfits()
+            getTwoLegArbitrageProfits(),
+            getTwoLegAribtrageMetadata()
     )
 
 }

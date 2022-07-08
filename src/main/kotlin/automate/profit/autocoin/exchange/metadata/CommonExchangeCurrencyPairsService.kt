@@ -21,6 +21,9 @@ class CommonExchangeCurrencyPairsService(
 
     companion object : KLogging()
 
+    lateinit var lastCalculatedCommonExchangeCurrencyPairs: CommonExchangeCurrencyPairs
+        private set
+
     fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
         if (twoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
             logger.warn { "Using hardcoded currency pairs for monitoring profits" }
@@ -43,10 +46,11 @@ class CommonExchangeCurrencyPairsService(
                 }
             }
         }
-        return CommonExchangeCurrencyPairs(
+        lastCalculatedCommonExchangeCurrencyPairs = CommonExchangeCurrencyPairs(
                 currencyPairsToExchangePairs = currencyPairsToExchangePairs,
                 exchangePairsToCurrencyPairs = exchangePairsToCurrencyPairs
         )
+        return lastCalculatedCommonExchangeCurrencyPairs
     }
 
     private fun findCommonCurrencyPairs(firstExchangeCurrencyPairs: Set<CurrencyPair>, secondExchangeCurrencyPairs: Set<CurrencyPair>): Set<CurrencyPair> {
