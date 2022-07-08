@@ -4,11 +4,12 @@ import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerListener
+import automate.profit.autocoin.exchange.ticker.TickerPairCache
 
 class TwoLegArbitrageMonitor(
         private val currencyPair: CurrencyPair,
         private val exchangePair: ExchangePair,
-        private val tickerSpreadCache: TickerSpreadCache
+        private val tickerPairCache: TickerPairCache
 ) {
     private var lastFirstExchangeTicker: Ticker? = null
     private var lastSecondExchangeTicker: Ticker? = null
@@ -25,7 +26,7 @@ class TwoLegArbitrageMonitor(
 
     private fun saveTickerSpreads() {
         if (lastFirstExchangeTicker != null && lastSecondExchangeTicker != null) {
-            tickerSpreadCache.addTickerSpread(currencyPair, exchangePair, lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
+            tickerPairCache.addTickerPair(currencyPair, exchangePair, lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
         }
     }
 

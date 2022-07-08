@@ -5,6 +5,7 @@ import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.Ticker
+import automate.profit.autocoin.exchange.ticker.TickerPairCache
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import org.junit.jupiter.api.Test
@@ -18,7 +19,7 @@ class TwoLegArbitrageMonitorTest {
     fun shouldAddTickerSpreadToCache() {
         // given
         val currencyPair = CurrencyPair.of("TESTA/TESTB")
-        val tickerSpreadCache = mock<TickerSpreadCache>()
+        val tickerSpreadCache = mock<TickerPairCache>()
         val exchangePair = ExchangePair(BITTREX, BINANCE)
         val twoLegArbitrageMonitor = TwoLegArbitrageMonitor(currencyPair, exchangePair, tickerSpreadCache)
         val tickerListeners = twoLegArbitrageMonitor.getTickerListeners()
@@ -28,7 +29,7 @@ class TwoLegArbitrageMonitorTest {
         tickerListeners.first.onTicker(firstExchangeTicker)
         tickerListeners.second.onTicker(secondExchangeTicker)
         // then
-        verify(tickerSpreadCache).addTickerSpread(currencyPair, exchangePair, firstExchangeTicker, secondExchangeTicker)
+        verify(tickerSpreadCache).addTickerPair(currencyPair, exchangePair, firstExchangeTicker, secondExchangeTicker)
     }
 
 }
