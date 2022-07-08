@@ -5,6 +5,7 @@ import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import com.timgroup.statsd.StatsDClient
 import mu.KLogging
+import java.util.concurrent.Executors
 import kotlin.system.measureTimeMillis
 
 /**
@@ -14,10 +15,12 @@ class TwoLegOrderBookArbitrageMonitor(
         private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val profitCache: TwoLegOrderBookArbitrageProfitCache,
         private val profitCalculator: TwoLegOrderBookArbitrageProfitCalculator,
-        private val statsDClient: StatsDClient
+        private val statsDClient: StatsDClient,
+        private val arbitrageProfitRepository: FileOrderBookArbitrageProfitRepository
 ) {
     private companion object : KLogging()
 
+    private val executor = Executors.newSingleThreadExecutor()
     private val currencyPair = currencyPairWithExchangePair.currencyPair
     private val exchangePair = currencyPairWithExchangePair.exchangePair
     private val currencyPairMetricsTag = currencyPair.toString()
@@ -48,9 +51,11 @@ class TwoLegOrderBookArbitrageMonitor(
                         profitCache.removeProfit(currencyPairWithExchangePair)
                     } else {
                         profitCache.setProfit(profit)
+                        executor.submit { arbitrageProfitRepository.addAll(currencyPairWithExchangePair, listOf(profit)) }
                     }
                 }
                 statsDClient.recordExecutionTime("calculateArbitrageProfits", millis, currencyPairMetricsTag, exchangeMetricsTag)
+
             } else {
                 logger.debug { "Null secondOrderBook for $currencyPairWithExchangePair" }
             }

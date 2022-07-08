@@ -4,6 +4,7 @@ import automate.profit.autocoin.api.ArbitrageProfitController
 import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.PriceService
+import automate.profit.autocoin.exchange.arbitrage.orderbook.FileOrderBookArbitrageProfitRepository
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegOrderBookArbitrageProfitCalculator
 import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
@@ -49,12 +50,12 @@ class AppContext(appConfig: AppConfig) {
 
     val twoLegOrderBookArbitrageProfitCalculator: TwoLegOrderBookArbitrageProfitCalculator = TwoLegOrderBookArbitrageProfitCalculator(priceService, tickerFetcher, appConfig.orderBookUsdAmountThresholds)
 
-    val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepMs)
+    val twoLegOrderBookArbitrageProfitCache = TwoLegOrderBookArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
     val scheduledExecutorService = Executors.newScheduledThreadPool(3)
     private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.exchangeMediatorApiUrl, objectMapper)
 
-
-    val orderBookListenersProvider = OrderBookListenersProvider(twoLegOrderBookArbitrageProfitCache, twoLegOrderBookArbitrageProfitCalculator, statsdClient)
+    val arbitrageProfitRepository = FileOrderBookArbitrageProfitRepository(appConfig.profitsRepositoryPath, appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs, objectMapper)
+    val orderBookListenersProvider = OrderBookListenersProvider(twoLegOrderBookArbitrageProfitCache, twoLegOrderBookArbitrageProfitCalculator, statsdClient, arbitrageProfitRepository)
     val orderBookListenerRegistrarProvider = DefaultOrderBookListenerRegistrarProvider(appConfig.exchangeMediatorApiUrl, oauth2HttpClient, objectMapper, statsdClient)
     val orderBookListenerRegistrars = DefaultOrderBookListenerRegistrars(
             initialTickerListenerRegistrarList = emptyList(),
