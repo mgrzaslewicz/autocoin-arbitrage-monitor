@@ -14,7 +14,7 @@ class ArbitrageProfitStatisticsCalculateScheduler(
     companion object : KLogging()
 
     fun scheduleCacheRefresh() {
-        logger.info { "Will refresh profit statistics cache every 5 minutes" }
+        logger.info { "Scheduling refresh profit statistics cache every 5 minutes" }
         executorService.scheduleAtFixedRate({
             try {
                 val newStatistics = twoLegArbitrageProfitStatisticsCalculator.calculateAllStatistics()

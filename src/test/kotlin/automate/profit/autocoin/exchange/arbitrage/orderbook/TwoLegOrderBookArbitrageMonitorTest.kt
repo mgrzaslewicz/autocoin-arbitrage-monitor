@@ -10,16 +10,17 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import org.junit.jupiter.api.Test
-import java.util.concurrent.Executors
 
 
 class TwoLegOrderBookArbitrageMonitorTest {
+    private val firstExchange = BITTREX
+    private val secondExchange = BINANCE
 
     @Test
     fun shouldAddTickerSpreadToCache() {
         // given
-        val currencyPair = CurrencyPair.of("TESTA/TESTB")
-        val exchangePair = ExchangePair(BITTREX, BINANCE)
+        val currencyPair = CurrencyPair.of("A/B")
+        val exchangePair = ExchangePair(firstExchange, secondExchange)
         val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
         val firstOrderBook = mock<OrderBook>()
         val secondOrderBook = mock<OrderBook>()
@@ -34,8 +35,8 @@ class TwoLegOrderBookArbitrageMonitorTest {
         val listeners = twoLegArbitrageMonitor.getOrderBookListeners()
 
         // when
-        listeners.first.onOrderBook(firstOrderBook)
-        listeners.second.onOrderBook(secondOrderBook)
+        listeners.first.onOrderBook(firstExchange, currencyPair, firstOrderBook)
+        listeners.second.onOrderBook(secondExchange, currencyPair, secondOrderBook)
         // then
         verify(profitCache).setProfit(profit)
     }

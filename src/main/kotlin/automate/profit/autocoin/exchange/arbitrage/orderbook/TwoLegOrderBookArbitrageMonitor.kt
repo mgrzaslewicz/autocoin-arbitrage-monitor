@@ -1,5 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.exchange.SupportedExchange
+import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
@@ -60,26 +62,22 @@ class TwoLegOrderBookArbitrageMonitor(
 
     fun getOrderBookListeners(): Pair<OrderBookListener, OrderBookListener> = Pair(
             object : OrderBookListener {
-                override fun currencyPair() = currencyPair
-                override fun exchange() = exchangePair.firstExchange
 
-                override fun onNoNewOrderBook(orderBook: OrderBook?) {
+                override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                     if (orderBook != null) onFirstExchangeOrderBook(orderBook)
                 }
 
-                override fun onOrderBook(orderBook: OrderBook) {
+                override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
                     onFirstExchangeOrderBook(orderBook)
                 }
             },
             object : OrderBookListener {
-                override fun currencyPair() = currencyPair
-                override fun exchange() = exchangePair.secondExchange
 
-                override fun onNoNewOrderBook(orderBook: OrderBook?) {
+                override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                     if (orderBook != null) onSecondExchangeOrderBook(orderBook)
                 }
 
-                override fun onOrderBook(orderBook: OrderBook) {
+                override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
                     onSecondExchangeOrderBook(orderBook)
                 }
             }

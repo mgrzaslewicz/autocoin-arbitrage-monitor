@@ -16,7 +16,7 @@ fun HttpHandler.authorizeWithOauth2(oauth2BearerTokenAuthHandlerWrapper: HttpHan
 }
 
 
-class Oauth2BearerTokenAuthHandlerWrapper(private val oauth2AuthenticationMechanism: Oauth2AuthenticationMechanism): HttpHandlerWrapper {
+class Oauth2BearerTokenAuthHandlerWrapper(private val oauth2AuthenticationMechanism: Oauth2AuthenticationMechanism) : HttpHandlerWrapper {
 
     override fun wrap(handler: HttpHandler): HttpHandler {
         return SecurityInitialHandler(

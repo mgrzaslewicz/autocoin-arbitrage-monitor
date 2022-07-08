@@ -3,7 +3,7 @@ package automate.profit.autocoin.oauth.server
 import io.undertow.security.idm.Account
 import java.security.Principal
 
-fun CheckTokenDto.toUserAccount() = UserAccount(userName, userAccount.userAccountId ,authorities)
+fun CheckTokenDto.toUserAccount() = UserAccount(userName, userAccount.userAccountId, authorities)
 
 class UserAccount(
         private val userName: String,
