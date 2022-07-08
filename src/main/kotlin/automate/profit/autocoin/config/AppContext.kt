@@ -113,7 +113,7 @@ class AppContext(private val appConfig: AppConfig) {
         exchangeMetadataService = exchangeMetadataService,
         exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
         currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
-        twoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
+        staticTwoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()

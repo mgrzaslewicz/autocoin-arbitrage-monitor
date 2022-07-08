@@ -89,7 +89,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
         val metadataService: ExchangeMetadataService = mock<ExchangeMetadataService>().apply {
-            whenever(this.getMetadata(any(), eq(CurrencyPair.of("ETH/BTC")))).thenReturn(
+            whenever(this.getCurrencyPairMetadata(any(), eq(CurrencyPair.of("ETH/BTC")))).thenReturn(
                 CurrencyPairMetadata(
                     amountScale = intValueWhichDoesNotMatter,
                     priceScale = intValueWhichDoesNotMatter,
@@ -110,7 +110,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                     )
                 )
             )
-            whenever(this.getMetadata(any(), any<String>())).thenReturn(
+            whenever(this.getCurrencyMetadata(any(), any())).thenReturn(
                 CurrencyMetadata(
                     scale = intValueWhichDoesNotMatter,
                     withdrawalFeeAmount = withdrawalFeeAmount,
@@ -205,7 +205,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val intValueWhichDoesNotMatter = 0
         val bigDecimalValueWhichDoesNotMatter = BigDecimal.ZERO
         val metadataService: ExchangeMetadataService = mock<ExchangeMetadataService>().apply {
-            whenever(this.getMetadata(any(), eq(CurrencyPair.of("ETH/BTC")))).thenReturn(
+            whenever(this.getCurrencyPairMetadata(any(), eq(CurrencyPair.of("ETH/BTC")))).thenReturn(
                 CurrencyPairMetadata(
                     amountScale = intValueWhichDoesNotMatter,
                     priceScale = intValueWhichDoesNotMatter,
@@ -226,7 +226,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
                     )
                 )
             )
-            whenever(this.getMetadata(any(), any<String>())).thenReturn(
+            whenever(this.getCurrencyMetadata(any(), any())).thenReturn(
                 CurrencyMetadata(
                     scale = intValueWhichDoesNotMatter,
                     withdrawalFeeAmount = withdrawalFeeAmount,
