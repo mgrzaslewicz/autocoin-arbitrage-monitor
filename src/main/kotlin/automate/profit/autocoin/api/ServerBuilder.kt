@@ -21,7 +21,7 @@ class ServerBuilder(
             }
         }
         return Undertow.builder()
-                .addHttpListener(appServerPort, "localhost")
+                .addHttpListener(appServerPort, "0.0.0.0")
                 .setHandler(routingHandler)
                 .build()
     }
