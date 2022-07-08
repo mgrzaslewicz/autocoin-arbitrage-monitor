@@ -8,12 +8,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.time.Instant
 
 class ExchangeTickerFetcher(
         private val supportedExchange: SupportedExchange,
         private val tickerApiUrl: String,
         private val httpClient: OkHttpClient,
-        private val objectMapper: ObjectMapper
+        private val objectMapper: ObjectMapper,
+        private val currentTimeMillis: () -> Long = System::currentTimeMillis
 ) : UserExchangeTickerService {
     companion object : KLogging()
 
@@ -28,7 +30,11 @@ class ExchangeTickerFetcher(
         check(tickerDtoResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair" }
 
         val tickerDto = objectMapper.readValue(tickerDtoResponse.body?.string(), TickerDto::class.java)
-        return tickerDto.toTicker()
-
+        val ticker = tickerDto.toTicker()
+        return if (ticker.hasTimestamp()) {
+            ticker
+        } else {
+            ticker.copy(timestamp = Instant.ofEpochMilli(currentTimeMillis()))
+        }
     }
 }

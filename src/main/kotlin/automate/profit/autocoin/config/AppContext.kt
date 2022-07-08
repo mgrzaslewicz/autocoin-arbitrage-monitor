@@ -27,7 +27,7 @@ class AppContext(val appConfig: AppConfig) {
             initialTickerListenerRegistrarList = emptyList(),
             tickerListenerRegistrarProvider = tickerListenerRegistrarProvider
     )
-    val tickerPairCache = TickerPairCache()
+    val tickerPairCache = TickerPairCache(appConfig.ageOfOldestTickerPairToKeepMs)
     val twoLegArbitrageMonitors = appConfig.twoLegArbitragePairs.flatMap {
         it.value.map { exchangePair -> TwoLegArbitrageMonitor(CurrencyPairWithExchangePair(it.key, exchangePair), tickerPairCache) }
     }

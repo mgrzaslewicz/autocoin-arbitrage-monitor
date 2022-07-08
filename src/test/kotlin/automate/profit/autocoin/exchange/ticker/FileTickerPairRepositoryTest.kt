@@ -1,12 +1,8 @@
-package automate.profit.autocoin.exchange
+package automate.profit.autocoin.exchange.ticker
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
-import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerPair
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
