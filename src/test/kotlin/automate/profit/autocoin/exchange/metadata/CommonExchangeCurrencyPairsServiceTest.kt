@@ -20,6 +20,8 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val onlyAtBinance = CurrencyPair.of("ONLY/ATBINANCE")
     private val onlyAtKucoin = CurrencyPair.of("ONLY/ATKUCOIN")
 
+    private val exchanges = listOf(BINANCE, BITTREX, KUCOIN)
+
     private val bittrexMetadata = ExchangeMetadata(
             currencyMetadata = emptyMap(),
             currencyPairMetadata = mapOf(
@@ -61,7 +63,7 @@ class CommonExchangeCurrencyPairsServiceTest {
     @Test
     fun shouldNotContainCurrenciesThatExistAtOneExchangeOnly() {
         // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService)
+        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
         // then
@@ -73,7 +75,7 @@ class CommonExchangeCurrencyPairsServiceTest {
     @Test
     fun shouldContainCurrenciesThatExistAtTwoExchangesOnly() {
         // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService)
+        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
         // then
@@ -85,7 +87,7 @@ class CommonExchangeCurrencyPairsServiceTest {
     @Test
     fun shouldContainCurrenciesThatExistAtAllExchanges() {
         // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService)
+        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
         // then
@@ -105,7 +107,7 @@ class CommonExchangeCurrencyPairsServiceTest {
             whenever(this.getMetadata("kucoin")).thenReturn(emptyMetadata)
             whenever(this.getMetadata("binance")).thenReturn(emptyMetadata)
         }
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService)
+        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.getCommonCurrencyPairs()
         // then

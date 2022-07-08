@@ -3,6 +3,7 @@ package automate.profit.autocoin.exchange
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageMonitor
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.Ticker

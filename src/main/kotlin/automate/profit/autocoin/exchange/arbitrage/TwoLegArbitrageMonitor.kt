@@ -1,6 +1,5 @@
-package automate.profit.autocoin.exchange
+package automate.profit.autocoin.exchange.arbitrage
 
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
 import automate.profit.autocoin.exchange.ticker.*
 import mu.KLogging
 
@@ -31,7 +30,7 @@ class TwoLegArbitrageMonitor(
         if (lastFirstExchangeTicker != null && lastSecondExchangeTicker != null) {
             val tickerPair = TickerPair(lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
             tickerPairCache.addTickerPair(currencyPairWithExchangePair, tickerPair)
-            val profit =  twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
+            val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, tickerPair)
             if (profit == null) {
                 twoLegArbitrageProfitCache.removeProfit(currencyPairWithExchangePair)
             } else {

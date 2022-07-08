@@ -7,7 +7,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class TickerPairsSaveScheduler(private val tickerPairCache: TickerPairCache, private val tickerPairRepository: FileTickerPairRepository) {
-    companion object: KLogging()
+    companion object : KLogging()
+
     private val executorService = Executors.newScheduledThreadPool(1)
 
     fun scheduleSavingTickerPairs() {
