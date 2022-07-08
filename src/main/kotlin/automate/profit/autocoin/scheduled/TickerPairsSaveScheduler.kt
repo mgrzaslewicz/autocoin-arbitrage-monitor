@@ -11,8 +11,8 @@ class TickerPairsSaveScheduler(private val tickerPairCache: TickerPairCache, pri
     fun scheduleSavingTickerPairs() {
         executorService.scheduleAtFixedRate({
             tickerPairCache.getCurrencyPairWithExchangePairs().forEach {
-                tickerPairRepository.saveAll(it.currencyPair, it.exchangePair, tickerPairCache.getTickerCurrencyPairs(it))
-                tickerPairRepository.removeAllButLatestTickerPairFile(it.currencyPair, it.exchangePair)
+                tickerPairRepository.saveAll(it, tickerPairCache.getTickerCurrencyPairs(it))
+                tickerPairRepository.removeAllButLatestTickerPairFile(it)
             }
         }, 0, 30, TimeUnit.SECONDS)
     }

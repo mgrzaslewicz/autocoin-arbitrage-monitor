@@ -1,7 +1,9 @@
 package automate.profit.autocoin.exchange
 
 import automate.profit.autocoin.config.ExchangePair
+import automate.profit.autocoin.exchange.SupportedExchange.*
 import automate.profit.autocoin.exchange.currency.CurrencyPair
+import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerPair
@@ -19,7 +21,8 @@ import java.util.*
 class FileTickerPairRepositoryTest {
     private val tempFolder = TemporaryFolder()
     private val currencyPair = CurrencyPair.of("A/B")
-    private val exchangePair = ExchangePair(SupportedExchange.BITTREX, SupportedExchange.BINANCE)
+    private val exchangePair = ExchangePair(BITTREX, BINANCE)
+    private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val tickerPairsToSave = listOf(
             TickerPair(
                     Ticker(currencyPair = currencyPair, ask = BigDecimal("1.001"), bid = BigDecimal("1.0011"), timestamp = Instant.ofEpochMilli(1000)),
@@ -48,7 +51,7 @@ class FileTickerPairRepositoryTest {
     @Test
     fun shouldCreateDirectoryForTickerPairs() {
         // when
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
         // then
         assertThat(tickersFolder).isDirectoryContaining { it.name == "bittrex-binance" }
     }
@@ -56,7 +59,7 @@ class FileTickerPairRepositoryTest {
     @Test
     fun shouldCreateTickerPairsFile() {
         // when
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
         // then
         assertThat(tickersFolder.resolve("bittrex-binance")).isDirectoryContaining { it.name == "A-B-bittrex-binance_19700101010000001.csv" }
     }
@@ -69,7 +72,7 @@ class FileTickerPairRepositoryTest {
 1.00100000,1.00110000,1005,1.00200000,1.00210000,1005
         """.trimIndent()
         // when
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
         // then
         assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000001.csv")).hasContent(expectedContent)
     }
@@ -82,9 +85,9 @@ class FileTickerPairRepositoryTest {
     @Test
     fun shouldReadTickerPairsFromFile() {
         // given
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
         // when
-        val tickerPairsRead = tickerPairRepository.getTickerPairs(currencyPair, exchangePair)
+        val tickerPairsRead = tickerPairRepository.getTickerPairs(currencyPairWithExchangePair)
         // then
         assertThat(tickerPairsRead).isEqualTo(tickerPairsToSave.map {
             it.copy(
@@ -97,15 +100,69 @@ class FileTickerPairRepositoryTest {
     @Test
     fun shouldRemoveAllButLatestTickerPairFile() {
         // given
-        val timeMillis = ArrayDeque<Long>(listOf(1L, 2L))
-        tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath) { timeMillis.poll() }
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
-        tickerPairRepository.saveAll(currencyPair, exchangePair, tickerPairsToSave)
+        val timeMillis = ArrayDeque<Long>(listOf(1L, 2L, 3L))
+        var tickerPairRepository = FileTickerPairRepository(tickersFolder.absolutePath) { timeMillis.poll() }
+        val otherCurrencyPairInTheSameDirectory = currencyPairWithExchangePair.copy(currencyPair = CurrencyPair.of("B/C"))
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(currencyPairWithExchangePair, tickerPairsToSave)
+        tickerPairRepository.saveAll(otherCurrencyPairInTheSameDirectory, tickerPairsToSave)
+
         // when
-        tickerPairRepository.removeAllButLatestTickerPairFile(currencyPair, exchangePair)
+        tickerPairRepository.removeAllButLatestTickerPairFile(currencyPairWithExchangePair)
         // then
         assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000001.csv")).doesNotExist()
         assertThat(tickersFolder.resolve("bittrex-binance").resolve("A-B-bittrex-binance_19700101010000002.csv")).exists()
+        // make sure only invoked currency pair file was removed, others untouched
+        assertThat(tickersFolder.resolve("bittrex-binance").resolve("B-C-bittrex-binance_19700101010000003.csv")).exists()
+    }
+
+    @Test
+    fun shouldGetAllCurrencyPairsWithExchangePairs() {
+        // given
+        val tickerPairsToSaveDoNotMatter = tickerPairsToSave
+        tickerPairRepository.saveAll(
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("A/B"), exchangePair = ExchangePair(BITTREX, BINANCE)),
+                tickerPairsToSaveDoNotMatter
+        )
+        tickerPairRepository.saveAll(
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("C/D"), exchangePair = ExchangePair(BITTREX, BINANCE)),
+                tickerPairsToSaveDoNotMatter
+        )
+        tickerPairRepository.saveAll(
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("C/D"), exchangePair = ExchangePair(KUCOIN, BINANCE)),
+                tickerPairsToSaveDoNotMatter
+        )
+        tickerPairRepository.saveAll( // save second time the same to have 2 files in folder
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("A/B"), exchangePair = ExchangePair(BITTREX, BINANCE)),
+                tickerPairsToSaveDoNotMatter
+        )
+        // when
+        val allCurrencyPairsWithExchangePairs = tickerPairRepository.getAllCurrencyPairsWithExchangePairs()
+        // then
+        assertThat(allCurrencyPairsWithExchangePairs).containsOnly(
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("A/B"), exchangePair = ExchangePair(BITTREX, BINANCE)),
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("C/D"), exchangePair = ExchangePair(BITTREX, BINANCE)),
+                CurrencyPairWithExchangePair(currencyPair = CurrencyPair.of("C/D"), exchangePair = ExchangePair(KUCOIN, BINANCE))
+        )
+    }
+
+
+    @Test
+    fun shouldGetAllCurrencyPairsWithExchangePairsWhenNothingSavedYet() {
+        // when
+        val allCurrencyPairsWithExchangePairs = tickerPairRepository.getAllCurrencyPairsWithExchangePairs()
+        // then
+        assertThat(allCurrencyPairsWithExchangePairs).isEmpty()
+    }
+
+    @Test
+    fun shouldGetAllCurrencyPairsWithExchangePairsWhenExchangeDirectoryDoesNotExistYet() {
+        // given
+        var tickerPairRepository = FileTickerPairRepository("/non-existing-path")
+        // when
+        val allCurrencyPairsWithExchangePairs = tickerPairRepository.getAllCurrencyPairsWithExchangePairs()
+        // then
+        assertThat(allCurrencyPairsWithExchangePairs).isEmpty()
     }
 
 }

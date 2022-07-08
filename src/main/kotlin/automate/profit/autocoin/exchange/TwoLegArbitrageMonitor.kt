@@ -1,32 +1,29 @@
 package automate.profit.autocoin.exchange
 
-import automate.profit.autocoin.config.ExchangePair
-import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerListener
-import automate.profit.autocoin.exchange.ticker.TickerPairCache
+import automate.profit.autocoin.exchange.ticker.*
 
 class TwoLegArbitrageMonitor(
-        private val currencyPair: CurrencyPair,
-        private val exchangePair: ExchangePair,
+        private val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         private val tickerPairCache: TickerPairCache
 ) {
+    private val currencyPair = currencyPairWithExchangePair.currencyPair
+    private val exchangePair = currencyPairWithExchangePair.exchangePair
     private var lastFirstExchangeTicker: Ticker? = null
     private var lastSecondExchangeTicker: Ticker? = null
 
     private fun onFirstExchangeTicker(ticker: Ticker) {
         lastFirstExchangeTicker = ticker
-        saveTickerSpreads()
+        saveTickerPairs()
     }
 
     private fun onSecondExchangeTicker(ticker: Ticker) {
         lastSecondExchangeTicker = ticker
-        saveTickerSpreads()
+        saveTickerPairs()
     }
 
-    private fun saveTickerSpreads() {
+    private fun saveTickerPairs() {
         if (lastFirstExchangeTicker != null && lastSecondExchangeTicker != null) {
-            tickerPairCache.addTickerPair(currencyPair, exchangePair, lastFirstExchangeTicker!!, lastSecondExchangeTicker!!)
+            tickerPairCache.addTickerPair(currencyPairWithExchangePair, TickerPair(lastFirstExchangeTicker!!, lastSecondExchangeTicker!!))
         }
     }
 
