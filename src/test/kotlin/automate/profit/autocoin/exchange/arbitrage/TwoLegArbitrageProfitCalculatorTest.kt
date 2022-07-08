@@ -1,9 +1,12 @@
-package automate.profit.autocoin.exchange.ticker
+package automate.profit.autocoin.exchange.arbitrage
 
 import automate.profit.autocoin.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.currency.CurrencyPair
+import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import automate.profit.autocoin.exchange.ticker.Ticker
+import automate.profit.autocoin.exchange.ticker.TickerPair
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test

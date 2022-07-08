@@ -3,6 +3,7 @@ package automate.profit.autocoin.config
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.ticker.TickerListenerRegistrars
 import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler
 import io.undertow.Undertow
@@ -14,6 +15,7 @@ class AppStarter(
         private val tickerFetchScheduler: TickerFetchScheduler,
         private val tickerListenerRegistrars: TickerListenerRegistrars,
         private val tickerPairsSaveScheduler: TickerPairsSaveScheduler,
+        private val profitStatisticsCalculateScheduler: ArbitrageProfitStatisticsCalculateScheduler,
         private val server: Undertow
 ) {
     companion object : KLogging()
@@ -28,6 +30,8 @@ class AppStarter(
         tickerFetchScheduler.scheduleFetchingTickers()
         logger.info { "Scheduling saving tickers to files" }
         tickerPairsSaveScheduler.scheduleSavingTickerPairs()
+        logger.info { "Scheduling calculating arbitrage profit statistics" }
+        profitStatisticsCalculateScheduler.scheduleCacheRefresh()
         logger.info { "Starting server" }
         server.start()
     }

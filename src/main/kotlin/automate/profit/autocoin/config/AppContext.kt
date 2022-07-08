@@ -1,16 +1,25 @@
 package automate.profit.autocoin.config
 
 import automate.profit.autocoin.api.ArbitrageProfitController
+import automate.profit.autocoin.api.ArbitrageProfitStatisticsController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.exchange.DefaultTickerListenerRegistrarProvider
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCache
+import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitCalculator
+import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCache
+import automate.profit.autocoin.exchange.arbitrage.statistic.TwoLegArbitrageProfitStatisticsCalculator
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
-import automate.profit.autocoin.exchange.ticker.*
+import automate.profit.autocoin.exchange.ticker.DefaultTickerListenerRegistrars
+import automate.profit.autocoin.exchange.ticker.FileTickerPairRepository
+import automate.profit.autocoin.exchange.ticker.TickerListenersProvider
+import automate.profit.autocoin.exchange.ticker.TickerPairCache
 import automate.profit.autocoin.oauth.*
+import automate.profit.autocoin.scheduled.ArbitrageProfitStatisticsCalculateScheduler
 import automate.profit.autocoin.scheduled.TickerFetchScheduler
 import automate.profit.autocoin.scheduled.TickerPairsSaveScheduler
 import okhttp3.OkHttpClient
+import java.util.concurrent.Executors
 
 class AppContext(appConfig: AppConfig) {
     val httpClient = OkHttpClient()
@@ -30,7 +39,8 @@ class AppContext(appConfig: AppConfig) {
     val tickerPairCache = TickerPairCache()
     val twoLegArbitrageProfitCalculator: TwoLegArbitrageProfitCalculator = TwoLegArbitrageProfitCalculator()
     val twoLegArbitrageProfitCache = TwoLegArbitrageProfitCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepMs)
-    val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars, twoLegArbitrageProfitCache)
+    val scheduledExecutorService = Executors.newScheduledThreadPool(3)
+    val tickerFetchScheduler = TickerFetchScheduler(tickerListenerRegistrars, twoLegArbitrageProfitCache, scheduledExecutorService)
     val tickerListenersProvider = TickerListenersProvider(tickerPairCache, twoLegArbitrageProfitCalculator, twoLegArbitrageProfitCache)
     private val exchangeMetadataService = RestExchangeMetadataService(oauth2HttpClient, appConfig.tickerApiUrl, objectMapper)
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
@@ -39,11 +49,21 @@ class AppContext(appConfig: AppConfig) {
             twoLegArbitragePairs = appConfig.twoLegArbitragePairs
     )
     val fileTickerPairRepository = FileTickerPairRepository(appConfig.tickerPairsRepositoryPath, appConfig.ageOfOldestTickerPairToKeepInRepositoryMs)
-    val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository)
+    val tickerPairsSaveScheduler = TickerPairsSaveScheduler(tickerPairCache, fileTickerPairRepository, scheduledExecutorService)
+
+    val twoLegArbitrageProfitStatisticCalculator = TwoLegArbitrageProfitStatisticsCalculator(fileTickerPairRepository, twoLegArbitrageProfitCalculator)
+    val twoLegArbitrageProfitStatisticsCache = TwoLegArbitrageProfitStatisticsCache()
+    val arbitrageProfitStatisticCalculateScheduler = ArbitrageProfitStatisticsCalculateScheduler(twoLegArbitrageProfitStatisticCalculator, twoLegArbitrageProfitStatisticsCache, scheduledExecutorService)
+
+
     val accessTokenChecker = AccessTokenChecker(httpClient, objectMapper, appConfig)
     val oauth2AuthenticationMechanism = Oauth2AuthenticationMechanism(accessTokenChecker)
     val oauth2BearerTokenAuthHandlerWrapper = Oauth2BearerTokenAuthHandlerWrapper(oauth2AuthenticationMechanism)
+
     val arbitrageProfitController = ArbitrageProfitController(twoLegArbitrageProfitCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
-    val controllers = listOf(arbitrageProfitController)
+    val arbitrageProfitStatisticsController = ArbitrageProfitStatisticsController(twoLegArbitrageProfitStatisticsCache, objectMapper, oauth2BearerTokenAuthHandlerWrapper)
+
+    val controllers = listOf(arbitrageProfitController, arbitrageProfitStatisticsController)
+
     val server = ServerBuilder(appConfig.appServerPort, controllers).build()
 }

@@ -1,6 +1,7 @@
-package automate.profit.autocoin.exchange.ticker
+package automate.profit.autocoin.exchange.arbitrage
 
-import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfit
+import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import automate.profit.autocoin.exchange.ticker.TickerPair
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_UP
