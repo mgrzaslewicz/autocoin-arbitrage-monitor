@@ -26,16 +26,17 @@ class ExchangeTickerFetcher(
                 .get()
                 .build()
         val tickerDtoResponse = httpClient.newCall(request).execute()
+        tickerDtoResponse.use {
+            check(tickerDtoResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair" }
 
-        check(tickerDtoResponse.code == 200) { "Could not get ticker $supportedExchange-$currencyPair" }
-
-        val tickerDto = objectMapper.readValue(tickerDtoResponse.body?.string(), TickerDto::class.java)
-        tickerDtoResponse.close()
-        val ticker = tickerDto.toTicker()
-        return if (ticker.hasTimestamp()) {
-            ticker
-        } else {
-            ticker.copy(timestamp = Instant.ofEpochMilli(currentTimeMillis()))
+            val tickerDto = objectMapper.readValue(tickerDtoResponse.body?.string(), TickerDto::class.java)
+            tickerDtoResponse.body?.close()
+            val ticker = tickerDto.toTicker()
+            return if (ticker.hasTimestamp()) {
+                ticker
+            } else {
+                ticker.copy(timestamp = Instant.ofEpochMilli(currentTimeMillis()))
+            }
         }
     }
 }

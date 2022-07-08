@@ -57,10 +57,11 @@ class PriceService(private val priceApiUrl: String,
                 .get()
                 .build()
         val priceResponse = httpClient.newCall(request).execute()
-
-        check(priceResponse.code == 200) { "Could not get price for $currencyCode" }
-        val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<PriceDto>::class.java)
-        check(priceDto.size == 1) { "No required price in response for $currencyCode" }
-        return priceDto.first().price.toBigDecimal()
+        priceResponse.use {
+            check(priceResponse.code == 200) { "Could not get price for $currencyCode" }
+            val priceDto = objectMapper.readValue(priceResponse.body?.string(), Array<PriceDto>::class.java)
+            check(priceDto.size == 1) { "No required price in response for $currencyCode" }
+            return priceDto.first().price.toBigDecimal()
+        }
     }
 }
