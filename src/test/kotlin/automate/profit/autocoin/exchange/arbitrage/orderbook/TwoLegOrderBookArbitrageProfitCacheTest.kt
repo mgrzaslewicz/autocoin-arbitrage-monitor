@@ -28,6 +28,7 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
         usd24hVolumeAtSecondExchange = 1500.0.toBigDecimal(),
         profitOpportunityHistogram = listOf(),
         calculatedAtMillis = 1,
+        olderOrderBookReceivedAtOrExchangeMillis = 454564,
     )
 
     private val sampleProfit = noProfitSample.copy(

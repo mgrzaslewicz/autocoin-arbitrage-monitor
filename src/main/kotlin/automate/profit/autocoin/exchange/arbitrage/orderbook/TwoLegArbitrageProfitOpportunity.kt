@@ -27,6 +27,8 @@ data class TwoLegArbitrageProfitOpportunity(
     val usd24hVolumeAtSecondExchange: BigDecimal,
     val profitOpportunityHistogram: List<TwoLegArbitrageProfitOpportunityAtDepth?>,
     val calculatedAtMillis: Long,
+    val olderOrderBookReceivedAtOrExchangeMillis: Long,
+//    val olderOrderBookExchangeTimestampMillis: Long?
 ) {
 
     val minUsd24hVolumeOfBothExchanges = usd24hVolumeAtFirstExchange.min(usd24hVolumeAtSecondExchange)
