@@ -48,6 +48,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
 ) {
     companion object : KLogging()
 
+    private val calculationErrorsForOneTimeLogging = HashSet<String?>()
+
     fun calculateProfit(
         currencyPairWithExchangePair: CurrencyPairWithExchangePair,
         orderBookPair: OrderBookPair,
@@ -87,7 +89,8 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                             usdDepthUpTo = usdDepthTo
                         )
                     } else {
-                       val profitBuyAtFirstSellAtSecond = relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice)
+                        val profitBuyAtFirstSellAtSecond =
+                            relativeProfitCalculator.getProfitBuyAtFirstExchangeSellAtSecond(currencyPairWithExchangePair, firstOrderBookSellPrice, secondOrderBookBuyPrice)
                         if (profitBuyAtFirstSellAtSecond.relativeProfit > BigDecimal.ZERO) {
                             TwoLegOrderBookArbitrageOpportunity(
                                 sellPrice = secondOrderBookBuyPrice.averagePrice,
@@ -124,7 +127,12 @@ class TwoLegOrderBookArbitrageProfitCalculator(
                 calculatedAtMillis = currentTimeMillis,
             )
         } catch (e: Exception) {
-            logger.error(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
+            if (calculationErrorsForOneTimeLogging.contains(e.message)) { // happens too often to log every time
+                logger.debug(e) { "Could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
+            } else {
+                calculationErrorsForOneTimeLogging.add(e.message)
+                logger.error(e) { "First time could not calculate two leg arbitrage profit for $currencyPairWithExchangePair" }
+            }
             null
         }
     }
