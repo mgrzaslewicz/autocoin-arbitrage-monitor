@@ -23,35 +23,39 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val exchanges = listOf(BINANCE, BITTREX, KUCOIN)
 
     private val bittrexMetadata = ExchangeMetadata(
-            currencyMetadata = emptyMap(),
-            currencyPairMetadata = mapOf(
-                    commonForAllExchanges to doesNotMatter,
-                    commonForBittrexAndBinance to doesNotMatter,
-                    commonForBittrexAndKucoin to doesNotMatter,
-                    onlyAtBittrex to doesNotMatter
-            )
+        currencyMetadata = emptyMap(),
+        currencyPairMetadata = mapOf(
+            commonForAllExchanges to doesNotMatter,
+            commonForBittrexAndBinance to doesNotMatter,
+            commonForBittrexAndKucoin to doesNotMatter,
+            onlyAtBittrex to doesNotMatter
+        ),
+        debugWarnings = emptyList()
     )
     private val binanceMetadata = ExchangeMetadata(
-            currencyMetadata = emptyMap(),
-            currencyPairMetadata = mapOf(
-                    commonForAllExchanges to doesNotMatter,
-                    commonForBittrexAndBinance to doesNotMatter,
-                    commonForKucoinAndBinance to doesNotMatter,
-                    onlyAtBinance to doesNotMatter
-            )
+        currencyMetadata = emptyMap(),
+        currencyPairMetadata = mapOf(
+            commonForAllExchanges to doesNotMatter,
+            commonForBittrexAndBinance to doesNotMatter,
+            commonForKucoinAndBinance to doesNotMatter,
+            onlyAtBinance to doesNotMatter
+        ),
+        debugWarnings = emptyList()
     )
     private val kucoinMetadata = ExchangeMetadata(
-            currencyMetadata = emptyMap(),
-            currencyPairMetadata = mapOf(
-                    commonForAllExchanges to doesNotMatter,
-                    commonForKucoinAndBinance to doesNotMatter,
-                    commonForBittrexAndKucoin to doesNotMatter,
-                    onlyAtKucoin to doesNotMatter
-            )
+        currencyMetadata = emptyMap(),
+        currencyPairMetadata = mapOf(
+            commonForAllExchanges to doesNotMatter,
+            commonForKucoinAndBinance to doesNotMatter,
+            commonForBittrexAndKucoin to doesNotMatter,
+            onlyAtKucoin to doesNotMatter
+        ),
+        debugWarnings = emptyList()
     )
     private val emptyMetadata = ExchangeMetadata(
-            currencyMetadata = emptyMap(),
-            currencyPairMetadata = emptyMap()
+        currencyMetadata = emptyMap(),
+        currencyPairMetadata = emptyMap(),
+        debugWarnings = emptyList()
     )
 
     private val exchangeMetadataService = mock<ExchangeMetadataService>().apply {
@@ -92,11 +96,11 @@ class CommonExchangeCurrencyPairsServiceTest {
         val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs.getValue(commonForAllExchanges))
-                .containsOnly(
-                        ExchangePair(BITTREX, KUCOIN),
-                        ExchangePair(BINANCE, BITTREX),
-                        ExchangePair(BINANCE, KUCOIN)
-                )
+            .containsOnly(
+                ExchangePair(BITTREX, KUCOIN),
+                ExchangePair(BINANCE, BITTREX),
+                ExchangePair(BINANCE, KUCOIN)
+            )
     }
 
     @Test
