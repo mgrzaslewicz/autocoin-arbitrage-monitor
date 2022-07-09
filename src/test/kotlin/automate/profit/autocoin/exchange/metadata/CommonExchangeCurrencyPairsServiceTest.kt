@@ -25,6 +25,7 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val exchanges = listOf(BINANCE, exchange1WithFailedMetadataResponse, BITTREX, KUCOIN, exchange2WithFailedMetadataResponse)
 
     private val bittrexMetadata = ExchangeMetadata(
+        exchange = BITTREX,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -35,6 +36,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val binanceMetadata = ExchangeMetadata(
+        exchange = BINANCE,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -45,6 +47,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val kucoinMetadata = ExchangeMetadata(
+        exchange = KUCOIN,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -55,6 +58,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val emptyMetadata = ExchangeMetadata(
+        exchange = KUCOIN,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = emptyMap(),
         debugWarnings = emptyList()
