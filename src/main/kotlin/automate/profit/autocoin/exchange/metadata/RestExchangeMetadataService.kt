@@ -24,8 +24,8 @@ class RestExchangeMetadataService(
                 .build()
         ).execute()
         metadataResponse.use {
-            check(metadataResponse.isSuccessful) { "Could not get all exchanges metadata response, code=${metadataResponse.code}" }
-            return objectMapper.readValue(metadataResponse.body?.string(), Array<ExchangeMetadataDto>::class.java)
+            check(metadataResponse.isSuccessful) { "Could not get all exchanges metadata response, code=${metadataResponse.code}, body=${it.body?.string()}, headers=${it.headers}" }
+            return@getAllExchangesMetadata objectMapper.readValue(metadataResponse.body?.string(), Array<ExchangeMetadataDto>::class.java)
                 .map { it.toExchangeMetadata() }
         }
     }

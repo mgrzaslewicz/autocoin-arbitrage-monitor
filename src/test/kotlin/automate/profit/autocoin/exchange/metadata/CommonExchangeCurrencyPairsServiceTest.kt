@@ -20,11 +20,8 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val onlyAtBinance = CurrencyPair.of("ONLY/AT-BINANCE")
     private val onlyAtKucoin = CurrencyPair.of("ONLY/AT-KUCOIN")
 
-    private val exchange1WithFailedMetadataResponse = GATEIO
-    private val exchange2WithFailedMetadataResponse = CEXIO
-    private val exchanges = listOf(BINANCE, exchange1WithFailedMetadataResponse, BITTREX, KUCOIN, exchange2WithFailedMetadataResponse)
-
     private val bittrexMetadata = ExchangeMetadata(
+        exchange = BITTREX,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -35,6 +32,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val binanceMetadata = ExchangeMetadata(
+        exchange = BINANCE,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -45,6 +43,7 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val kucoinMetadata = ExchangeMetadata(
+        exchange = KUCOIN,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -55,25 +54,22 @@ class CommonExchangeCurrencyPairsServiceTest {
         debugWarnings = emptyList()
     )
     private val emptyMetadata = ExchangeMetadata(
+        exchange = KUCOIN,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = emptyMap(),
         debugWarnings = emptyList()
     )
 
     private val exchangeMetadataService = mock<ExchangeMetadataService>().apply {
-        whenever(this.getMetadata("bittrex")).thenReturn(bittrexMetadata)
-        whenever(this.getMetadata("kucoin")).thenReturn(kucoinMetadata)
-        whenever(this.getMetadata("binance")).thenReturn(binanceMetadata)
-        whenever(this.getMetadata(exchange1WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 1 failing on purpose"))
-        whenever(this.getMetadata(exchange2WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 2 failing on purpose"))
+        whenever(this.getAllExchangesMetadata()).thenReturn(listOf(binanceMetadata, bittrexMetadata, kucoinMetadata))
     }
+    private val tested = CommonExchangeCurrencyPairsService(exchangeMetadataService)
+
 
     @Test
     fun shouldNotContainCurrenciesThatExistAtOneExchangeOnly() {
-        // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
+        val commonCurrencyPairs = tested.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs).doesNotContainKey(onlyAtBinance)
         assertThat(commonCurrencyPairs).doesNotContainKey(onlyAtBittrex)
@@ -82,10 +78,8 @@ class CommonExchangeCurrencyPairsServiceTest {
 
     @Test
     fun shouldContainCurrenciesThatExistAtTwoExchangesOnly() {
-        // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
+        val commonCurrencyPairs = tested.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndKucoin)).containsOnly(ExchangePair(BITTREX, KUCOIN))
         assertThat(commonCurrencyPairs.getValue(commonForBittrexAndBinance)).containsOnly(ExchangePair(BINANCE, BITTREX))
@@ -94,20 +88,16 @@ class CommonExchangeCurrencyPairsServiceTest {
 
     @Test
     fun shouldCalculateExchangeToCurrencyPairsCommonForAtLeastOneOtherExchange() {
-        // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val bittrexCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange
+        val bittrexCurrencyPairs = tested.calculateCommonCurrencyPairs().exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange
         // then
         assertThat(bittrexCurrencyPairs.getValue(BITTREX)).containsExactly(commonForAllExchanges, commonForBittrexAndBinance, commonForBittrexAndKucoin)
     }
 
     @Test
     fun shouldContainCurrenciesThatExistAtAllExchanges() {
-        // given
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
+        val commonCurrencyPairs = tested.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs.getValue(commonForAllExchanges))
             .containsOnly(
@@ -120,16 +110,9 @@ class CommonExchangeCurrencyPairsServiceTest {
     @Test
     fun shouldReturnEmpty() {
         // given
-        val exchangeMetadataService = mock<ExchangeMetadataService>().apply {
-            whenever(this.getMetadata("bittrex")).thenReturn(bittrexMetadata)
-            whenever(this.getMetadata("kucoin")).thenReturn(emptyMetadata)
-            whenever(this.getMetadata("binance")).thenReturn(emptyMetadata)
-            whenever(this.getMetadata(exchange1WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 1 failing on purpose"))
-            whenever(this.getMetadata(exchange2WithFailedMetadataResponse.exchangeName)).thenThrow(RuntimeException("Exchange 2 failing on purpose"))
-        }
-        val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(exchangeMetadataService, exchanges)
+        whenever(exchangeMetadataService.getAllExchangesMetadata()).thenReturn(listOf(bittrexMetadata, emptyMetadata, emptyMetadata))
         // when
-        val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
+        val commonCurrencyPairs = tested.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
         assertThat(commonCurrencyPairs).isEmpty()
     }

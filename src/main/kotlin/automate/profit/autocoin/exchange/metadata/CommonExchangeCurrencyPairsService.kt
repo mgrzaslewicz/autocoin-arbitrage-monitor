@@ -3,7 +3,7 @@ package automate.profit.autocoin.exchange.metadata
 import automate.profit.autocoin.app.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.currency.CurrencyPair
-import kotlinx.coroutines.launch
+import automate.profit.autocoin.retry.retryUntilSuccess
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
@@ -15,7 +15,6 @@ data class CommonExchangeCurrencyPairs(
 
 class CommonExchangeCurrencyPairsService(
     private val exchangeMetadataService: ExchangeMetadataService,
-    private val exchanges: List<SupportedExchange>,
     private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
     private val staticTwoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
 ) {
@@ -75,18 +74,9 @@ class CommonExchangeCurrencyPairsService(
     }
 
     private fun fetchExchangesWithCurrencyPairs(): Array<Pair<String, Set<CurrencyPair>>> {
-        val metadataList = mutableListOf<Pair<String, ExchangeMetadata>>()
-        runBlocking {
-            exchanges.map {
-                launch {
-                    try {
-                        metadataList.add(Pair(it.exchangeName, exchangeMetadataService.getMetadata(it.exchangeName)))
-                    } catch (e: Exception) {
-                        logger.error(e) { "${it.exchangeName} Could not get metadata" }
-                    }
-                }
-            }.forEach { it.join() }
+        return runBlocking {
+            val exchangesMetadata = retryUntilSuccess("Get exchanges metadata") { exchangeMetadataService.getAllExchangesMetadata() }
+            exchangesMetadata.map { it.exchange.exchangeName to it.currencyPairMetadata.keys }.toTypedArray()
         }
-        return metadataList.map { it.first to it.second.currencyPairMetadata.keys }.toTypedArray()
     }
 }

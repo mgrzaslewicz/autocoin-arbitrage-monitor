@@ -123,7 +123,6 @@ class AppContext(val appConfig: AppConfig) {
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
         exchangeMetadataService = exchangeMetadataService,
-        exchanges = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
         currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
         staticTwoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
