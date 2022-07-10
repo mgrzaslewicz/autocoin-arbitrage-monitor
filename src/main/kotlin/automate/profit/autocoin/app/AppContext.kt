@@ -56,7 +56,7 @@ class AppContext(val appConfig: AppConfig) {
     val oauth2HttpClient = OkHttpClient.Builder()
         .authenticator(accessTokenAuthenticator)
         .addInterceptor(accessTokenInterceptor)
-        .callTimeout(5, TimeUnit.SECONDS)
+        .callTimeout(15, TimeUnit.SECONDS)
         .build()
     val sseHttpClient = oauth2HttpClient.newBuilder()
         .readTimeout(Duration.ofMillis(0L))
