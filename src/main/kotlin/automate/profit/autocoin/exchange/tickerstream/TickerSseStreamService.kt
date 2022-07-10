@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class TickerSseStreamService(
     private val tickerApiBaseUrl: String,
+    private val instanceId: String,
     private val httpClient: OkHttpClient,
     private val eventSourceFactory: EventSource.Factory,
     private val tickerListeners: TickerListeners,
@@ -31,7 +32,7 @@ class TickerSseStreamService(
     private val isFirstOrderBookLoggedAfterConnect = AtomicBoolean(false)
 
     fun scheduleReconnectOnFailure(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
-        logger.info { "Scheduling reconnecting ticker stream on failure" }
+        logger.info { "[instance=$instanceId] Scheduling reconnecting ticker stream on failure" }
         executorForReconnecting.submit {
             while (true) {
                 startListeningTickerStream(commonExchangeCurrencyPairs)
@@ -42,9 +43,9 @@ class TickerSseStreamService(
 
     private fun onTickerEvent(tickerJson: String) {
         if (!isFirstOrderBookLoggedAfterConnect.compareAndExchange(false, true)) {
-            logger.info { "First Ticker event since starting the stream, ticker=$tickerJson" }
+            logger.info { "[instance=$instanceId] First Ticker event since starting the stream, ticker=$tickerJson" }
         } else {
-            logger.debug { "Ticker event=$tickerJson" }
+            logger.debug { "[instance=$instanceId] Ticker event=$tickerJson" }
         }
         val tickerDto = objectMapper.readValue(tickerJson, TickerDto::class.java)
         val ticker = tickerDto.toTicker()
@@ -54,46 +55,48 @@ class TickerSseStreamService(
             try {
                 it.onTicker(exchange, ticker.currencyPair, ticker)
             } catch (e: Exception) {
-                logger.error(e) { "[$exchange-${ticker.currencyPair}] Error during notifying ticker listener" }
+                logger.error(e) { "[$exchange-${ticker.currencyPair}] [instance=$instanceId] Error during notifying ticker listener" }
             }
         }
     }
 
     fun startListeningTickerStream(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs) {
         lock.acquire()
-        logger.info { "Requesting ticker SSE stream" }
+        logger.info { "[instance=$instanceId] Requesting ticker SSE stream" }
 
         val request = Request.Builder()
             .url("$tickerApiBaseUrl/ticker-sse-stream")
+            .header("instance-id", instanceId)
             .build()
         eventSourceFactory.newEventSource(request, object : EventSourceListener() {
 
             override fun onEvent(eventSource: EventSource, id: String?, type: String?, tickerJson: String) {
                 if (type == "start") {
-                    logger.info { "Ticker start event received" }
+                    logger.info { "[instance=$instanceId] Ticker start event received" }
                     if (registerForGettingTickers(commonExchangeCurrencyPairs)) {
                         isConnected.set(true)
                     } else {
                         isConnected.set(false)
                         isFirstOrderBookLoggedAfterConnect.set(false)
-                        throw RuntimeException("Could not register for getting tickers")
+                        throw RuntimeException("[instance=$instanceId] Could not register for getting tickers")
                     }
                 } else {
                     try {
                         onTickerEvent(tickerJson)
                     } catch (e: Exception) {
-                        logger.error(e) { "Error during handling ticker event" }
+                        logger.error(e) { "[instance=$instanceId] Error during handling ticker event" }
                     }
                 }
             }
 
             override fun onOpen(eventSource: EventSource, response: Response) {
                 // on open seems to not work until there is first event sent from producer
-                logger.info { "Ticker SSE stream opened" }
+                logger.info { "[instance=$instanceId] Ticker SSE stream opened" }
             }
 
             override fun onFailure(eventSource: EventSource, t: Throwable?, response: Response?) {
-                val message = "Ticker stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
+                val message =
+                    "[instance=$instanceId] Ticker stream failed, response code=${response?.code}, response=${response?.body?.string()}, client side exception=${t?.message}"
                 isConnected.set(false)
                 isFirstOrderBookLoggedAfterConnect.set(false)
                 eventSource.cancel()
@@ -105,7 +108,7 @@ class TickerSseStreamService(
     }
 
     private fun registerForGettingTickers(commonExchangeCurrencyPairs: CommonExchangeCurrencyPairs): Boolean {
-        logger.info { "Registering for ticker events" }
+        logger.info { "[instance=$instanceId] Registering for ticker events" }
         val exchangesWithCurrencyPairs = mutableMapOf<String, List<String>>()
         commonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.forEach { (exchangePair, currencyPairs) ->
             val currencyPairStringList = currencyPairs.map { it.toString() }
@@ -115,19 +118,20 @@ class TickerSseStreamService(
         val request = Request.Builder()
             .url("$tickerApiBaseUrl/listener/tickers")
             .header("Content-Type", "application/json")
+            .header("instance-id", instanceId)
             .post(objectMapper.writeValueAsString(exchangesWithCurrencyPairs).toRequestBody())
             .build()
         return try {
             val response = httpClient.newCall(request).execute()
             if (response.isSuccessful) {
-                logger.info { "Registered for ticker events" }
+                logger.info { "[instance=$instanceId] Registered for ticker events" }
                 true
             } else {
-                logger.error { "Could not register for ticker events, code=${response.code}, message=${response.body?.string()}" }
+                logger.error { "[instance=$instanceId] Could not register for ticker events, code=${response.code}, message=${response.body?.string()}" }
                 false
             }
         } catch (e: Exception) {
-            logger.error(e) { "Could not register for ticker events" }
+            logger.error(e) { "[instance=$instanceId] Could not register for ticker events" }
             false
         }
     }

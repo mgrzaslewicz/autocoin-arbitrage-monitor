@@ -36,11 +36,14 @@ import okhttp3.sse.EventSources
 import java.math.BigDecimal
 import java.nio.file.Path
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class AppContext(val appConfig: AppConfig) {
     private companion object : KLogging()
+
+    private val instanceId: String = UUID.randomUUID().toString()
 
     val httpClientWithoutAuthorization = OkHttpClient()
     val objectMapper = ObjectMapperProvider().createObjectMapper()
@@ -135,7 +138,8 @@ class AppContext(val appConfig: AppConfig) {
         eventSourceFactory = sseEventSourceFactory,
         orderBookListeners = orderBookListeners,
         objectMapper = objectMapper,
-        executorForReconnecting = threadForStreamReconnecting
+        executorForReconnecting = threadForStreamReconnecting,
+        instanceId = instanceId,
     )
     val tickerSseStreamService = TickerSseStreamService(
         tickerApiBaseUrl = appConfig.exchangeMediatorApiBaseUrl,
@@ -143,7 +147,8 @@ class AppContext(val appConfig: AppConfig) {
         eventSourceFactory = sseEventSourceFactory,
         tickerListeners = tickerListeners,
         objectMapper = objectMapper,
-        executorForReconnecting = threadForStreamReconnecting
+        executorForReconnecting = threadForStreamReconnecting,
+        instanceId = instanceId,
     )
 
     val healthService = HealthService(
