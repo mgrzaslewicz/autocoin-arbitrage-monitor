@@ -53,5 +53,4 @@ docker run --name ${SERVICE_NAME} -d \
   localhost:5000/${SERVICE_NAME}:${VERSION_TAG}
 
 docker network connect autocoin-tig-monitoring ${SERVICE_NAME}
-docker network connect autocoin-services-admin ${SERVICE_NAME}
 echo "Connected to networks:$(docker inspect ${SERVICE_NAME} --format='{{range $k,$v := .NetworkSettings.Networks}} {{$k}} {{end}}')"
