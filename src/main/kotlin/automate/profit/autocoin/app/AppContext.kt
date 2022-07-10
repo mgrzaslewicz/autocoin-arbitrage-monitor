@@ -63,13 +63,13 @@ class AppContext(val appConfig: AppConfig) {
         .build()
     val sseEventSourceFactory = EventSources.createFactory(sseHttpClient)
 
-    val statsdClient = if (appConfig.useMetrics) {
+    val statsdClient = if (appConfig.useRealStatsDClient) {
         NonBlockingStatsDClient(appConfig.serviceName, appConfig.telegrafHostname, 8125)
     } else {
         val metricsFolderPath = Path.of(appConfig.metricsFolder)
         metricsFolderPath.toFile().mkdirs()
         val metricsFile = metricsFolderPath.resolve("metrics.jsonl")
-        logger.warn { "Using JsonlFileStatsDClient, telegraf.hostname not provided. Writing metrics to ${metricsFile.toAbsolutePath()}" }
+        logger.warn { "Using JsonlFileStatsDClient as TELEGRAF_HOSTNAME set to 'metrics.jsonl'. Writing metrics to ${metricsFile.toAbsolutePath()}" }
         JsonlFileStatsDClient(metricsFile.toFile())
     }
     val metricsService: MetricsService = MetricsService(statsdClient)

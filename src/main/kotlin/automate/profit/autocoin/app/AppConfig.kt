@@ -100,8 +100,8 @@ data class AppConfig(
         .split(",")
         .map { BigDecimal(it) },
     val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits",
-    val useMetrics: Boolean = getPropertyThenEnv("USE_METRICS", "true").toBoolean(),
-    val telegrafHostname: String = getPropertyThenEnv("TELEGRAF_HOSTNAME", "telegraf")
+    val telegrafHostname: String = getPropertyThenEnv("TELEGRAF_HOSTNAME", "telegraf"),
+    val useRealStatsDClient: Boolean = telegrafHostname != "metrics.jsonl",
 )
 
 fun loadConfig(): AppConfig {
