@@ -3,13 +3,12 @@
 set -x
 
 preconditions() {
-    if [[ -f "env.properties.template" ]]
-    then
-        . "env.properties.template"
-    else
-        echo "Can't find env.properties.template. Maybe forgot to create one in scripts dir?"
-        exit 100
-    fi
+  if [[ -f "env.properties.template" ]]; then
+    . "env.properties.template"
+  else
+    echo "Can't find env.properties.template. Maybe forgot to create one in scripts dir?"
+    exit 100
+  fi
 
   declare -a requiredVariables=(
     "LOGS_PATH"
