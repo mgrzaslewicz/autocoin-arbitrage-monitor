@@ -39,6 +39,8 @@ echo "Exposing docker port ${DOCKER_PORT} to host port ${HOST_PORT}"
 # Use JAVA_OPTS="-XX:+ExitOnOutOfMemoryError" to prevent from running when any of threads runs of out memory and dies
 
 docker run --name ${SERVICE_NAME} -d \
+  --network=autocoin-services \
+  --net-alias=${SERVICE_NAME} \
   -p ${HOST_PORT}:${DOCKER_PORT} \
   -e BASIC_PASS=${BASIC_PASS} \
   -e DOCKER_TAG=${VERSION_TAG} \

@@ -77,9 +77,9 @@ data class AppConfig(
         .map { SupportedExchange.fromExchangeName(it) },
 
 
-    val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_MEDIATOR_API_URL", "https://orders-api.autocoin-trader.com"),
-    val exchangeMetadataApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_METADATA_API_URL", "https://orders-api.autocoin-trader.com"),
-    val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "https://users-apiv2.autocoin-trader.com"),
+    val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_MEDIATOR_API_URL", "http://autocoin-exchange-mediator:9001"),
+    val exchangeMetadataApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_METADATA_API_URL", "http://autocoin-exchange-mediator:9001"),
+    val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "http://autocoin-auth-service:9002"),
 
     val arbitrageMonitorOauth2ClientId: String = getPropertyThenEnv("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
     val arbitrageMonitorOauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
