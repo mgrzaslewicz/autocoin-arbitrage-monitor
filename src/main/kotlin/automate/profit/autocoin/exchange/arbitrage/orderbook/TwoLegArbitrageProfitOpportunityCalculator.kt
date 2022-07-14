@@ -77,7 +77,7 @@ class TwoLegArbitrageProfitOpportunityCalculator(
 
         return try {
             val currentTimeMillis = currentTimeMillisFunction()
-            val usdPrice = priceService.getUsdPrice(currencyPairWithExchangePair.currencyPair.counter)
+            val usdPrice = priceService.getUsdPrice(currencyPairWithExchangePair.currencyPair.counter).price
 
             lateinit var buyAtExchange: SupportedExchange
             lateinit var sellAtExchange: SupportedExchange

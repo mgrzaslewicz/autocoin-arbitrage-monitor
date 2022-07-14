@@ -1,6 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.app.ExchangePair
+import automate.profit.autocoin.exchange.CurrencyPrice
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
 import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
@@ -28,7 +29,14 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val usdValueFromPriceService = BigDecimal("2000.0")
     private val pricesService = mock<RestPriceService>().apply {
         whenever(getUsdValue(eq("Y"), any())).thenReturn(usdValueFromPriceService)
-        whenever(getUsdPrice(eq("Y"))).thenReturn(BigDecimal(0.3))
+        whenever(getUsdPrice(eq("Y"))).thenReturn(
+            CurrencyPrice(
+                price = BigDecimal(0.3),
+                baseCurrency = "A",
+                counterCurrency = "B",
+                timestampMillis = System.currentTimeMillis(),
+            )
+        )
     }
     private val bigDecimalWhichDoesNotMatter = BigDecimal.ONE
     private val counterCurrency24hVolume = BigDecimal("10.0")

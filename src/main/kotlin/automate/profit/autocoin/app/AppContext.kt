@@ -77,13 +77,16 @@ class AppContext(val appConfig: AppConfig) {
     }
     val metricsService: MetricsService = MetricsService(statsdClient)
 
+    val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
+
     val priceService = CachingPriceService(
         decorated = RestPriceService(
             priceApiUrl = appConfig.exchangeMediatorApiBaseUrl,
             httpClient = oauth2HttpClient,
             metricsService = metricsService,
             objectMapper = objectMapper
-        )
+        ),
+        executorService = scheduledJobsxecutorService,
     )
 
     val exchangeMetadataService = CachingExchangeMetadataService(
@@ -109,7 +112,6 @@ class AppContext(val appConfig: AppConfig) {
 
     val twoLegArbitrageProfitOpportunityCache = TwoLegArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
 
-    val scheduledJobsxecutorService = Executors.newScheduledThreadPool(3)
 
     val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,

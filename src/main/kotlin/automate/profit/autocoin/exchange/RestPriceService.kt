@@ -10,13 +10,30 @@ import java.math.BigDecimal
 
 
 data class CurrencyPriceDto(
-    val price: Double,
+    val price: String,
     val baseCurrency: String,
-    val counterCurrency: String
+    val counterCurrency: String,
+    val timestampMillis: Long,
+) {
+    fun toCurrencyPrice(): CurrencyPrice {
+        return CurrencyPrice(
+            price = BigDecimal(price),
+            baseCurrency = baseCurrency,
+            counterCurrency = counterCurrency,
+            timestampMillis = timestampMillis
+        )
+    }
+}
+
+data class CurrencyPrice(
+    val price: BigDecimal,
+    val baseCurrency: String,
+    val counterCurrency: String,
+    val timestampMillis: Long,
 )
 
 interface PriceService {
-    fun getUsdPrice(currencyCode: String): BigDecimal
+    fun getUsdPrice(currencyCode: String): CurrencyPrice
     fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal
 }
 
@@ -30,23 +47,30 @@ class RestPriceService(
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
 ) : PriceService {
 
+    private val usdUsdPrice = CurrencyPrice(
+        price = BigDecimal.ONE,
+        baseCurrency = "USD",
+        counterCurrency = "USD",
+        timestampMillis = currentTimeMillisFunction()
+    )
+
     private companion object {
         private val logger = PeriodicalLogger(wrapped = KotlinLogging.logger {}).scheduleLogFlush()
     }
 
-    override fun getUsdPrice(currencyCode: String): BigDecimal {
+    override fun getUsdPrice(currencyCode: String): CurrencyPrice {
         if (currencyCode == "USD") {
-            return BigDecimal.ONE
+            return usdUsdPrice
         }
         return fetchUsdPrice(currencyCode)
     }
 
     override fun getUsdValue(currencyCode: String, amount: BigDecimal): BigDecimal {
         val price = getUsdPrice(currencyCode)
-        return amount.multiply(price)
+        return amount.multiply(price.price)
     }
 
-    private fun fetchUsdPrice(currencyCode: String): BigDecimal {
+    private fun fetchUsdPrice(currencyCode: String): CurrencyPrice {
         logger.frequentInfo { "[$currencyCode/USD] Fetching price" }
         val millisBefore = currentTimeMillisFunction()
         val request = Request.Builder()
@@ -64,7 +88,7 @@ class RestPriceService(
                 if (priceDto.size != 1) {
                     throw PriceResponseException(reasonTag = "missing-price", message = "[$currencyCode/USD] No expected price in response body")
                 }
-                return priceDto.first().price.toBigDecimal()
+                return priceDto.first().toCurrencyPrice()
             } catch (e: Exception) {
                 val errorMessage = "[$currencyCode/USD] Could not parse response body. Exception=${e.message}"
                 throw PriceResponseException(message = errorMessage, reasonTag = "response-parse-error")
