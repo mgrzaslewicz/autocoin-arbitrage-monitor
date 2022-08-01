@@ -54,7 +54,7 @@ private val currencyPairsForArbitrage = mapOf(
 
 data class AppConfig(
     val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
-    val serviceName: String = getPropertyThenEnv("SERVICE_NAME"),
+    val serviceName: String = getPropertyThenEnv("SERVICE_NAME", "autocoin-arbitrage-monitor"),
 
     val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = if (getPropertyThenEnv(
             "APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS",
