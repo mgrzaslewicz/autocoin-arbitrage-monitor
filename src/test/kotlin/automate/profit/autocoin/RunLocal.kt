@@ -13,7 +13,7 @@ fun main() {
     setProperty("OAUTH2_API_URL", "http://localhost:9002")
     setProperty("EXCHANGE_MEDIATOR_API_URL", "http://localhost:9001")
     setProperty("SERVICE_NAME", "autocoin-arbitrage-monitor")
-    setProperty("APP_OAUTH_CLIENT_SECRET", "arbitrage-monitor-secret-for-local-development")
+    setProperty("APP_OAUTH_CLIENT_SECRET", "autocoin-arbitrage-monitor-secret-for-local-development")
 //    setProperty("APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS", "true")
     setProperty("APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES", "bibex,binance,bittrex")
 //    setProperty("APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST", "QTUM/BTC,GAS/BTC")

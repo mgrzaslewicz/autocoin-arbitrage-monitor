@@ -10,7 +10,6 @@ preconditions() {
 
   declare -a requiredVariables=(
     "APP_DATA_PATH"
-    "APP_OAUTH_CLIENT_ID"
     "APP_OAUTH_CLIENT_SECRET"
     "DOCKER_PORT"
     "HOST_PORT"
@@ -44,7 +43,6 @@ docker run --name ${SERVICE_NAME} -d \
   -p ${HOST_PORT}:${DOCKER_PORT} \
   -e BASIC_PASS=${BASIC_PASS} \
   -e DOCKER_TAG=${VERSION_TAG} \
-  -e APP_OAUTH_CLIENT_ID=${APP_OAUTH_CLIENT_ID} \
   -e APP_OAUTH_CLIENT_SECRET=${APP_OAUTH_CLIENT_SECRET} \
   -e SERVICE_NAME=${SERVICE_NAME} \
   -e TELEGRAF_HOSTNAME=${TELEGRAF_HOSTNAME} \

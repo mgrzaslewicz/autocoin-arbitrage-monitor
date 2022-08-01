@@ -81,7 +81,7 @@ data class AppConfig(
     val exchangeMetadataApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_METADATA_API_URL", "http://autocoin-exchange-mediator:9001"),
     val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "http://autocoin-auth-service:9002"),
 
-    val arbitrageMonitorOauth2ClientId: String = getPropertyThenEnv("APP_OAUTH_CLIENT_ID", "arbitrage-monitor"),
+    val arbitrageMonitorOauth2ClientId: String = serviceName,
     val arbitrageMonitorOauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
     val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
     val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv(
