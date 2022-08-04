@@ -4,5 +4,10 @@ ADD target/autocoin-arbitrage-monitor*.jar /app/autocoin-arbitrage-monitor.jar
 
 WORKDIR /app
 RUN mkdir -p /app/data
+
+RUN adduser -D nonroot
+RUN chown -R nonroot:nonroot /app
+USER nonroot
+
 EXPOSE 10021
 ENTRYPOINT ["java", "-XX:+ExitOnOutOfMemoryError", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/app/data", "-XX:+PrintFlagsFinal", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "autocoin-arbitrage-monitor.jar"]
