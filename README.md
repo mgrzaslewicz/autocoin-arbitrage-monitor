@@ -5,22 +5,46 @@ Service responsibility:
 - Monitors currency pairs spreads between various exchanges
 - Calculates spread statistics and exposes them for authorized users
 
-
 To run locally - use RunLocal.kt
 
 # Backlog
+
 Refresh exchange metadata periodically. That should be an async operation
-Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a.e.a.o.TwoLegOrderBookArbitrageProfitCalculator - First time could not calculate two leg arbitrage profit for CurrencyPairWithExchangePair(currencyPair=TRX/USDT, exchangePair=ExchangePair(firstExchange=BIBOX, secondExchange=BITTREX))
+Check reason of frequent log entry with various currency pairs, e.g. ERROR a.p.a.e.a.o.TwoLegOrderBookArbitrageProfitCalculator - First time could not calculate two leg arbitrage
+profit for CurrencyPairWithExchangePair(currencyPair=TRX/USDT, exchangePair=ExchangePair(firstExchange=BIBOX, secondExchange=BITTREX))
 Add blockchain type to metadata
 
 ## What are users asking for?
+
+- B, [04.12.2022]
+
+1. I would like to see split filters for exchanges,
+
+- Buy From exchange
+- Sell On exchange
+
+2. I want to see the equivalent of $ for each oportunity and order the results ascending or descending.
+
+3. Transfer status (Withdraw & deposit status), should be transferred to filters. If i don't want to see yellow status i should be able to exclude it.
+
+4. Base currencies and Quote currencies should be splited in filter.(for example i dont own BTC, and i would like to exclude it from the results)
+
+5. If after applying filters there are no results, can the page play a sound when the result appears ? Or can it send Telegram message with short opportunity details ?
+
+6. About automation.. if an arbitrage opportunity arises, can it place orders using API keys ?
+
+7. Cryptopia in API keys ??? its a fuckedup exchange, i lost some money because of their scam :)
+
+8. Can you add more exchanges (ByBit, Huobi) ?
+
 - Ogunleke, [16.05.2022 12:11]
-That triangular arbitrage is the best
+  That triangular arbitrage is the best
 - İsmayıl, [16.05.2022 12:01]
-Hi, I have one question about arbitrage, can we make arbitraje in a same exchange? For ex,maning a triangular arbitrage: Buy btc, convert to eth, sell eth to usdt, then repeat again. Is this software able to find this kind of opportunities?
+  Hi, I have one question about arbitrage, can we make arbitraje in a same exchange? For ex,maning a triangular arbitrage: Buy btc, convert to eth, sell eth to usdt, then repeat
+  again. Is this software able to find this kind of opportunities?
 
 - [15.05.2022 19:36]
-can I filter the ERc20 token?
+  can I filter the ERc20 token?
 
 - [16.02.2022 22:39]
 What I will like to see is the arbitrage on same exchange, without having to move coins between exchanges.
