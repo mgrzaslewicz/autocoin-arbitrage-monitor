@@ -28,3 +28,6 @@ log/
 
 src/main/**/RunLocal*.kt
 dependency-reduced-pom.xml
+
+pom.xml.releaseBackup
+release.properties
