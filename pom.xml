@@ -15,7 +15,7 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <kotlin.version>1.7.0</kotlin.version>
         <junit.version>5.8.2</junit.version>
-        <jackson.version>2.13.3</jackson.version>
+        <jackson.version>2.13.4.2</jackson.version>
         <autocoin-exchange-api-rest.version>2.0.36</autocoin-exchange-api-rest.version>
         <autocoin-metrics-client.version>1.1.4</autocoin-metrics-client.version>
         <maven.compiler.source>17</maven.compiler.source>
