@@ -6,7 +6,7 @@ RUN mkdir -p /tmp/jar
 
 RUN unzip /app/autocoin-arbitrage-monitor.jar -d /tmp/jar \
  && mkdir -p /scripts/run \
- && mv /tmp/jar/BOOT-INF/classes/scripts/docker/* /scripts/run/ \
+ && mv /tmp/jar/scripts/docker/* /scripts/run/ \
  && rm -rf /tmp/jar
 
 ADD scripts/docker/deploy/copy-run-scripts.sh /scripts/
