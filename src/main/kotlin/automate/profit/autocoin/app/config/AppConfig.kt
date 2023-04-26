@@ -1,4 +1,4 @@
-package automate.profit.autocoin.app
+package automate.profit.autocoin.app.config
 
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.SupportedExchange.*

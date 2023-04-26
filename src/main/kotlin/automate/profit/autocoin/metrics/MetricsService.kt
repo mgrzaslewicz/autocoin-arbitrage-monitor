@@ -1,7 +1,7 @@
 package automate.profit.autocoin.metrics
 
 import autocoin.metrics.MetricsService
-import automate.profit.autocoin.app.ExchangePair
+import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
 import automate.profit.autocoin.exchange.currency.CurrencyPair

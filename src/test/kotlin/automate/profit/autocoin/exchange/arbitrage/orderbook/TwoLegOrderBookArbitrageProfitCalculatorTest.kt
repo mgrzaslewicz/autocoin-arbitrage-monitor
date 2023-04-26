@@ -1,6 +1,6 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.app.ExchangePair
+import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.CurrencyPrice
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.SupportedExchange.BINANCE

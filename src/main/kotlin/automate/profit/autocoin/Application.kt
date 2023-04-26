@@ -2,7 +2,7 @@ package automate.profit.autocoin
 
 import automate.profit.autocoin.app.AppContext
 import automate.profit.autocoin.app.AppStarter
-import automate.profit.autocoin.app.loadConfig
+import automate.profit.autocoin.app.config.loadConfig
 import mu.KotlinLogging
 import java.net.SocketAddress
 import kotlin.system.measureTimeMillis

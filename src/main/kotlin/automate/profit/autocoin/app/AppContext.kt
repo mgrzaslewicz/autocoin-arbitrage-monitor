@@ -6,6 +6,7 @@ import automate.profit.autocoin.api.ClientTwoLegArbitrageProfitOpportunities
 import automate.profit.autocoin.api.HealthController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.api.health.HealthService
+import automate.profit.autocoin.app.config.AppConfig
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider

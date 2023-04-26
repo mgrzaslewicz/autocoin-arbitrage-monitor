@@ -1,5 +1,6 @@
 package automate.profit.autocoin.app
 
+import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import mu.KLogging
 import java.net.SocketAddress
