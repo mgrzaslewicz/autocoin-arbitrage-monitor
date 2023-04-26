@@ -21,7 +21,7 @@ function mavenPackageIfNeeded() {
 
 function getGitVersionFromJar() {
   tempDir=$(mktemp -d)
-  version=$(unzip -p target/*.jar -d "${tempDir}" git.properties | grep "git.commit.id.describe=" | sed "s/git.commit.id.describe=//g" | sed "s/${SERVICE_NAME}-//g")
+  version=$(unzip -p "target/${SERVICE_NAME}*.jar" -d "${tempDir}" git.properties | grep "git.commit.id.describe=" | sed "s/git.commit.id.describe=//g" | sed "s/${SERVICE_NAME}-//g")
 #  rm -rf "${tempDir}"
   echo "$version"
 }
