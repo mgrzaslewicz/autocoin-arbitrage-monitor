@@ -14,7 +14,7 @@ preconditions() {
   declare -a requiredVariablesWithoutDefaults=(
     "HOST_PORT"
     "DOCKER_PORT"
-    "OAUTH_CLIENT_SECRET"
+    "APP_OAUTH_CLIENT_SECRET"
     "METRICS_DESTINATION"
   )
 
@@ -58,7 +58,7 @@ docker run --name "${SERVICE_NAME}" -d \
   -e JVM_ARGS="-Xmx400M" \
   -e TELEGRAF_HOSTNAME="${TELEGRAF_HOSTNAME}" \
   -e METRICS_DESTINATION="${METRICS_DESTINATION}" \
-  -e OAUTH_CLIENT_SECRET="${OAUTH_CLIENT_SECRET}" \
+  -e APP_OAUTH_CLIENT_SECRET="${APP_OAUTH_CLIENT_SECRET}" \
   "${DOCKER_REGISTRY}${SERVICE_NAME}:${VERSION}"
 
 docker network connect autocoin-tig-monitoring "${SERVICE_NAME}"
