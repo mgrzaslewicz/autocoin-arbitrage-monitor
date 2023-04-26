@@ -7,6 +7,7 @@ import automate.profit.autocoin.api.HealthController
 import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.api.health.HealthService
 import automate.profit.autocoin.app.config.AppConfig
+import automate.profit.autocoin.app.config.MetricsDestination
 import automate.profit.autocoin.exchange.CachingPriceService
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
@@ -67,13 +68,13 @@ class AppContext(val appConfig: AppConfig) {
         .build()
     val sseEventSourceFactory = EventSources.createFactory(sseHttpClient)
 
-    val statsdClient = if (appConfig.useRealStatsDClient) {
+    val statsdClient = if (appConfig.metricsDestination == MetricsDestination.TELEGRAF) {
         NonBlockingStatsDClient(appConfig.serviceName, appConfig.telegrafHostname, 8125)
     } else {
         val metricsFolderPath = Path.of(appConfig.metricsFolder)
         metricsFolderPath.toFile().mkdirs()
         val metricsFile = metricsFolderPath.resolve("metrics.jsonl")
-        logger.warn { "Using JsonlFileStatsDClient as TELEGRAF_HOSTNAME set to 'metrics.jsonl'. Writing metrics to ${metricsFile.toAbsolutePath()}" }
+        logger.warn { "Using JsonlFileStatsDClient as metricsDestination set to 'FILE'. Writing metrics to ${metricsFile.toAbsolutePath()}" }
         JsonlFileStatsDClient(metricsFile.toFile())
     }
     val metricsService: MetricsService = MetricsService(statsdClient)
