@@ -28,7 +28,7 @@ class AccessTokenChecker(
     private val appConfig: AppConfig
 ) {
     private val base64EncodedClientIdAndSecret =
-        Base64.getEncoder().encodeToString("${appConfig.arbitrageMonitorOauth2ClientId}:${appConfig.arbitrageMonitorOauth2ClientSecret}".toByteArray())
+        Base64.getEncoder().encodeToString("${appConfig.oauth2ClientId}:${appConfig.oauth2ClientSecret}".toByteArray())
 
     fun checkToken(bearerToken: String): CheckTokenDto? {
         val tokenCheckResponse = httpClient.newCall(

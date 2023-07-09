@@ -53,8 +53,8 @@ class AppContext(val appConfig: AppConfig) {
         httpClient = httpClientWithoutAuthorization,
         objectMapper = objectMapper,
         oauth2ServerUrl = appConfig.oauth2ApiBaseUrl,
-        oauthClientId = appConfig.arbitrageMonitorOauth2ClientId,
-        oauthClientSecret = appConfig.arbitrageMonitorOauth2ClientSecret
+        oauthClientId = appConfig.oauth2ClientId,
+        oauthClientSecret = appConfig.oauth2ClientSecret
     )
     val accessTokenAuthenticator = AccessTokenAuthenticator(accessTokenProvider)
     val accessTokenInterceptor = AccessTokenInterceptor(accessTokenProvider)
@@ -130,7 +130,7 @@ class AppContext(val appConfig: AppConfig) {
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
         exchangeMetadataService = exchangeMetadataService,
-        currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
+        currencyPairsWhiteList = appConfig.currencyPairsOverride,
     )
 
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
@@ -173,7 +173,7 @@ class AppContext(val appConfig: AppConfig) {
 
     val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
-        exchangesToMonitorTwoLegArbitrageOpportunities = appConfig.exchangesToMonitorTwoLegArbitrageOpportunities,
+        exchangesToMonitorTwoLegArbitrageOpportunities = appConfig.exchangesToMonitorOverride,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,

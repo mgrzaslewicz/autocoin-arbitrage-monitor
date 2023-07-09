@@ -43,11 +43,11 @@ class AppStarter(private val appContext: AppContext) {
     }
 
     private fun logCommonCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
-        appContext.appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.forEachIndexed { index, supportedExchange ->
-            for (i in index + 1 until appContext.appConfig.exchangesToMonitorTwoLegArbitrageOpportunities.size) {
+        appContext.appConfig.exchangesToMonitorOverride.forEachIndexed { index, supportedExchange ->
+            for (i in index + 1 until appContext.appConfig.exchangesToMonitorOverride.size) {
                 val exchangePair = ExchangePair(
                     firstExchange = supportedExchange,
-                    secondExchange = appContext.appConfig.exchangesToMonitorTwoLegArbitrageOpportunities[i]
+                    secondExchange = appContext.appConfig.exchangesToMonitorOverride[i]
                 )
                 val currencyPairs = exchangePairToCurrencyPairs[exchangePair]
                 logger.info { "Number common of currency pairs for $exchangePair = ${currencyPairs?.size ?: 0}" }

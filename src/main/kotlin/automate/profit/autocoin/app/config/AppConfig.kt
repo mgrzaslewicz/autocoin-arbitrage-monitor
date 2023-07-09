@@ -19,16 +19,16 @@ data class AppConfig(
     val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
     val serviceName: String = getPropertyThenEnv("SERVICE_NAME", "autocoin-arbitrage-monitor"),
 
-    val arbitrageCurrencyPairsWhiteList: Set<CurrencyPair> = getPropertyThenEnv(
-        "APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST",
+    val currencyPairsOverride: Set<CurrencyPair> = getPropertyThenEnv(
+        "CURRENCY_PAIRS_OVERRIDE",
         { propertyValue ->
             propertyValue.split(",")
                 .map { CurrencyPair.of(it) }.toSet()
         },
         emptySet()
     ),
-    val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange> = getPropertyThenEnv(
-        "APP_EXCHANGES_TO_MONITOR_TWO_LEG_ARBITRAGE_OPPORTUNITIES",
+    val exchangesToMonitorOverride: List<SupportedExchange> = getPropertyThenEnv(
+        "EXCHANGES_TO_MONITOR_OVERRIDE",
         values().joinToString(",") { it.exchangeName }
     )
         .split(",")
@@ -38,20 +38,20 @@ data class AppConfig(
     val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_MEDIATOR_API_URL", "http://autocoin-exchange-mediator:9001"),
     val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "http://autocoin-auth-service:9002"),
 
-    val arbitrageMonitorOauth2ClientId: String = serviceName,
-    val arbitrageMonitorOauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
+    val oauth2ClientId: String = serviceName,
+    val oauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
     val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
     val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv(
-        "APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS",
+        "AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS",
         Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()
     ).toLong(),
     val ageOfOldestTwoLegArbitrageProfitToKeepInRepositoryMs: Long = getPropertyThenEnv(
-        "APP_AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_REPOSITORY_MS",
+        "AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_REPOSITORY_MS",
         Duration.of(24, ChronoUnit.HOURS).toMillis().toString()
     ).toLong(),
 
     val orderBookUsdAmountThresholds: List<BigDecimal> = getPropertyThenEnv(
-        "APP_ORDER_BOOK_USD_AMOUNT_THRESHOLDS",
+        "ORDER_BOOK_USD_AMOUNT_THRESHOLDS",
         "100.0,500.0,1000.0,1500.0,2000.0,3000.0,4000.0,5000.0,6000.0,7000.0,8000.0,9000.0,10000.0,15000.0"
     )
         .split(",")
