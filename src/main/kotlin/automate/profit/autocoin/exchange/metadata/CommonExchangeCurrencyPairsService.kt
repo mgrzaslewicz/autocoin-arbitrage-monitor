@@ -16,7 +16,6 @@ data class CommonExchangeCurrencyPairs(
 class CommonExchangeCurrencyPairsService(
     private val exchangeMetadataService: ExchangeMetadataService,
     private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
-    private val staticTwoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = emptyMap()
 ) {
 
     companion object : KLogging()
@@ -25,15 +24,6 @@ class CommonExchangeCurrencyPairsService(
         private set
 
     fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
-        if (staticTwoLegArbitrageCurrencyAndExchangePairs.isNotEmpty()) {
-            logger.warn { "Using static list of currency pairs for monitoring profits provided at runtime" }
-            lastCalculatedCommonExchangeCurrencyPairs = CommonExchangeCurrencyPairs(
-                currencyPairsToExchangePairs = staticTwoLegArbitrageCurrencyAndExchangePairs,
-                exchangePairsToCurrencyPairs = emptyMap(),
-                exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange = emptyMap()
-            )
-            return lastCalculatedCommonExchangeCurrencyPairs
-        }
         val currencyPairsToExchangePairs: MutableMap<CurrencyPair, MutableSet<ExchangePair>> = mutableMapOf()
         val exchangePairsToCurrencyPairs: MutableMap<ExchangePair, Set<CurrencyPair>> = mutableMapOf()
         val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: MutableMap<SupportedExchange, MutableSet<CurrencyPair>> = mutableMapOf()

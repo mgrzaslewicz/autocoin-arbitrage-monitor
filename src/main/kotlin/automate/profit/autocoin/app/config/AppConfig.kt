@@ -1,7 +1,7 @@
 package automate.profit.autocoin.app.config
 
 import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.SupportedExchange.*
+import automate.profit.autocoin.exchange.SupportedExchange.values
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import java.io.File
 import java.lang.System.getProperty
@@ -15,52 +15,10 @@ data class ExchangePair(
     val secondExchange: SupportedExchange
 )
 
-private val currencyPairsForArbitrage = mapOf(
-    CurrencyPair.of("LSK/BTC") to setOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BITTREX, KUCOIN),
-        ExchangePair(KUCOIN, BINANCE)
-    ),
-    CurrencyPair.of("LSK/ETH") to setOf(
-        ExchangePair(KUCOIN, BINANCE)
-    ),
-    CurrencyPair.of("GNT/ETH") to setOf(
-        ExchangePair(BINANCE, BITTREX)
-    ),
-    CurrencyPair.of("GNT/BTC") to setOf(
-        ExchangePair(BINANCE, BITTREX)
-    ),
-    CurrencyPair.of("EOS/BTC") to setOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BITTREX, KUCOIN),
-        ExchangePair(KUCOIN, BINANCE)
-    ),
-    CurrencyPair.of("EOS/ETH") to setOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BITTREX, KUCOIN),
-        ExchangePair(KUCOIN, BINANCE)
-    ),
-    CurrencyPair.of("TRX/BTC") to setOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BITTREX, KUCOIN),
-        ExchangePair(KUCOIN, BINANCE)
-    ),
-    CurrencyPair.of("TRX/ETH") to setOf(
-        ExchangePair(BITTREX, BINANCE),
-        ExchangePair(BITTREX, KUCOIN),
-        ExchangePair(KUCOIN, BINANCE)
-    )
-)
-
 data class AppConfig(
     val appServerPort: Int = getPropertyThenEnv("APP_SERVER_PORT", "10021").toInt(),
     val serviceName: String = getPropertyThenEnv("SERVICE_NAME", "autocoin-arbitrage-monitor"),
 
-    val twoLegArbitrageCurrencyAndExchangePairs: Map<CurrencyPair, Set<ExchangePair>> = if (getPropertyThenEnv(
-            "APP_USE_HARDCODED_TWO_LEG_ARBITRAGE_CURRENCY_AND_EXCHANGE_PAIRS",
-            "false"
-        ).toBoolean()
-    ) currencyPairsForArbitrage else emptyMap(),
     val arbitrageCurrencyPairsWhiteList: Set<CurrencyPair> = getPropertyThenEnv(
         "APP_TWO_LEG_ARBITRAGE_CURRENCY_PAIRS_WHITE_LIST",
         { propertyValue ->
@@ -78,7 +36,6 @@ data class AppConfig(
 
 
     val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_MEDIATOR_API_URL", "http://autocoin-exchange-mediator:9001"),
-    val exchangeMetadataApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_METADATA_API_URL", "http://autocoin-exchange-mediator:9001"),
     val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "http://autocoin-auth-service:9002"),
 
     val arbitrageMonitorOauth2ClientId: String = serviceName,

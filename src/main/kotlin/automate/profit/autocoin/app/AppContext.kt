@@ -131,7 +131,6 @@ class AppContext(val appConfig: AppConfig) {
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
         exchangeMetadataService = exchangeMetadataService,
         currencyPairsWhiteList = appConfig.arbitrageCurrencyPairsWhiteList,
-        staticTwoLegArbitrageCurrencyAndExchangePairs = appConfig.twoLegArbitrageCurrencyAndExchangePairs
     )
 
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
