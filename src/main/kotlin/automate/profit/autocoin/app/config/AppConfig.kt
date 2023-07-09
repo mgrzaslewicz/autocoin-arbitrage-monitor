@@ -35,12 +35,14 @@ data class AppConfig(
         .map { SupportedExchange.fromExchangeName(it) },
 
 
-    val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv("EXCHANGE_MEDIATOR_API_URL", "http://autocoin-exchange-mediator:9001"),
+    val exchangeMediatorApiBaseUrl: String = getPropertyThenEnv(
+        "EXCHANGE_MEDIATOR_API_URL",
+        "http://autocoin-exchange-mediator:9001"
+    ),
     val oauth2ApiBaseUrl: String = getPropertyThenEnv("OAUTH2_API_URL", "http://autocoin-auth-service:9002"),
 
     val oauth2ClientId: String = serviceName,
     val oauth2ClientSecret: String = getPropertyThenEnv("APP_OAUTH_CLIENT_SECRET"),
-    val metricsFolder: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "metrics",
     val ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs: Long = getPropertyThenEnv(
         "AGE_OF_OLDEST_TWO_LEG_ARBITRAGE_PROFIT_TO_KEEP_IN_CACHE_MS",
         Duration.of(5, ChronoUnit.MINUTES).toMillis().toString()
@@ -56,9 +58,15 @@ data class AppConfig(
     )
         .split(",")
         .map { BigDecimal(it) },
-    val profitsRepositoryPath: String = getPropertyThenEnv("APP_DATA_PATH", "data") + File.separator + "profits",
+    val appDataPath: String = getPropertyThenEnv("APP_DATA_PATH", "data"),
+    val metricsFolder: String = appDataPath + File.separator + "metrics",
     val telegrafHostname: String = getPropertyThenEnv("TELEGRAF_HOSTNAME", "telegraf"),
-    val metricsDestination: MetricsDestination = MetricsDestination.valueOf(getPropertyThenEnv("METRICS_DESTINATION", MetricsDestination.FILE.name)),
+    val metricsDestination: MetricsDestination = MetricsDestination.valueOf(
+        getPropertyThenEnv(
+            "METRICS_DESTINATION",
+            MetricsDestination.FILE.name
+        )
+    ),
 )
 
 fun loadConfig(): AppConfig {
