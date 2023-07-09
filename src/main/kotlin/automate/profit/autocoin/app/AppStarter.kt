@@ -13,8 +13,8 @@ class AppStarter(private val appContext: AppContext) {
     private companion object : KLogging()
 
     fun start(): StartedApp {
-        logger.info { "Fetching currency pairs from exchanges" }
         with(appContext) {
+            logger.info { "Fetching currency pairs from exchanges" }
             val commonCurrencyPairs = commonExchangeCurrencyPairsService.calculateCommonCurrencyPairs()
             logCommonCurrencyPairsBetweenExchangePairs(commonCurrencyPairs.exchangePairsToCurrencyPairs)
 

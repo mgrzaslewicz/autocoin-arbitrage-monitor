@@ -9,6 +9,10 @@ import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger { }
 
+/**
+ * For local development run with PROFILE=dev
+ * either env variable or property
+ */
 fun main(args: Array<String>) {
     var address: SocketAddress? = null
     val bootTimeMillis = measureTimeMillis {

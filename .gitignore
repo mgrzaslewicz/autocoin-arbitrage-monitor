@@ -26,7 +26,6 @@ log/
 /nbdist/
 /.nb-gradle/
 
-src/main/**/RunLocal*.kt
 dependency-reduced-pom.xml
 
 pom.xml.releaseBackup

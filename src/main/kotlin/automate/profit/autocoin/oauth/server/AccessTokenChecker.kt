@@ -36,7 +36,7 @@ class AccessTokenChecker(
                 .post(FormBody.Builder().add("token", bearerToken).build())
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Authorization", "Basic $base64EncodedClientIdAndSecret")
-                .url("${appConfig.oauth2ApiBaseUrl}/oauth/check_token")
+                .url("${appConfig.oauth2ApiUrl}/oauth/check_token")
                 .build()
         ).execute()
         tokenCheckResponse.use {

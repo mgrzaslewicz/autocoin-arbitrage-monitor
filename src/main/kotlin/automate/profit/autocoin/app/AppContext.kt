@@ -52,7 +52,7 @@ class AppContext(val appConfig: AppConfig) {
     val accessTokenProvider = ClientCredentialsAccessTokenProvider(
         httpClient = httpClientWithoutAuthorization,
         objectMapper = objectMapper,
-        oauth2ServerUrl = appConfig.oauth2ApiBaseUrl,
+        oauth2ServerUrl = appConfig.oauth2ApiUrl,
         oauthClientId = appConfig.oauth2ClientId,
         oauthClientSecret = appConfig.oauth2ClientSecret
     )
@@ -83,7 +83,7 @@ class AppContext(val appConfig: AppConfig) {
 
     val priceService = CachingPriceService(
         decorated = RestPriceService(
-            priceApiUrl = appConfig.exchangeMediatorApiBaseUrl,
+            priceApiUrl = appConfig.exchangeMediatorApiUrl,
             httpClient = oauth2HttpClient,
             metricsService = metricsService,
             objectMapper = objectMapper
@@ -94,7 +94,7 @@ class AppContext(val appConfig: AppConfig) {
     val exchangeMetadataService = CachingExchangeMetadataService(
         decorated = RestExchangeMetadataService(
             httpClient = oauth2HttpClient,
-            exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiBaseUrl,
+            exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
             objectMapper = objectMapper
         )
     )
@@ -112,12 +112,13 @@ class AppContext(val appConfig: AppConfig) {
         metricsService = metricsService,
     )
 
-    val twoLegArbitrageProfitOpportunityCache = TwoLegArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs)
+    val twoLegArbitrageProfitOpportunityCache =
+        TwoLegArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCache)
 
 
     val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
-        ageOfOldestTwoLegArbitrageProfitToKeepMs = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCacheMs,
+        ageOfOldestTwoLegArbitrageProfitToKeep = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCache,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
     )
 
@@ -136,7 +137,7 @@ class AppContext(val appConfig: AppConfig) {
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
 
     val orderBookSseStreamService = OrderBookSseStreamService(
-        orderBookApiBaseUrl = appConfig.exchangeMediatorApiBaseUrl,
+        orderBookApiBaseUrl = appConfig.exchangeMediatorApiUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
         orderBookListeners = orderBookListeners,
@@ -145,7 +146,7 @@ class AppContext(val appConfig: AppConfig) {
         instanceId = instanceId,
     )
     val tickerSseStreamService = TickerSseStreamService(
-        tickerApiBaseUrl = appConfig.exchangeMediatorApiBaseUrl,
+        tickerApiBaseUrl = appConfig.exchangeMediatorApiUrl,
         httpClient = sseHttpClient,
         eventSourceFactory = sseEventSourceFactory,
         tickerListeners = tickerListeners,
@@ -194,7 +195,7 @@ class AppContext(val appConfig: AppConfig) {
 
     val controllers = listOf(arbitrageProfitController, healthController)
 
-    val server = ServerBuilder(appConfig.appServerPort, controllers, metricsService).build()
+    val server = ServerBuilder(appConfig.serverPort, controllers, metricsService).build()
 
 
 }

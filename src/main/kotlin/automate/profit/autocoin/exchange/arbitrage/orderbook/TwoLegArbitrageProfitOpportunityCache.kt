@@ -3,6 +3,7 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import mu.KLogging
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -13,7 +14,7 @@ data class ExchangePairWithOpportunityCount(
 )
 
 class TwoLegArbitrageProfitOpportunityCache(
-    private val ageOfOldestTwoLegArbitrageProfitToKeepMs: Long,
+    private val ageOfOldestTwoLegArbitrageProfitToKeep: Duration,
     private val currentTimeMillisFunction: () -> Long = System::currentTimeMillis,
 ) {
     private val profits = ConcurrentHashMap<CurrencyPairWithExchangePair, TwoLegArbitrageProfitOpportunity>()
@@ -107,7 +108,7 @@ class TwoLegArbitrageProfitOpportunityCache(
         getCurrencyPairWithExchangePairs().forEach {
             synchronized(profits) {
                 if (profits.containsKey(it)) {
-                    if (currentTimeMs - profits[it]!!.calculatedAtMillis > ageOfOldestTwoLegArbitrageProfitToKeepMs) {
+                    if (currentTimeMs - profits[it]!!.calculatedAtMillis > ageOfOldestTwoLegArbitrageProfitToKeep.toMillis()) {
                         profits.remove(it)
                     }
                 }

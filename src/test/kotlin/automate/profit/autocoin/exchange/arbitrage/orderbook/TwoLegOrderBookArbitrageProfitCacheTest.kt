@@ -7,6 +7,7 @@ import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import java.time.Duration
 import java.util.*
 
 class TwoLegOrderBookArbitrageProfitCacheTest {
@@ -42,7 +43,8 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     fun shouldRemoveTooOldProfits() {
         // given
         val timeMillis = ArrayDeque(listOf(3L, 7L, 9L))
-        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5) { timeMillis.poll() }
+        val profitsCache =
+            TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeep = Duration.ofMillis(5)) { timeMillis.poll() }
         profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 1))
         profitsCache.setProfitOpportunity(noProfitSample.copy(calculatedAtMillis = 3, currencyPairWithExchangePair = currencyPairWithExchangePair2))
         // when-then
@@ -59,7 +61,8 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCountWhenNoOpportunities() {
         // given
-        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache =
+            TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeep = Duration.ofMillis(5))
         profitsCache.setProfitOpportunity(noProfitSample)
         profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
         profitsCache.setProfitOpportunity(noProfitSample.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
@@ -86,7 +89,8 @@ class TwoLegOrderBookArbitrageProfitCacheTest {
     @Test
     fun shouldGetExchangePairsOpportunityCount() {
         // given
-        val profitsCache = TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeepMs = 5)
+        val profitsCache =
+            TwoLegArbitrageProfitOpportunityCache(ageOfOldestTwoLegArbitrageProfitToKeep = Duration.ofMillis(5))
         profitsCache.setProfitOpportunity(sampleProfit)
         profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair2))
         profitsCache.setProfitOpportunity(sampleProfit.copy(currencyPairWithExchangePair = currencyPairWithExchangePair3))
