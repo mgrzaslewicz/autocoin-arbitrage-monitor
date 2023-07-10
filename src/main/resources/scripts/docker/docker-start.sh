@@ -3,7 +3,7 @@ set -x # turn on debug mode
 set -e # exit on any error
 
 AUTOCOIN_DEPLOYMENT_DIR="${AUTOCOIN_DEPLOYMENT_DIR:=/opt/autocoin/apps}"
-SERVICE_NAME="${SERVICE_NAME:=autocoin-exchange-mediator}"
+SERVICE_NAME="${SERVICE_NAME:=autocoin-arbitrage-monitor}"
 PROPERTY_FILE="${PROPERTY_FILE:=env.properties}"
 APP_DATA_PATH="${APP_DATA_PATH:=$AUTOCOIN_DEPLOYMENT_DIR/$SERVICE_NAME/data}"
 LOG_PATH="${LOG_PATH:=$AUTOCOIN_DEPLOYMENT_DIR/$SERVICE_NAME/log}"
