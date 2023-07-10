@@ -40,7 +40,7 @@ class ConfigLoader {
                     .toSet(),
                 exchangesToMonitorOverride = config.getStringList("arbitrage.exchangesToMonitorOverride")
                     .map { SupportedExchange.fromExchangeName(it) },
-                twoLegArbitrageProfitCacheDuration = config.getDuration("arbitrage.ageOfOldestTwoLegArbitrageProfitToKeepInCache"),
+                twoLegArbitrageProfitCacheDuration = config.getDuration("arbitrage.twoLegArbitrageProfitCacheDuration"),
                 orderBookUsdAmountThresholds = config.getIntList("arbitrage.orderBookUsdAmountThresholds")
                     .map { BigDecimal(it) },
             )
