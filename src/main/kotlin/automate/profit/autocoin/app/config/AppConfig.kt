@@ -15,26 +15,28 @@ data class ExchangePair(
 )
 
 data class AppConfig(
+    // region: app
     val serverPort: Int,
     val serviceName: String,
+    val appDataPath: String,
+    // endregion
 
-    val currencyPairsOverride: Set<CurrencyPair>,
-    val exchangesToMonitorOverride: List<SupportedExchange>,
-
+    // region: external services
     val exchangeMediatorApiUrl: String,
     val oauth2ApiUrl: String,
-
     val oauth2ClientId: String,
     val oauth2ClientSecret: String,
-
-    val twoLegArbitrageProfitCacheDuration: Duration,
-
-    val orderBookUsdAmountThresholds: List<BigDecimal>,
-
-    val appDataPath: String,
-
     val telegrafHostname: String,
+    // endregion
+
     val metricsDestination: MetricsDestination,
+
+    // region: arbitrage
+    val currencyPairsOverride: Set<CurrencyPair>,
+    val exchangesToMonitorOverride: List<SupportedExchange>,
+    val twoLegArbitrageProfitCacheDuration: Duration,
+    val orderBookUsdAmountThresholds: List<BigDecimal>,
+    // endregion
 ) {
     val metricsFolder: String = appDataPath + File.separator + "metrics"
 }
