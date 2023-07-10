@@ -4,7 +4,7 @@
 
     <groupId>com.autocoin</groupId>
     <artifactId>autocoin-arbitrage-monitor</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <description>Watches various exchanges and calculates arbitrage statistics</description>
@@ -29,7 +29,7 @@
         <connection>scm:git:git@github.com:mgrzaslewicz/autocoin-arbitrage-monitor.git</connection>
         <url>scm:git:git@github.com:mgrzaslewicz/autocoin-arbitrage-monitor.git</url>
         <developerConnection>scm:git:git@github.com:mgrzaslewicz/autocoin-arbitrage-monitor.git</developerConnection>
-        <tag>autocoin-arbitrage-monitor-1.1.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
