@@ -28,7 +28,6 @@ data class AppConfig(
     val oauth2ClientSecret: String,
 
     val twoLegArbitrageProfitCacheDuration: Duration,
-    val ageOfOldestTwoLegArbitrageProfitToKeepInRepository: Duration,
 
     val orderBookUsdAmountThresholds: List<BigDecimal>,
 
@@ -75,7 +74,6 @@ fun loadConfig(): AppConfig {
         exchangesToMonitorOverride = config.getStringList("arbitrage.exchangesToMonitorOverride")
             .map { SupportedExchange.fromExchangeName(it) },
         twoLegArbitrageProfitCacheDuration = config.getDuration("arbitrage.ageOfOldestTwoLegArbitrageProfitToKeepInCache"),
-        ageOfOldestTwoLegArbitrageProfitToKeepInRepository = config.getDuration("arbitrage.ageOfOldestTwoLegArbitrageProfitToKeepInRepository"),
         orderBookUsdAmountThresholds = config.getIntList("arbitrage.orderBookUsdAmountThresholds")
             .map { BigDecimal(it) },
     )
