@@ -93,7 +93,10 @@ class AppContext(val appConfig: AppConfig) {
 
     val exchangeMetadataService = CachingExchangeMetadataService(
         decorated = RestExchangeMetadataService(
-            httpClient = oauth2HttpClient,
+            httpClient = oauth2HttpClient.newBuilder()
+                .readTimeout(60, TimeUnit.SECONDS)
+                .callTimeout(60, TimeUnit.SECONDS)
+                .build(),
             exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
             objectMapper = objectMapper
         )
