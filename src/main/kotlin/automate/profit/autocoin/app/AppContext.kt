@@ -116,12 +116,12 @@ class AppContext(val appConfig: AppConfig) {
     )
 
     val twoLegArbitrageProfitOpportunityCache =
-        TwoLegArbitrageProfitOpportunityCache(appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCache)
+        TwoLegArbitrageProfitOpportunityCache(appConfig.twoLegArbitrageProfitCacheDuration)
 
 
     val twoLegOrderBookArbitrageProfitCacheScheduler = TwoLegOrderBookArbitrageProfitCacheScheduler(
         scheduledExecutorService = scheduledJobsxecutorService,
-        ageOfOldestTwoLegArbitrageProfitToKeep = appConfig.ageOfOldestTwoLegArbitrageProfitToKeepInCache,
+        ageOfOldestTwoLegArbitrageProfitToKeep = appConfig.twoLegArbitrageProfitCacheDuration,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
     )
 
