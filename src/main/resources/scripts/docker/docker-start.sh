@@ -14,8 +14,9 @@ preconditions() {
   declare -a requiredVariablesWithoutDefaults=(
     "HOST_PORT"
     "DOCKER_PORT"
-    "APP_OAUTH_CLIENT_SECRET"
-    "METRICS_DESTINATION"
+    "externalServices_oauth_apiUrl"
+    "externalServices_oauth_clientSecret"
+    "externalServices_exchangeMediator_apiUrl"
   )
 
   echo "Expecting variables ${requiredVariablesWithoutDefaults[*]} to be provided by the environment or $PROPERTY_FILE file as those have no default values."
@@ -54,11 +55,10 @@ docker run --name "${SERVICE_NAME}" -d \
   -v "${APP_DATA_PATH}":/app/data \
   --memory=600m \
   --restart=no \
-  -e SERVICE_NAME="${SERVICE_NAME}" \
   -e JVM_ARGS="-Xmx400M" \
-  -e TELEGRAF_HOSTNAME="${TELEGRAF_HOSTNAME}" \
-  -e METRICS_DESTINATION="${METRICS_DESTINATION}" \
-  -e APP_OAUTH_CLIENT_SECRET="${APP_OAUTH_CLIENT_SECRET}" \
+  -e "externalServices.oauth.clientSecret"="${externalServices_oauth_clientSecret}" \
+  -e "externalServices.oauth.apiUrl"="${externalServices_oauth_apiUrl}" \
+  -e "externalServices.exchangeMediator.apiUrl"="${externalServices_exchangeMediator_apiUrl}" \
   "${DOCKER_REGISTRY}${SERVICE_NAME}:${VERSION}"
 
 docker network connect autocoin-tig-monitoring "${SERVICE_NAME}"
