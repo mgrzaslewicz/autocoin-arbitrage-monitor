@@ -14,9 +14,9 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCutOff
-import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
+import automate.profit.autocoin.exchange.metadata.caching
 import automate.profit.autocoin.exchange.metadata.withRetry
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
@@ -95,16 +95,16 @@ class AppContext(val appConfig: AppConfig) {
         executorService = scheduledJobsxecutorService,
     )
 
-    val exchangeMetadataService = CachingExchangeMetadataService(
-        decorated = RestExchangeMetadataService(
-            httpClient = oauth2HttpClient.newBuilder()
-                .readTimeout(60, TimeUnit.SECONDS)
-                .callTimeout(60, TimeUnit.SECONDS)
-                .build(),
-            exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
-            objectMapper = objectMapper
-        ).withRetry()
+    val exchangeMetadataService = RestExchangeMetadataService(
+        httpClient = oauth2HttpClient.newBuilder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
+            .build(),
+        exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
+        objectMapper = objectMapper
     )
+        .withRetry()
+        .caching()
 
     private val transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
 
