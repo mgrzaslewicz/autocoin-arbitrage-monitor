@@ -172,6 +172,7 @@ class AppContext(val appConfig: AppConfig) {
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         appVersion = AppVersion().commitId,
+        metadataService = exchangeMetadataService,
     )
 
     val healthMetricsScheduler = HealthMetricsScheduler(

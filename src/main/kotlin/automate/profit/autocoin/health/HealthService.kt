@@ -6,6 +6,7 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpp
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
+import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
@@ -40,14 +41,23 @@ data class Health(
 class HealthService(
     private val healthChecks: List<HealthCheck>,
     private val appVersion: String?,
+    private val metadataService: ExchangeMetadataService,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
 ) {
-    private val orderBookUpdatesSinceStart = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java).apply {
-        SupportedExchange.values().forEach { put(it, 0L) }
+    private val orderBookUpdatesSinceStart: EnumMap<SupportedExchange, Long> by lazy {
+        val count = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java)
+        metadataService.getAllExchangesMetadata().forEach {
+            count[it.exchange] = 0L
+        }
+        count
     }
-    private val tickerUpdatesSinceStart = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java).apply {
-        SupportedExchange.values().forEach { put(it, 0L) }
+    private val tickerUpdatesSinceStart: EnumMap<SupportedExchange, Long> by lazy {
+        val count = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java)
+        metadataService.getAllExchangesMetadata().forEach {
+            count[it.exchange] = 0L
+        }
+        count
     }
 
     fun addOrderBookListenersTo(orderBookListeners: OrderBookListeners) {
