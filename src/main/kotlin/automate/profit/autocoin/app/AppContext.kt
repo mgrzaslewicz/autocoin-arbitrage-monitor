@@ -18,6 +18,7 @@ import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProf
 import automate.profit.autocoin.exchange.metadata.CachingExchangeMetadataService
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
 import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
+import automate.profit.autocoin.exchange.metadata.withRetry
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.TickerListeners
@@ -99,7 +100,7 @@ class AppContext(val appConfig: AppConfig) {
                 .build(),
             exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
             objectMapper = objectMapper
-        )
+        ).withRetry()
     )
 
     private val transactionFeeRatioWhenNotAvailableInMetadata = BigDecimal("0.001")
