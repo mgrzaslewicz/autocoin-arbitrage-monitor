@@ -4,7 +4,7 @@
 
     <groupId>com.autocoin</groupId>
     <artifactId>autocoin-arbitrage-monitor</artifactId>
-    <version>1.1.7-SNAPSHOT</version>
+    <version>1.1.7</version>
     <packaging>jar</packaging>
 
     <description>Watches various exchanges and calculates arbitrage statistics</description>
