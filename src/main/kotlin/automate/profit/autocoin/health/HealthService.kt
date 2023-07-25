@@ -53,7 +53,7 @@ class HealthService(
     fun addOrderBookListenersTo(orderBookListeners: OrderBookListeners) {
         val orderBookListener = object : OrderBookListener {
             override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
-                this@HealthService.onOrderBook(exchange, currencyPair, orderBook)
+                this@HealthService.onOrderBook(exchange)
             }
         }
         commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.forEach {
@@ -77,7 +77,7 @@ class HealthService(
     fun addTickerListenersTo(tickerListeners: TickerListeners) {
         val orderBookListener = object : TickerListener {
             override fun onTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker) {
-                this@HealthService.onTicker(exchange, currencyPair, ticker)
+                this@HealthService.onTicker(exchange)
             }
         }
         commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.forEach {
@@ -98,12 +98,12 @@ class HealthService(
         }
     }
 
-    private fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
+    private fun onOrderBook(exchange: SupportedExchange) {
         orderBookUpdatesSinceStart[exchange] = orderBookUpdatesSinceStart[exchange]!! + 1
     }
 
 
-    private fun onTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker) {
+    private fun onTicker(exchange: SupportedExchange) {
         tickerUpdatesSinceStart[exchange] = orderBookUpdatesSinceStart[exchange]!! + 1
     }
 
