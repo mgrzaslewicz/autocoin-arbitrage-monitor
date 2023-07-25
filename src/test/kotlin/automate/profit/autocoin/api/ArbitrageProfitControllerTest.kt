@@ -20,6 +20,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
+import java.util.function.Supplier
 
 
 class ArbitrageProfitControllerTest {
@@ -52,7 +53,7 @@ class ArbitrageProfitControllerTest {
             )
         }
         val arbitrageProfitController = ArbitrageProfitController(
-            exchangesToMonitorTwoLegArbitrageOpportunities = listOf(BITTREX, BINANCE),
+            exchangesToMonitor = Supplier { listOf(BITTREX, BINANCE) },
             twoLegArbitrageProfitOpportunityCache = mock(),
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
@@ -103,7 +104,7 @@ class ArbitrageProfitControllerTest {
             whenever(this.getAllProfits()).thenReturn(mock())
         }
         val arbitrageProfitController = ArbitrageProfitController(
-            exchangesToMonitorTwoLegArbitrageOpportunities = emptyList(),
+            exchangesToMonitor = Supplier { emptyList() },
             twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
@@ -165,7 +166,8 @@ class ArbitrageProfitControllerTest {
         val response = httpClientWithoutAuthorization.newCall(request).execute()
         // then
         response.use {
-            val twoLegArbitrageProfitOpportunitiesResponseDto = objectMapper.readValue(it.body?.string(), TwoLegArbitrageProfitOpportunitiesResponseDto::class.java)
+            val twoLegArbitrageProfitOpportunitiesResponseDto =
+                objectMapper.readValue(it.body?.string(), TwoLegArbitrageProfitOpportunitiesResponseDto::class.java)
             assertThat(twoLegArbitrageProfitOpportunitiesResponseDto.profits).hasSize(1)
             twoLegArbitrageProfitOpportunitiesResponseDto.profits.first()!!.apply {
                 SoftAssertions().apply {

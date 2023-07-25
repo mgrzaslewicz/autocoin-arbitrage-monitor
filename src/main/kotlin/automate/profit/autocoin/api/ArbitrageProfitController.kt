@@ -16,6 +16,7 @@ import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 import java.math.RoundingMode.HALF_DOWN
 import java.math.RoundingMode.HALF_EVEN
+import java.util.function.Supplier
 
 
 data class TwoLegArbitrageProfitOpportunityFeesDto(
@@ -66,7 +67,8 @@ data class TwoLegArbitrageMetadataDto(
     val defaultTransactionFeePercent: String,
 )
 
-private fun SecurityContext.authenticatedUserHasRole(roleName: String) = this.authenticatedAccount.roles.contains(roleName)
+private fun SecurityContext.authenticatedUserHasRole(roleName: String) =
+    this.authenticatedAccount.roles.contains(roleName)
 
 class ClientTwoLegArbitrageProfitOpportunities(
     private val freePlanRelativeProfitCutOff: BigDecimal,
@@ -77,7 +79,10 @@ class ClientTwoLegArbitrageProfitOpportunities(
     private fun TwoLegArbitrageProfitOpportunityAtDepth.toDto(shouldHideOpportunityDetails: Boolean): TwoLegArbitrageProfitOpportunityAtDepthDto {
         return TwoLegArbitrageProfitOpportunityAtDepthDto(
             sellPrice = if (shouldHideOpportunityDetails) null else sellPrice.setScale(8, HALF_EVEN).toPlainString(),
-            sellAmount = if (shouldHideOpportunityDetails) null else baseCurrencyAmountAtSellExchange.setScale(8, HALF_EVEN).toPlainString(),
+            sellAmount = if (shouldHideOpportunityDetails) null else baseCurrencyAmountAtSellExchange.setScale(
+                8,
+                HALF_EVEN
+            ).toPlainString(),
             buyPrice = buyPrice.setScale(8, HALF_EVEN).toPlainString(),
             buyAmount = baseCurrencyAmountAtBuyExchange.setScale(8, HALF_EVEN).toPlainString(),
             relativeProfitPercent = relativeProfit.movePointRight(2).setScale(4, HALF_EVEN).toPlainString(),
@@ -93,24 +98,37 @@ class ClientTwoLegArbitrageProfitOpportunities(
         )
     }
 
-    private fun TwoLegArbitrageProfitOpportunity.toDto(shouldHideOpportunityDetails: Boolean) = TwoLegArbitrageProfitOpportunityDto(
-        baseCurrency = currencyPairWithExchangePair.currencyPair.base,
-        counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
-        buyAtExchange = buyAtExchange,
-        sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
-        withdrawalEnabled = exchangeMetadataService.getCurrencyMetadata(buyAtExchange.exchangeName, currencyPairWithExchangePair.currencyPair.base)?.withdrawalEnabled,
-        depositEnabled = exchangeMetadataService.getCurrencyMetadata(sellAtExchange.exchangeName, currencyPairWithExchangePair.currencyPair.counter)?.depositEnabled,
-        usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
-        usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSellExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
-        profitOpportunityHistogram = profitOpportunityHistogram.map {
-            it?.toDto(shouldHideOpportunityDetails)
-        },
-        areDetailsHidden = shouldHideOpportunityDetails,
-        calculatedAtMillis = calculatedAtMillis,
-        ageSeconds = ((timeMillisFunction() - olderOrderBookReceivedAtOrExchangeMillis) / 1000.0).toInt(),
-    )
+    private fun TwoLegArbitrageProfitOpportunity.toDto(shouldHideOpportunityDetails: Boolean) =
+        TwoLegArbitrageProfitOpportunityDto(
+            baseCurrency = currencyPairWithExchangePair.currencyPair.base,
+            counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
+            buyAtExchange = buyAtExchange,
+            sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
+            withdrawalEnabled = exchangeMetadataService.getCurrencyMetadata(
+                buyAtExchange.exchangeName,
+                currencyPairWithExchangePair.currencyPair.base
+            )?.withdrawalEnabled,
+            depositEnabled = exchangeMetadataService.getCurrencyMetadata(
+                sellAtExchange.exchangeName,
+                currencyPairWithExchangePair.currencyPair.counter
+            )?.depositEnabled,
+            usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
+            usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSellExchange?.setScale(
+                2,
+                HALF_DOWN
+            )?.toPlainString(),
+            profitOpportunityHistogram = profitOpportunityHistogram.map {
+                it?.toDto(shouldHideOpportunityDetails)
+            },
+            areDetailsHidden = shouldHideOpportunityDetails,
+            calculatedAtMillis = calculatedAtMillis,
+            ageSeconds = ((timeMillisFunction() - olderOrderBookReceivedAtOrExchangeMillis) / 1000.0).toInt(),
+        )
 
-    fun prepareClientProfits(allProfits: Sequence<TwoLegArbitrageProfitOpportunity>, isUserInProPlan: Boolean): List<TwoLegArbitrageProfitOpportunityDto> {
+    fun prepareClientProfits(
+        allProfits: Sequence<TwoLegArbitrageProfitOpportunity>,
+        isUserInProPlan: Boolean
+    ): List<TwoLegArbitrageProfitOpportunityDto> {
         return allProfits.map { opportunity ->
             opportunity.toDto(
                 shouldHideOpportunityDetails = !isUserInProPlan
@@ -125,26 +143,36 @@ class ClientTwoLegArbitrageProfitOpportunities(
 }
 
 class ArbitrageProfitController(
-    private val exchangesToMonitorTwoLegArbitrageOpportunities: List<SupportedExchange>,
+    private val exchangesToMonitor: Supplier<List<SupportedExchange>>,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
     private val orderBookUsdAmountThresholds: List<BigDecimal>,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val objectMapper: ObjectMapper,
     private val oauth2BearerTokenAuthHandlerWrapper: HttpHandlerWrapper,
-    private val isUserInProPlanFunction: (httpServerExchange: HttpServerExchange) -> Boolean = { it -> it.securityContext.authenticatedUserHasRole("ROLE_PRO_USER") },
+    private val isUserInProPlanFunction: (httpServerExchange: HttpServerExchange) -> Boolean = { it ->
+        it.securityContext.authenticatedUserHasRole(
+            "ROLE_PRO_USER"
+        )
+    },
     private val clientTwoLegArbitrageProfitOpportunities: ClientTwoLegArbitrageProfitOpportunities,
     private val freePlanRelativeProfitPercentCutOff: String,
     private val transactionFeeRatioWhenNotAvailableInMetadata: BigDecimal,
 ) : ApiController {
 
-    private val exchangesMonitored = exchangesToMonitorTwoLegArbitrageOpportunities.map { it.exchangeName }.toSet()
+    private val exchangesMonitored: Set<String> by lazy {
+        exchangesToMonitor.get().map { it.exchangeName }.toSet()
+    }
+
     private fun getTwoLegArbitrageProfits() = object : ApiHandler {
         override val method = GET
         override val urlTemplate = "/two-leg-arbitrage-profits"
 
         override val httpHandler = HttpHandler { httpServerExchange ->
             val isUserInProPlan = isUserInProPlanFunction(httpServerExchange)
-            val profits = clientTwoLegArbitrageProfitOpportunities.prepareClientProfits(twoLegArbitrageProfitOpportunityCache.getAllProfits(), isUserInProPlan)
+            val profits = clientTwoLegArbitrageProfitOpportunities.prepareClientProfits(
+                twoLegArbitrageProfitOpportunityCache.getAllProfits(),
+                isUserInProPlan
+            )
 
             val result = TwoLegArbitrageProfitOpportunitiesResponseDto(
                 usdDepthThresholds = orderBookUsdAmountThresholds.map { threshold -> threshold.toInt() },
@@ -160,10 +188,13 @@ class ArbitrageProfitController(
         override val urlTemplate = "/two-leg-arbitrage-metadata"
 
         override val httpHandler = HttpHandler { httpServerExchange ->
-            val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
+            val lastCalculatedCommonExchangeCurrencyPairs =
+                commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
 
-            val baseCurrencies = lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.base }.toSet()
-            val counterCurrencies = lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.counter }.toSet()
+            val baseCurrencies =
+                lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.base }.toSet()
+            val counterCurrencies =
+                lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.keys.map { it.counter }.toSet()
 
             val isUserInProPlan = isUserInProPlanFunction(httpServerExchange)
 
@@ -173,7 +204,8 @@ class ArbitrageProfitController(
                 freePlanProfitPercentCutOff = freePlanRelativeProfitPercentCutOff,
                 exchangesMonitored = exchangesMonitored,
                 isIncludingProPlanOpportunities = isUserInProPlan,
-                defaultTransactionFeePercent = transactionFeeRatioWhenNotAvailableInMetadata.movePointRight(2).toPlainString(),
+                defaultTransactionFeePercent = transactionFeeRatioWhenNotAvailableInMetadata.movePointRight(2)
+                    .toPlainString(),
             )
             httpServerExchange.responseSender.send(objectMapper.writeValueAsString(response))
         }

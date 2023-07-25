@@ -42,6 +42,7 @@ import java.time.Duration
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 
 class AppContext(val appConfig: AppConfig) {
     private companion object : KLogging()
@@ -178,7 +179,11 @@ class AppContext(val appConfig: AppConfig) {
 
     val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
-        exchangesToMonitorTwoLegArbitrageOpportunities = appConfig.exchangesToMonitorOverride,
+        exchangesToMonitor = if (appConfig.exchangesToMonitorOverride.isEmpty()) {
+            Supplier { exchangeMetadataService.getAllExchangesMetadata().map { it.exchange } }
+        } else {
+            Supplier { appConfig.exchangesToMonitorOverride }
+        },
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
@@ -199,7 +204,11 @@ class AppContext(val appConfig: AppConfig) {
 
     val controllers = listOf(arbitrageProfitController, healthController)
 
-    val server = ServerBuilder(appConfig.serverPort, controllers, metricsService).build()
+    val server = ServerBuilder(
+        appServerPort = appConfig.serverPort,
+        apiControllers = controllers,
+        metricsService = metricsService
+    ).build()
 
 
 }
