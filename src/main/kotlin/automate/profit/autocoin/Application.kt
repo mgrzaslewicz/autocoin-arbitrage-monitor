@@ -2,6 +2,7 @@ package automate.profit.autocoin
 
 import automate.profit.autocoin.app.AppContext
 import automate.profit.autocoin.app.AppStarter
+import automate.profit.autocoin.app.AppVersion
 import automate.profit.autocoin.app.config.ConfigLoader.Companion.loadConfig
 import mu.KotlinLogging
 import java.net.SocketAddress
@@ -14,6 +15,7 @@ private val logger = KotlinLogging.logger { }
  * either env variable or property
  */
 fun main(args: Array<String>) {
+    logger.info { "Starting application. Version ${AppVersion().commitId ?: "unavailable"}..." }
     var address: SocketAddress? = null
     val bootTimeMillis = measureTimeMillis {
         val config = loadConfig()
