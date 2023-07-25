@@ -5,7 +5,6 @@ import automate.profit.autocoin.api.ArbitrageProfitController
 import automate.profit.autocoin.api.ClientTwoLegArbitrageProfitOpportunities
 import automate.profit.autocoin.api.HealthController
 import automate.profit.autocoin.api.ServerBuilder
-import automate.profit.autocoin.api.health.HealthService
 import automate.profit.autocoin.app.config.AppConfig
 import automate.profit.autocoin.app.config.MetricsDestination
 import automate.profit.autocoin.exchange.CachingPriceService
@@ -23,6 +22,9 @@ import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
 import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.TickerListeners
 import automate.profit.autocoin.exchange.tickerstream.TickerSseStreamService
+import automate.profit.autocoin.health.HealthService
+import automate.profit.autocoin.health.OrderBookStreamHealthCheck
+import automate.profit.autocoin.health.TickerStreamHealthCheck
 import automate.profit.autocoin.metrics.MetricsService
 import automate.profit.autocoin.oauth.client.AccessTokenAuthenticator
 import automate.profit.autocoin.oauth.client.AccessTokenInterceptor
@@ -160,9 +162,13 @@ class AppContext(val appConfig: AppConfig) {
         instanceId = instanceId,
     )
 
+    val healthChecks = listOf(
+        TickerStreamHealthCheck(tickerSseStreamService),
+        OrderBookStreamHealthCheck(orderBookSseStreamService),
+    )
+
     val healthService = HealthService(
-        orderBookSseStreamService = orderBookSseStreamService,
-        tickerSseStreamService = tickerSseStreamService,
+        healthChecks = healthChecks,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         appVersion = AppVersion().commitId,

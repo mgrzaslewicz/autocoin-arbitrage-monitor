@@ -1,6 +1,6 @@
 package automate.profit.autocoin.scheduled
 
-import automate.profit.autocoin.api.health.HealthService
+import automate.profit.autocoin.health.HealthService
 import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
 import automate.profit.autocoin.metrics.MetricsService

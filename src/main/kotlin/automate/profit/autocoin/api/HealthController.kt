@@ -1,6 +1,6 @@
 package automate.profit.autocoin.api
 
-import automate.profit.autocoin.api.health.HealthService
+import automate.profit.autocoin.health.HealthService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.server.HttpHandler
 import io.undertow.util.Methods.GET

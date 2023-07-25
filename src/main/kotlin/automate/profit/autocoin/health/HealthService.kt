@@ -1,4 +1,4 @@
-package automate.profit.autocoin.api.health
+package automate.profit.autocoin.health
 
 import automate.profit.autocoin.exchange.ExchangeWithCurrencyPair
 import automate.profit.autocoin.exchange.SupportedExchange
@@ -9,11 +9,9 @@ import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsSer
 import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
-import automate.profit.autocoin.exchange.orderbookstream.OrderBookSseStreamService
 import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerListener
 import automate.profit.autocoin.exchange.ticker.TickerListeners
-import automate.profit.autocoin.exchange.tickerstream.TickerSseStreamService
 import java.util.*
 
 data class TwoLegArbitrageOpportunitiesCount(
@@ -24,7 +22,7 @@ data class TwoLegArbitrageOpportunitiesCount(
 data class Health(
     val version: String?,
     val healthy: Boolean,
-    val unhealthyReasons: List<String>,
+    val healthChecks: List<HealthCheckResult>,
     val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesCount,
     val receivedOrderBooksSinceStart: Map<SupportedExchange, Long>,
     val receivedTickersSinceStart: Map<SupportedExchange, Long>,
@@ -38,12 +36,12 @@ data class Health(
     val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<SupportedExchange, Set<String>>,
 )
 
+
 class HealthService(
-    private val orderBookSseStreamService: OrderBookSseStreamService,
-    private val tickerSseStreamService: TickerSseStreamService,
+    private val healthChecks: List<HealthCheck>,
+    private val appVersion: String?,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
-    private val appVersion: String?,
 ) {
     private val orderBookUpdatesSinceStart = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java).apply {
         SupportedExchange.values().forEach { put(it, 0L) }
@@ -110,18 +108,14 @@ class HealthService(
     }
 
     fun getHealth(): Health {
+        val healthCheckResults = healthChecks.map { it() }
         val twoLegArbitrageExchangePairsOpportunityCount =
             twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
-        val isConnectedToTickerStream = tickerSseStreamService.isConnected()
-        val isConnectedToOrderBookStream = orderBookSseStreamService.isConnected()
         val lastCalculatedCommonExchangeCurrencyPairs =
             commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
         val health = Health(
-            healthy = isConnectedToTickerStream && isConnectedToOrderBookStream,
-            unhealthyReasons = listOfNotNull(
-                if (isConnectedToTickerStream) null else "Not connected to ticker stream",
-                if (isConnectedToOrderBookStream) null else "Not connected to order book stream",
-            ),
+            healthy = healthCheckResults.all { it.healthy },
+            healthChecks = healthCheckResults,
             commonExchangePairsToCurrencyPairs = lastCalculatedCommonExchangeCurrencyPairs.exchangePairsToCurrencyPairs.map {
                 "${it.key.firstExchange}/${it.key.secondExchange}" to it.value.size
             }
