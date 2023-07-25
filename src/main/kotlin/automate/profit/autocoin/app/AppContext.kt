@@ -165,6 +165,7 @@ class AppContext(val appConfig: AppConfig) {
         tickerSseStreamService = tickerSseStreamService,
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
+        appVersion = AppVersion().commitId,
     )
 
     val healthMetricsScheduler = HealthMetricsScheduler(

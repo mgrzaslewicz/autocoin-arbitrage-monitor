@@ -22,6 +22,7 @@ data class TwoLegArbitrageOpportunitiesCount(
 )
 
 data class Health(
+    val version: String?,
     val healthy: Boolean,
     val unhealthyReasons: List<String>,
     val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesCount,
@@ -42,6 +43,7 @@ class HealthService(
     private val tickerSseStreamService: TickerSseStreamService,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
+    private val appVersion: String?,
 ) {
     private val orderBookUpdatesSinceStart = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java).apply {
         SupportedExchange.values().forEach { put(it, 0L) }
@@ -58,8 +60,18 @@ class HealthService(
         }
         commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.forEach {
             it.value.map { exchangePair ->
-                orderBookListeners.addOrderBookListener(ExchangeWithCurrencyPair(exchange = exchangePair.firstExchange, currencyPair = it.key), orderBookListener)
-                orderBookListeners.addOrderBookListener(ExchangeWithCurrencyPair(exchange = exchangePair.secondExchange, currencyPair = it.key), orderBookListener)
+                orderBookListeners.addOrderBookListener(
+                    ExchangeWithCurrencyPair(
+                        exchange = exchangePair.firstExchange,
+                        currencyPair = it.key
+                    ), orderBookListener
+                )
+                orderBookListeners.addOrderBookListener(
+                    ExchangeWithCurrencyPair(
+                        exchange = exchangePair.secondExchange,
+                        currencyPair = it.key
+                    ), orderBookListener
+                )
             }
         }
     }
@@ -72,8 +84,18 @@ class HealthService(
         }
         commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs.currencyPairsToExchangePairs.forEach {
             it.value.map { exchangePair ->
-                tickerListeners.addTickerListener(ExchangeWithCurrencyPair(exchange = exchangePair.firstExchange, currencyPair = it.key), orderBookListener)
-                tickerListeners.addTickerListener(ExchangeWithCurrencyPair(exchange = exchangePair.secondExchange, currencyPair = it.key), orderBookListener)
+                tickerListeners.addTickerListener(
+                    ExchangeWithCurrencyPair(
+                        exchange = exchangePair.firstExchange,
+                        currencyPair = it.key
+                    ), orderBookListener
+                )
+                tickerListeners.addTickerListener(
+                    ExchangeWithCurrencyPair(
+                        exchange = exchangePair.secondExchange,
+                        currencyPair = it.key
+                    ), orderBookListener
+                )
             }
         }
     }
@@ -88,10 +110,12 @@ class HealthService(
     }
 
     fun getHealth(): Health {
-        val twoLegArbitrageExchangePairsOpportunityCount = twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
+        val twoLegArbitrageExchangePairsOpportunityCount =
+            twoLegArbitrageProfitOpportunityCache.getExchangePairsOpportunityCount()
         val isConnectedToTickerStream = tickerSseStreamService.isConnected()
         val isConnectedToOrderBookStream = orderBookSseStreamService.isConnected()
-        val lastCalculatedCommonExchangeCurrencyPairs = commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
+        val lastCalculatedCommonExchangeCurrencyPairs =
+            commonExchangeCurrencyPairsService.lastCalculatedCommonExchangeCurrencyPairs
         val health = Health(
             healthy = isConnectedToTickerStream && isConnectedToOrderBookStream,
             unhealthyReasons = listOfNotNull(
@@ -108,12 +132,17 @@ class HealthService(
             }
                 .sortedBy { it.first.exchangeName }
                 .toMap(),
-            receivedOrderBooksSinceStart = Collections.unmodifiableMap(orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
-            receivedTickersSinceStart = Collections.unmodifiableMap(tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()),
+            receivedOrderBooksSinceStart = Collections.unmodifiableMap(
+                orderBookUpdatesSinceStart.toList().sortedBy { it.second }.toMap()
+            ),
+            receivedTickersSinceStart = Collections.unmodifiableMap(
+                tickerUpdatesSinceStart.toList().sortedBy { it.second }.toMap()
+            ),
             twoLegArbitrageOpportunities = TwoLegArbitrageOpportunitiesCount(
                 exchangePairsWithOpportunityCount = twoLegArbitrageExchangePairsOpportunityCount,
-                currentTotalCount = twoLegArbitrageExchangePairsOpportunityCount.sumOf { it.opportunityCount }
-            )
+                currentTotalCount = twoLegArbitrageExchangePairsOpportunityCount.sumOf { it.opportunityCount },
+            ),
+            version = appVersion,
         )
         return health
     }
