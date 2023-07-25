@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
 class RetryingExchangeMetadataService(private val decorated: ExchangeMetadataService) :
-    ExchangeMetadataService by decorated {
+    ExchangeMetadataService {
     private companion object : KLogging()
 
     private suspend fun <T> retryUntilSuccess(loggableActionName: String, action: () -> T): T {
@@ -34,6 +34,13 @@ class RetryingExchangeMetadataService(private val decorated: ExchangeMetadataSer
         return runBlocking {
             retryUntilSuccess("Get exchanges metadata") { decorated.getAllExchangesMetadata() }
         }
+    }
+
+    override fun getMetadata(exchangeName: String): ExchangeMetadata {
+        return runBlocking {
+            retryUntilSuccess("[$exchangeName] Get exchange metadata") { decorated.getMetadata(exchangeName) }
+        }
+
     }
 }
 
