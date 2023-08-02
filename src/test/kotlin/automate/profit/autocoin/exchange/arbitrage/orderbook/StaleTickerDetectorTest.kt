@@ -1,7 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.autocoin.exchangegateway.spi.exchange.ticker.Ticker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource

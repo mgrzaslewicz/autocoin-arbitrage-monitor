@@ -1,7 +1,7 @@
 package automate.profit.autocoin.app
 
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
 import mu.KLogging
 import java.net.SocketAddress
 
@@ -43,10 +43,10 @@ class AppStarter(private val appContext: AppContext) {
     }
 
     private fun logCommonCurrencyPairsBetweenExchangePairs(exchangePairToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>) {
-        appContext.appConfig.exchangesToMonitorOverride.forEachIndexed { index, supportedExchange ->
+        appContext.appConfig.exchangesToMonitorOverride.forEachIndexed { index, Exchange ->
             for (i in index + 1 until appContext.appConfig.exchangesToMonitorOverride.size) {
                 val exchangePair = ExchangePair(
-                    firstExchange = supportedExchange,
+                    firstExchange = Exchange,
                     secondExchange = appContext.appConfig.exchangesToMonitorOverride[i]
                 )
                 val currencyPairs = exchangePairToCurrencyPairs[exchangePair]

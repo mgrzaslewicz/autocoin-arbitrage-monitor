@@ -1,13 +1,13 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.orderbook.OrderBook
-import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerListener
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBook
+import com.autocoin.exchangegateway.spi.exchange.orderbook.listener.OrderBookListener
+import com.autocoin.exchangegateway.spi.exchange.ticker.Ticker
+import com.autocoin.exchangegateway.spi.exchange.ticker.listener.TickerListener
 import mu.KLogging
 
 /**
@@ -105,20 +105,20 @@ class TwoLegArbitrageOpportunitiesMonitor(
 
     fun getOrderBookListeners(): Pair<OrderBookListener, OrderBookListener> = Pair(
         object : OrderBookListener {
-            override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
+            override fun onNoNewOrderBook(exchange: Exchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                 if (orderBook != null) onFirstExchangeOrderBook(orderBook)
             }
 
-            override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
+            override fun onOrderBook(exchange: Exchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
                 onFirstExchangeOrderBook(orderBook)
             }
         },
         object : OrderBookListener {
-            override fun onNoNewOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
+            override fun onNoNewOrderBook(exchange: Exchange, currencyPair: CurrencyPair, orderBook: OrderBook?) {
                 if (orderBook != null) onSecondExchangeOrderBook(orderBook)
             }
 
-            override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
+            override fun onOrderBook(exchange: Exchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
                 onSecondExchangeOrderBook(orderBook)
             }
         }
@@ -126,20 +126,20 @@ class TwoLegArbitrageOpportunitiesMonitor(
 
     fun getTickerListeners(): Pair<TickerListener, TickerListener> = Pair(
         object : TickerListener {
-            override fun onNoNewTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker?) {
+            override fun onNoNewTicker(exchange: Exchange, currencyPair: CurrencyPair, ticker: Ticker?) {
                 if (ticker != null) onFirstExchangeTicker(ticker)
             }
 
-            override fun onTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker) {
+            override fun onTicker(exchange: Exchange, currencyPair: CurrencyPair, ticker: Ticker) {
                 onFirstExchangeTicker(ticker)
             }
         },
         object : TickerListener {
-            override fun onNoNewTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker?) {
+            override fun onNoNewTicker(exchange: Exchange, currencyPair: CurrencyPair, ticker: Ticker?) {
                 if (ticker != null) onSecondExchangeTicker(ticker)
             }
 
-            override fun onTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker) {
+            override fun onTicker(exchange: Exchange, currencyPair: CurrencyPair, ticker: Ticker) {
                 onSecondExchangeTicker(ticker)
             }
         }

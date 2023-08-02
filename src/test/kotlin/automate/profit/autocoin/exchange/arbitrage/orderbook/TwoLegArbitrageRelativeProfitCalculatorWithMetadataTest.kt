@@ -1,11 +1,13 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.*
-import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.orderbook.OrderBookAveragePrice
+import com.autocoin.exchangegateway.spi.exchange.Exchange
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -18,12 +20,12 @@ import java.math.BigDecimal
 
 class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
     val mockTransactionFeeAmountFunction = object : TransactionFeeAmountFunction {
-        override fun apply(exchange: SupportedExchange, currencyPair: CurrencyPair, amount: BigDecimal): TransactionFeeAmount =
+        override fun apply(exchange: Exchange, currencyPair: CurrencyPair, amount: BigDecimal): TransactionFeeAmount =
             TransactionFeeAmount(feeAmount = BigDecimal.ZERO, isDefaultFeeUsed = true)
     }
 
     val nullWithdrawalFeeAmountFunction = object : WithdrawalFeeAmountFunction {
-        override fun apply(exchange: SupportedExchange, currency: String, amount: BigDecimal): BigDecimal? = null
+        override fun apply(exchange: Exchange, currency: String, amount: BigDecimal): BigDecimal? = null
     }
 
     @Test
@@ -45,7 +47,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
                 currencyPair = CurrencyPair.of("ETH/BTC"),
-                ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
+                ExchangePair(firstExchange = exchangeA, secondExchange = exchangeB)
             ),
             firstOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = "9.55".toBigDecimal(),
@@ -136,7 +138,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val profit = tested.getProfitBuyAtFirstExchangeSellAtSecond(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
                 currencyPair = CurrencyPair.of("ETH/BTC"),
-                ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
+                ExchangePair(firstExchange = Exchange.BITTREX, secondExchange = Exchange.BINANCE)
             ),
             firstOrderBookSellPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageSellPrice,
@@ -149,7 +151,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         )
         // then
         assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
-        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountBeforeTransfer)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(
+            expectedBaseCurrencyAmountBeforeTransfer
+        )
         assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
     }
 
@@ -172,7 +176,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
                 currencyPair = CurrencyPair.of("ETH/BTC"),
-                ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
+                ExchangePair(firstExchange = Exchange.BITTREX, secondExchange = Exchange.BINANCE)
             ),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = "9.85".toBigDecimal(),
@@ -260,7 +264,7 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         val profit = tested.getProfitBuyAtSecondExchangeSellAtFirst(
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
                 currencyPair = CurrencyPair.of("ETH/BTC"),
-                ExchangePair(firstExchange = SupportedExchange.BITTREX, secondExchange = SupportedExchange.BINANCE)
+                ExchangePair(firstExchange = Exchange.BITTREX, secondExchange = Exchange.BINANCE)
             ),
             firstOrderBookBuyPrice = OrderBookAveragePrice(
                 averagePrice = firstOrderBookAverageBuyPrice,
@@ -273,7 +277,9 @@ class TwoLegArbitrageRelativeProfitCalculatorWithMetadataTest {
         )
         // then
         assertThat(profit.relativeProfit).isEqualByComparingTo(expectedRelativeProfit)
-        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountBeforeTransfer)
+        assertThat(profit.baseCurrencyAmountBeforeTransfer).isEqualByComparingTo(
+            expectedBaseCurrencyAmountBeforeTransfer
+        )
         assertThat(profit.baseCurrencyAmountAfterTransfer).isEqualByComparingTo(expectedBaseCurrencyAmountAfterTransfer)
     }
 

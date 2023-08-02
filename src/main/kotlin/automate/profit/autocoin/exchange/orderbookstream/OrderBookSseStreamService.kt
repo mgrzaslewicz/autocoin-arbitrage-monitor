@@ -1,10 +1,10 @@
 package automate.profit.autocoin.exchange.orderbookstream
 
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
-import automate.profit.autocoin.order.OrderBookResponseDto
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.dto.order.OrderBookDto
+import com.autocoin.exchangegateway.spi.exchange.ExchangeProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -13,7 +13,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
@@ -26,6 +25,7 @@ class OrderBookSseStreamService(
     private val orderBookListeners: OrderBookListeners,
     private val objectMapper: ObjectMapper,
     private val executorForReconnecting: ExecutorService,
+    private val exchangeProvider: ExchangeProvider,
     private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
@@ -49,9 +49,9 @@ class OrderBookSseStreamService(
         } else {
             logger.debug { "[instance=$instanceId] OrderBook event=$orderBookJson" }
         }
-        val orderBookDto = objectMapper.readValue(orderBookJson, OrderBookResponseDto::class.java)
-        val orderBook = orderBookDto.toOrderBook()
-        val exchange = SupportedExchange.fromExchangeName(orderBookDto.exchangeName)
+        val orderBookDto = objectMapper.readValue(orderBookJson, OrderBookDto::class.java)
+        val orderBook = orderBookDto.toOrderBook(exchangeProvider)
+        val exchange = orderBook.exchange
         val currencyPair = CurrencyPair.of(orderBookDto.currencyPair)
         val orderBookListener = orderBookListeners.getOrderBookListeners(exchange, currencyPair)
         orderBookListener.forEach {

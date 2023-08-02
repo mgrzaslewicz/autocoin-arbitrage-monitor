@@ -1,20 +1,23 @@
 package automate.profit.autocoin.exchange.metadata
 
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.ExchangeProvider
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.metadata.gateway.AuthorizedMetadataServiceGateway
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
 data class CommonExchangeCurrencyPairs(
     val currencyPairsToExchangePairs: Map<CurrencyPair, Set<ExchangePair>>,
     val exchangePairsToCurrencyPairs: Map<ExchangePair, Set<CurrencyPair>>,
-    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<SupportedExchange, Set<CurrencyPair>>,
+    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<Exchange, Set<CurrencyPair>>,
 )
 
 class CommonExchangeCurrencyPairsService(
-    private val exchangeMetadataService: ExchangeMetadataService,
+    private val exchangeMetadataServiceGateway: AuthorizedMetadataServiceGateway,
     private val currencyPairsWhiteList: Set<CurrencyPair> = emptySet(),
+    private val exchangeProvider: ExchangeProvider,
 ) {
 
     companion object : KLogging()
@@ -25,15 +28,15 @@ class CommonExchangeCurrencyPairsService(
     fun calculateCommonCurrencyPairs(): CommonExchangeCurrencyPairs {
         val currencyPairsToExchangePairs: MutableMap<CurrencyPair, MutableSet<ExchangePair>> = mutableMapOf()
         val exchangePairsToCurrencyPairs: MutableMap<ExchangePair, Set<CurrencyPair>> = mutableMapOf()
-        val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: MutableMap<SupportedExchange, MutableSet<CurrencyPair>> =
+        val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: MutableMap<Exchange, MutableSet<CurrencyPair>> =
             mutableMapOf()
         val exchangesWithCurrencyPairs = fetchExchangesWithCurrencyPairs()
         for (i in exchangesWithCurrencyPairs.indices) {
             for (j in i + 1 until exchangesWithCurrencyPairs.size) {
                 val exchangePair =
                     ExchangePair(
-                        SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[i].first),
-                        SupportedExchange.fromExchangeName(exchangesWithCurrencyPairs[j].first)
+                        exchangeProvider.getExchange(exchangesWithCurrencyPairs[i].first),
+                        exchangeProvider.getExchange(exchangesWithCurrencyPairs[j].first),
                     )
                 val commonCurrencyPairs =
                     findCommonCurrencyPairs(exchangesWithCurrencyPairs[i].second, exchangesWithCurrencyPairs[j].second)
@@ -78,8 +81,8 @@ class CommonExchangeCurrencyPairsService(
 
     private fun fetchExchangesWithCurrencyPairs(): Array<Pair<String, Set<CurrencyPair>>> {
         return runBlocking {
-            val exchangesMetadata = exchangeMetadataService.getAllExchangesMetadata()
-            exchangesMetadata.map { it.exchange.exchangeName to it.currencyPairMetadata.keys }.toTypedArray()
+            val exchangesMetadata = exchangeMetadataServiceGateway.getAllExchangesMetadata()
+            exchangesMetadata.map { it.key.exchangeName to it.value.currencyPairMetadata.keys }.toTypedArray()
         }
     }
 }

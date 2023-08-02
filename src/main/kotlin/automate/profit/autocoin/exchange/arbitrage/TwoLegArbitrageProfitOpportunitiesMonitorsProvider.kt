@@ -4,8 +4,8 @@ import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageOpportunitiesMonitor
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
 
 class TwoLegArbitrageProfitOpportunitiesMonitorsProvider(
     private val profitCache: TwoLegArbitrageProfitOpportunityCache,

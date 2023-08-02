@@ -1,12 +1,12 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
-import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
-import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.orderbook.OrderBook
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBook
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -14,8 +14,8 @@ import org.mockito.kotlin.whenever
 
 
 class TwoLegOrderBookArbitrageMonitorTest {
-    private val firstExchange = BITTREX
-    private val secondExchange = BINANCE
+    private val firstExchange = exchangeA
+    private val secondExchange = exchangeB
 
     @Test
     fun shouldCacheOpportunityWhenOrderBooksAndTickersAvailable() {

@@ -8,14 +8,16 @@ import automate.profit.autocoin.api.ServerBuilder
 import automate.profit.autocoin.app.config.AppConfig
 import automate.profit.autocoin.app.config.MetricsDestination
 import automate.profit.autocoin.exchange.CachingPriceService
+import automate.profit.autocoin.exchange.ExchangeProvider
 import automate.profit.autocoin.exchange.RestPriceService
 import automate.profit.autocoin.exchange.arbitrage.TwoLegArbitrageProfitOpportunitiesMonitorsProvider
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitCalculatorWithMetadata
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCalculator
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCutOff
+import automate.profit.autocoin.exchange.caching
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
-import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataService
+import automate.profit.autocoin.exchange.metadata.RestExchangeMetadataServiceGateway
 import automate.profit.autocoin.exchange.metadata.caching
 import automate.profit.autocoin.exchange.metadata.withRetry
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
@@ -95,13 +97,16 @@ class AppContext(val appConfig: AppConfig) {
         executorService = scheduledJobsxecutorService,
     )
 
-    val exchangeMetadataService = RestExchangeMetadataService(
+    val exchangeProvider = ExchangeProvider().caching()
+
+    val exchangeMetadataServiceGateway = RestExchangeMetadataServiceGateway(
         httpClient = oauth2HttpClient.newBuilder()
             .readTimeout(60, TimeUnit.SECONDS)
             .callTimeout(60, TimeUnit.SECONDS)
             .build(),
         exchangeMetadataApiBaseurl = appConfig.exchangeMediatorApiUrl,
-        objectMapper = objectMapper
+        objectMapper = objectMapper,
+        exchangeProvider = exchangeProvider,
     )
         .withRetry()
         .caching()
@@ -113,7 +118,7 @@ class AppContext(val appConfig: AppConfig) {
         priceService = priceService,
         orderBookUsdAmountThresholds = appConfig.orderBookUsdAmountThresholds,
         relativeProfitCalculator = TwoLegArbitrageProfitCalculatorWithMetadata.DefaultBuilder(
-            metadataService = exchangeMetadataService,
+            metadataService = exchangeMetadataServiceGateway,
             transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata
         ).build(),
         metricsService = metricsService,
@@ -137,8 +142,9 @@ class AppContext(val appConfig: AppConfig) {
     )
 
     val commonExchangeCurrencyPairsService = CommonExchangeCurrencyPairsService(
-        exchangeMetadataService = exchangeMetadataService,
+        exchangeMetadataServiceGateway = exchangeMetadataServiceGateway,
         currencyPairsWhiteList = appConfig.currencyPairsOverride,
+        exchangeProvider = exchangeProvider,
     )
 
     val threadForStreamReconnecting = Executors.newSingleThreadExecutor()
@@ -150,6 +156,7 @@ class AppContext(val appConfig: AppConfig) {
         orderBookListeners = orderBookListeners,
         objectMapper = objectMapper,
         executorForReconnecting = threadForStreamReconnecting,
+        exchangeProvider = exchangeProvider,
         instanceId = instanceId,
     )
     val tickerSseStreamService = TickerSseStreamService(
@@ -159,6 +166,7 @@ class AppContext(val appConfig: AppConfig) {
         tickerListeners = tickerListeners,
         objectMapper = objectMapper,
         executorForReconnecting = threadForStreamReconnecting,
+        exchangeProvider = exchangeProvider,
         instanceId = instanceId,
     )
 
@@ -172,7 +180,7 @@ class AppContext(val appConfig: AppConfig) {
         commonExchangeCurrencyPairsService = commonExchangeCurrencyPairsService,
         twoLegArbitrageProfitOpportunityCache = twoLegArbitrageProfitOpportunityCache,
         appVersion = AppVersion().commitId,
-        metadataService = exchangeMetadataService,
+        metadataServiceGateway = exchangeMetadataServiceGateway,
     )
 
     val healthMetricsScheduler = HealthMetricsScheduler(
@@ -188,7 +196,7 @@ class AppContext(val appConfig: AppConfig) {
     val freePlanRelativeProfitCutOff = BigDecimal("0.012")
     val arbitrageProfitController = ArbitrageProfitController(
         exchangesToMonitor = if (appConfig.exchangesToMonitorOverride.isEmpty()) {
-            Supplier { exchangeMetadataService.getAllExchangesMetadata().map { it.exchange } }
+            Supplier { exchangeMetadataServiceGateway.getAllExchangesMetadata().map { it.key } }
         } else {
             Supplier { appConfig.exchangesToMonitorOverride }
         },
@@ -199,7 +207,7 @@ class AppContext(val appConfig: AppConfig) {
         oauth2BearerTokenAuthHandlerWrapper = oauth2BearerTokenAuthHandlerWrapper,
         clientTwoLegArbitrageProfitOpportunities = ClientTwoLegArbitrageProfitOpportunities(
             freePlanRelativeProfitCutOff = freePlanRelativeProfitCutOff,
-            exchangeMetadataService = exchangeMetadataService,
+            exchangeMetadataService = exchangeMetadataServiceGateway,
         ),
         freePlanRelativeProfitPercentCutOff = freePlanRelativeProfitCutOff.movePointRight(2).toPlainString(),
         transactionFeeRatioWhenNotAvailableInMetadata = transactionFeeRatioWhenNotAvailableInMetadata,

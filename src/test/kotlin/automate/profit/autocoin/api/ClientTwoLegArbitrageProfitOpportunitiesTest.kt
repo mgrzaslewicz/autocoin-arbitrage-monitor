@@ -1,14 +1,15 @@
 package automate.profit.autocoin.api
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
-import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
-import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.metadata.CurrencyMetadata
-import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.metadata.CurrencyMetadata
+import com.autocoin.exchangegateway.api.exchange.metadata.ExchangeMetadata
+import com.autocoin.exchangegateway.spi.exchange.metadata.gateway.AuthorizedMetadataServiceGateway
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
@@ -35,10 +36,10 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
 
     private val opportunitiesToProcess = listOf(
         TwoLegArbitrageProfitOpportunity(
-            buyAtExchange = BITTREX,
-            sellAtExchange = BINANCE,
+            buyAtExchange = exchangeA,
+            sellAtExchange = exchangeB,
             currencyPairWithExchangePair = CurrencyPairWithExchangePair(
-                exchangePair = ExchangePair(BINANCE, BITTREX),
+                exchangePair = ExchangePair(exchangeB, exchangeA),
                 currencyPair = CurrencyPair.of("ETH/BTC")
             ),
             usd24hVolumeAtBuyExchange = BigDecimal("12000"),
@@ -57,15 +58,29 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         val tested = ClientTwoLegArbitrageProfitOpportunities(
             freePlanRelativeProfitCutOff = BigDecimal("0.02"),
             timeMillisFunction = { 40301L },
-            exchangeMetadataService = mock<ExchangeMetadataService>().apply {
-                whenever(this.getCurrencyMetadata("bittrex", "ETH")).thenReturn(
-                    CurrencyMetadata(
-                        withdrawalEnabled = true,
+            exchangeMetadataService = mock<AuthorizedMetadataServiceGateway>().apply {
+                whenever(this.getMetadata(exchangeA)).thenReturn(
+                    ExchangeMetadata(
+                        exchange = exchangeA,
+                        currencyMetadata = mapOf(
+                            "ETH" to CurrencyMetadata(
+                                withdrawalEnabled = true,
+                            ),
+                        ),
+                        currencyPairMetadata = emptyMap(),
+                        warnings = emptyList(),
                     )
                 )
-                whenever(this.getCurrencyMetadata("binance", "BTC")).thenReturn(
-                    CurrencyMetadata(
-                        depositEnabled = false,
+                whenever(this.getMetadata(exchangeB)).thenReturn(
+                    ExchangeMetadata(
+                        exchange = exchangeB,
+                        currencyMetadata = mapOf(
+                            "BTC" to CurrencyMetadata(
+                                depositEnabled = false,
+                            ),
+                        ),
+                        currencyPairMetadata = emptyMap(),
+                        warnings = emptyList(),
                     )
                 )
             }
@@ -78,8 +93,8 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         // then
         assertThat(result).hasSize(1)
         SoftAssertions().apply {
-            assertThat(result.first().buyAtExchange).isEqualTo(BITTREX)
-            assertThat(result.first().sellAtExchange).isEqualTo(BINANCE)
+            assertThat(result.first().buyAtExchange).isEqualTo(exchangeA)
+            assertThat(result.first().sellAtExchange).isEqualTo(exchangeB)
             assertThat(result.first().withdrawalEnabled).isTrue
             assertThat(result.first().depositEnabled).isFalse
             assertThat(result.first().baseCurrency).isEqualTo("ETH")
@@ -111,18 +126,32 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         val tested = ClientTwoLegArbitrageProfitOpportunities(
             freePlanRelativeProfitCutOff = BigDecimal("0.009"),
             timeMillisFunction = { 40301L },
-            exchangeMetadataService = mock<ExchangeMetadataService>().apply {
-                whenever(this.getCurrencyMetadata("bittrex", "ETH")).thenReturn(
-                    CurrencyMetadata(
-                        withdrawalEnabled = true,
+            exchangeMetadataService = mock<AuthorizedMetadataServiceGateway>().apply {
+                whenever(this.getMetadata(exchangeA)).thenReturn(
+                    ExchangeMetadata(
+                        exchange = exchangeA,
+                        currencyMetadata = mapOf(
+                            "ETH" to CurrencyMetadata(
+                                withdrawalEnabled = true,
+                            ),
+                        ),
+                        currencyPairMetadata = emptyMap(),
+                        warnings = emptyList(),
                     )
                 )
-                whenever(this.getCurrencyMetadata("binance", "BTC")).thenReturn(
-                    CurrencyMetadata(
-                        depositEnabled = false,
+                whenever(this.getMetadata(exchangeB)).thenReturn(
+                    ExchangeMetadata(
+                        exchange = exchangeB,
+                        currencyMetadata = mapOf(
+                            "BTC" to CurrencyMetadata(
+                                depositEnabled = false,
+                            ),
+                        ),
+                        currencyPairMetadata = emptyMap(),
+                        warnings = emptyList(),
                     )
                 )
-            }
+            },
         )
         // when
         val result = tested.prepareClientProfits(
@@ -132,7 +161,7 @@ class ClientTwoLegArbitrageProfitOpportunitiesTest {
         // then
         assertThat(result).hasSize(1)
         SoftAssertions().apply {
-            assertThat(result.first().buyAtExchange).isEqualTo(BITTREX)
+            assertThat(result.first().buyAtExchange).isEqualTo(exchangeA)
             assertThat(result.first().sellAtExchange).isNull()
             assertThat(result.first().baseCurrency).isEqualTo("ETH")
             assertThat(result.first().counterCurrency).isEqualTo("BTC")

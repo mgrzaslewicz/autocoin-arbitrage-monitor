@@ -1,9 +1,11 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
+import automate.profit.autocoin.TestExchange.exchangeC
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange.*
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -13,9 +15,9 @@ import java.util.*
 class TwoLegOrderBookArbitrageProfitCacheTest {
     private val currencyPair1 = CurrencyPair.of("A/B")
     private val currencyPair2 = CurrencyPair.of("C/D")
-    private val exchangePair1 = ExchangePair(BITTREX, BINANCE)
-    private val exchangePair2 = ExchangePair(KUCOIN, BINANCE)
-    private val exchangePair3 = ExchangePair(KUCOIN, BITTREX)
+    private val exchangePair1 = ExchangePair(exchangeA, exchangeB)
+    private val exchangePair2 = ExchangePair(exchangeC, exchangeB)
+    private val exchangePair3 = ExchangePair(exchangeC, exchangeA)
     private val currencyPairWithExchangePair1 = CurrencyPairWithExchangePair(currencyPair1, exchangePair1)
     private val currencyPairWithExchangePair2 = CurrencyPairWithExchangePair(currencyPair2, exchangePair2)
     private val currencyPairWithExchangePair3 = CurrencyPairWithExchangePair(currencyPair2, exchangePair3)

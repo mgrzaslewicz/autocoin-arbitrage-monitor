@@ -1,7 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBookAveragePrice
 import java.math.BigDecimal
 import java.math.RoundingMode
 

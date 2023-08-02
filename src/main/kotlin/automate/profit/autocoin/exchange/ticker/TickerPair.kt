@@ -1,5 +1,7 @@
 package automate.profit.autocoin.exchange.ticker
 
+import com.autocoin.exchangegateway.spi.exchange.ticker.Ticker
+
 data class TickerPair(
     val first: Ticker?,
     val second: Ticker?,

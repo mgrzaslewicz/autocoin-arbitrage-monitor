@@ -1,13 +1,13 @@
 package automate.profit.autocoin.api
 
-import automate.profit.autocoin.app.config.ExchangePair
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
 import automate.profit.autocoin.app.ObjectMapperProvider
-import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
-import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
+import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
 import io.undertow.server.HttpHandler
 import me.alexpanov.net.FreePortFinder
 import okhttp3.OkHttpClient
@@ -28,7 +28,6 @@ class ArbitrageProfitControllerTest {
     private fun getFreePort() = FreePortFinder.findFreeLocalPort()
     private val httpClientWithoutAuthorization = OkHttpClient()
     private val objectMapper = ObjectMapperProvider().createObjectMapper()
-
     class NoopHttpHandlerWrapper : HttpHandlerWrapper {
         override fun wrap(next: HttpHandler) = next
     }
@@ -42,8 +41,8 @@ class ArbitrageProfitControllerTest {
                     currencyPairsToExchangePairs = mapOf(
                         CurrencyPair.of("ABC/DEF") to setOf(
                             ExchangePair(
-                                firstExchange = BITTREX,
-                                secondExchange = BINANCE
+                                firstExchange = exchangeA,
+                                secondExchange = exchangeB,
                             )
                         )
                     ),
@@ -53,7 +52,7 @@ class ArbitrageProfitControllerTest {
             )
         }
         val arbitrageProfitController = ArbitrageProfitController(
-            exchangesToMonitor = Supplier { listOf(BITTREX, BINANCE) },
+            exchangesToMonitor = Supplier { listOf(exchangeA, exchangeB) },
             twoLegArbitrageProfitOpportunityCache = mock(),
             orderBookUsdAmountThresholds = listOf(),
             objectMapper = objectMapper,
@@ -117,8 +116,8 @@ class ArbitrageProfitControllerTest {
                         TwoLegArbitrageProfitOpportunityDto(
                             baseCurrency = "A",
                             counterCurrency = "B",
-                            buyAtExchange = BINANCE,
-                            sellAtExchange = BITTREX,
+                            buyAtExchange = exchangeA,
+                            sellAtExchange = exchangeB,
                             withdrawalEnabled = true,
                             depositEnabled = null,
                             usd24hVolumeAtBuyExchange = "12000.00",
@@ -173,8 +172,8 @@ class ArbitrageProfitControllerTest {
                 SoftAssertions().apply {
                     assertThat(baseCurrency).isEqualTo("A")
                     assertThat(counterCurrency).isEqualTo("B")
-                    assertThat(buyAtExchange).isEqualTo(BINANCE)
-                    assertThat(sellAtExchange).isEqualTo(BITTREX)
+                    assertThat(buyAtExchange).isEqualTo(exchangeA)
+                    assertThat(sellAtExchange).isEqualTo(exchangeB)
                     assertThat(withdrawalEnabled).isTrue
                     assertThat(depositEnabled).isNull()
                     assertThat(usd24hVolumeAtBuyExchange).isEqualTo("12000.00")

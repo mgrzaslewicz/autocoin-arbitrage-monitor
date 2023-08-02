@@ -1,6 +1,6 @@
 package automate.profit.autocoin.app
 
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.KeyDeserializer

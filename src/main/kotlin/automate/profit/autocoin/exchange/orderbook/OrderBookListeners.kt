@@ -1,9 +1,10 @@
 package automate.profit.autocoin.exchange.orderbook
 
 import automate.profit.autocoin.exchange.ExchangeWithCurrencyPair
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageOpportunitiesMonitor
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.orderbook.listener.OrderBookListener
 
 class OrderBookListeners {
     private val orderBookListenersCache = HashMap<ExchangeWithCurrencyPair, MutableList<OrderBookListener>>()
@@ -28,7 +29,7 @@ class OrderBookListeners {
         orderBookListenersCache.computeIfAbsent(exchangeWithCurrencyPair) { ArrayList() }.add(listener)
     }
 
-    fun getOrderBookListeners(exchange: SupportedExchange, currencyPair: CurrencyPair): List<OrderBookListener> {
+    fun getOrderBookListeners(exchange: Exchange, currencyPair: CurrencyPair): List<OrderBookListener> {
         return orderBookListenersCache.getValue(ExchangeWithCurrencyPair(exchange = exchange, currencyPair = currencyPair))
     }
 

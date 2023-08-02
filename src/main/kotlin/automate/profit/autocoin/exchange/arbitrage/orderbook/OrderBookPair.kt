@@ -1,6 +1,6 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.orderbook.OrderBook
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBook
 import kotlin.math.min
 
 data class OrderBookPair(

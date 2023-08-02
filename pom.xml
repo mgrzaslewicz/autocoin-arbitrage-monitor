@@ -17,6 +17,7 @@
         <junit.version>5.8.2</junit.version>
         <jackson.version>2.13.3</jackson.version>
         <autocoin-exchange-api-rest.version>2.0.43</autocoin-exchange-api-rest.version>
+        <exchange-gateway.version>3.6.2-SNAPSHOT</exchange-gateway.version>
         <autocoin-metrics-client.version>1.1.4</autocoin-metrics-client.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -35,9 +36,14 @@
     <dependencies>
         <!-- Autocoin -->
         <dependency>
-            <groupId>automate.profit</groupId>
-            <artifactId>autocoin-exchange-api-rest</artifactId>
-            <version>${autocoin-exchange-api-rest.version}</version>
+            <groupId>com.autocoin</groupId>
+            <artifactId>exchange-gateway-spi</artifactId>
+            <version>${exchange-gateway.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.autocoin</groupId>
+            <artifactId>exchange-gateway-dto</artifactId>
+            <version>${exchange-gateway.version}</version>
         </dependency>
         <!-- Server -->
         <dependency>

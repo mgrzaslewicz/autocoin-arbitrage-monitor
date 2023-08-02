@@ -1,8 +1,12 @@
 package automate.profit.autocoin.exchange.metadata
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
+import automate.profit.autocoin.TestExchange.exchangeC
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange.*
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.metadata.ExchangeMetadata
+import com.autocoin.exchangegateway.spi.exchange.metadata.CurrencyPairMetadata
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -16,12 +20,12 @@ class CommonExchangeCurrencyPairsServiceTest {
     private val commonForBittrexAndKucoin = CurrencyPair.of("LSK/BTC")
     private val commonForKucoinAndBinance = CurrencyPair.of("EOS/ETH")
 
-    private val onlyAtBittrex = CurrencyPair.of("ONLY/AT-BITTREX")
-    private val onlyAtBinance = CurrencyPair.of("ONLY/AT-BINANCE")
-    private val onlyAtKucoin = CurrencyPair.of("ONLY/AT-KUCOIN")
+    private val onlyAtBittrex = CurrencyPair.of("ONLY/AT-exchangeA")
+    private val onlyAtBinance = CurrencyPair.of("ONLY/AT-exchangeB")
+    private val onlyAtKucoin = CurrencyPair.of("ONLY/AT-exchangeC")
 
     private val bittrexMetadata = ExchangeMetadata(
-        exchange = BITTREX,
+        exchange = exchangeA,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -29,10 +33,10 @@ class CommonExchangeCurrencyPairsServiceTest {
             commonForBittrexAndKucoin to doesNotMatter,
             onlyAtBittrex to doesNotMatter
         ),
-        debugWarnings = emptyList()
+        warnings = emptyList()
     )
     private val binanceMetadata = ExchangeMetadata(
-        exchange = BINANCE,
+        exchange = exchangeB,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -40,10 +44,10 @@ class CommonExchangeCurrencyPairsServiceTest {
             commonForKucoinAndBinance to doesNotMatter,
             onlyAtBinance to doesNotMatter
         ),
-        debugWarnings = emptyList()
+        warnings = emptyList()
     )
     private val kucoinMetadata = ExchangeMetadata(
-        exchange = KUCOIN,
+        exchange = exchangeC,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = mapOf(
             commonForAllExchanges to doesNotMatter,
@@ -51,13 +55,13 @@ class CommonExchangeCurrencyPairsServiceTest {
             commonForBittrexAndKucoin to doesNotMatter,
             onlyAtKucoin to doesNotMatter
         ),
-        debugWarnings = emptyList()
+        warnings = emptyList()
     )
     private val emptyMetadata = ExchangeMetadata(
-        exchange = KUCOIN,
+        exchange = exchangeC,
         currencyMetadata = emptyMap(),
         currencyPairMetadata = emptyMap(),
-        debugWarnings = emptyList()
+        warnings = emptyList()
     )
 
     private val exchangeMetadataService = mock<ExchangeMetadataService>().apply {
@@ -81,9 +85,24 @@ class CommonExchangeCurrencyPairsServiceTest {
         // when
         val commonCurrencyPairs = tested.calculateCommonCurrencyPairs().currencyPairsToExchangePairs
         // then
-        assertThat(commonCurrencyPairs.getValue(commonForBittrexAndKucoin)).containsOnly(ExchangePair(BITTREX, KUCOIN))
-        assertThat(commonCurrencyPairs.getValue(commonForBittrexAndBinance)).containsOnly(ExchangePair(BINANCE, BITTREX))
-        assertThat(commonCurrencyPairs.getValue(commonForKucoinAndBinance)).containsOnly(ExchangePair(BINANCE, KUCOIN))
+        assertThat(commonCurrencyPairs.getValue(commonForBittrexAndKucoin)).containsOnly(
+            ExchangePair(
+                exchangeA,
+                exchangeC
+            )
+        )
+        assertThat(commonCurrencyPairs.getValue(commonForBittrexAndBinance)).containsOnly(
+            ExchangePair(
+                exchangeB,
+                exchangeA
+            )
+        )
+        assertThat(commonCurrencyPairs.getValue(commonForKucoinAndBinance)).containsOnly(
+            ExchangePair(
+                exchangeB,
+                exchangeC
+            )
+        )
     }
 
     @Test
@@ -91,7 +110,11 @@ class CommonExchangeCurrencyPairsServiceTest {
         // when
         val bittrexCurrencyPairs = tested.calculateCommonCurrencyPairs().exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange
         // then
-        assertThat(bittrexCurrencyPairs.getValue(BITTREX)).containsExactly(commonForAllExchanges, commonForBittrexAndBinance, commonForBittrexAndKucoin)
+        assertThat(bittrexCurrencyPairs.getValue(exchangeA)).containsExactly(
+            commonForAllExchanges,
+            commonForBittrexAndBinance,
+            commonForBittrexAndKucoin
+        )
     }
 
     @Test
@@ -101,9 +124,9 @@ class CommonExchangeCurrencyPairsServiceTest {
         // then
         assertThat(commonCurrencyPairs.getValue(commonForAllExchanges))
             .containsOnly(
-                ExchangePair(BITTREX, KUCOIN),
-                ExchangePair(BINANCE, BITTREX),
-                ExchangePair(BINANCE, KUCOIN)
+                ExchangePair(exchangeA, exchangeC),
+                ExchangePair(exchangeB, exchangeA),
+                ExchangePair(exchangeB, exchangeC)
             )
     }
 

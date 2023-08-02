@@ -1,11 +1,14 @@
 package automate.profit.autocoin.exchange.metadata
 
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.metadata.ExchangeMetadata
+import com.autocoin.exchangegateway.spi.exchange.metadata.gateway.AuthorizedMetadataServiceGateway
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import mu.KLogging
 
-class RetryingExchangeMetadataService(private val decorated: ExchangeMetadataService) :
-    ExchangeMetadataService {
+class RetryingExchangeMetadataServiceGateway(private val decorated: AuthorizedMetadataServiceGateway) :
+    AuthorizedMetadataServiceGateway {
     private companion object : KLogging()
 
     private suspend fun <T> retryUntilSuccess(loggableActionName: String, action: () -> T): T {
@@ -30,18 +33,19 @@ class RetryingExchangeMetadataService(private val decorated: ExchangeMetadataSer
         }
     }
 
-    override fun getAllExchangesMetadata(): List<ExchangeMetadata> {
+    override fun getAllExchangesMetadata(): Map<Exchange, ExchangeMetadata> {
         return runBlocking {
-            retryUntilSuccess("Get exchanges metadata") { decorated.getAllExchangesMetadata() }
+            retryUntilSuccess("Get all exchanges metadata") { decorated.getAllExchangesMetadata() }
         }
     }
 
-    override fun getMetadata(exchangeName: String): ExchangeMetadata {
+    override fun getMetadata(exchange: Exchange): ExchangeMetadata {
         return runBlocking {
-            retryUntilSuccess("[$exchangeName] Get exchange metadata") { decorated.getMetadata(exchangeName) }
+            retryUntilSuccess("[$exchange] Get exchange metadata") { decorated.getMetadata(exchange) }
         }
 
     }
 }
 
-fun ExchangeMetadataService.withRetry(): ExchangeMetadataService = RetryingExchangeMetadataService(this)
+fun AuthorizedMetadataServiceGateway.withRetry(): AuthorizedMetadataServiceGateway =
+    RetryingExchangeMetadataServiceGateway(this)

@@ -1,9 +1,9 @@
 package automate.profit.autocoin.exchange.tickerstream
 
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairs
 import automate.profit.autocoin.exchange.ticker.TickerListeners
-import automate.profit.autocoin.ticker.TickerDto
+import com.autocoin.exchangegateway.dto.ticker.TickerDto
+import com.autocoin.exchangegateway.spi.exchange.ExchangeProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KLogging
 import okhttp3.OkHttpClient
@@ -24,6 +24,7 @@ class TickerSseStreamService(
     private val tickerListeners: TickerListeners,
     private val objectMapper: ObjectMapper,
     private val executorForReconnecting: ExecutorService,
+    private val exchangeProvider: ExchangeProvider,
     private val lock: Semaphore = Semaphore(1)
 ) {
     private companion object : KLogging()
@@ -48,8 +49,8 @@ class TickerSseStreamService(
             logger.debug { "[instance=$instanceId] Ticker event=$tickerJson" }
         }
         val tickerDto = objectMapper.readValue(tickerJson, TickerDto::class.java)
-        val ticker = tickerDto.toTicker()
-        val exchange = SupportedExchange.fromExchangeName(tickerDto.exchange)
+        val ticker = tickerDto.toTicker(exchangeProvider)
+        val exchange = ticker.exchange
         val tickerListener = tickerListeners.getTickerListeners(exchange, ticker.currencyPair)
         tickerListener.forEach {
             try {

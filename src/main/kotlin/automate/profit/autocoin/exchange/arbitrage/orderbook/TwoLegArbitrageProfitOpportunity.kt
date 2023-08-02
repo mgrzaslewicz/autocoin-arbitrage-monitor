@@ -1,7 +1,7 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
 import java.math.BigDecimal
 
 data class TwoLegArbitrageProfitOpportunityAtDepth(
@@ -20,8 +20,8 @@ data class TwoLegArbitrageProfitOpportunityAtDepth(
 )
 
 data class TwoLegArbitrageProfitOpportunity(
-    val buyAtExchange: SupportedExchange,
-    val sellAtExchange: SupportedExchange,
+    val buyAtExchange: Exchange,
+    val sellAtExchange: Exchange,
     val currencyPairWithExchangePair: CurrencyPairWithExchangePair,
     val usd24hVolumeAtBuyExchange: BigDecimal?,
     val usd24hVolumeAtSellExchange: BigDecimal?,

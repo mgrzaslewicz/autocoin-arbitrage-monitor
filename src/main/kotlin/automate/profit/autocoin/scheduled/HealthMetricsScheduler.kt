@@ -1,9 +1,9 @@
 package automate.profit.autocoin.scheduled
 
-import automate.profit.autocoin.health.HealthService
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
+import automate.profit.autocoin.health.HealthService
 import automate.profit.autocoin.metrics.MetricsService
+import com.autocoin.exchangegateway.spi.exchange.Exchange
 import mu.KLogging
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -40,13 +40,13 @@ class HealthMetricsScheduler(
         }
     }
 
-    private fun recordExchangeReceivedOrderBooksSinceStart(receivedOrderBooksSinceStart: Map<SupportedExchange, Long>) {
+    private fun recordExchangeReceivedOrderBooksSinceStart(receivedOrderBooksSinceStart: Map<Exchange, Long>) {
         receivedOrderBooksSinceStart.forEach {
             metricsService.recordReceivedOrderBooksSinceStart(it.key.exchangeName, it.value)
         }
     }
 
-    private fun recordExchangeReceivedTickersSinceStart(receivedTickersSinceStart: Map<SupportedExchange, Long>) {
+    private fun recordExchangeReceivedTickersSinceStart(receivedTickersSinceStart: Map<Exchange, Long>) {
         receivedTickersSinceStart.forEach {
             metricsService.recordReceivedTickersSinceStart(it.key.exchangeName, it.value)
         }

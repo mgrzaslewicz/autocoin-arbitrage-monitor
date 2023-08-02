@@ -1,7 +1,7 @@
 package automate.profit.autocoin.app.config
 
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import automate.profit.autocoin.exchange.ExchangeProvider
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
 import com.typesafe.config.ConfigFactory
 import java.math.BigDecimal
 
@@ -39,7 +39,7 @@ class ConfigLoader {
                     .map { CurrencyPair.of(it) }
                     .toSet(),
                 exchangesToMonitorOverride = config.getStringList("arbitrage.exchangesToMonitorOverride")
-                    .map { SupportedExchange.fromExchangeName(it) },
+                    .map { ExchangeProvider().getExchange(it) },
                 twoLegArbitrageProfitCacheDuration = config.getDuration("arbitrage.twoLegArbitrageProfitCacheDuration"),
                 orderBookUsdAmountThresholds = config.getIntList("arbitrage.orderBookUsdAmountThresholds")
                     .map { BigDecimal(it) },

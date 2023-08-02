@@ -1,6 +1,9 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
-import automate.profit.autocoin.exchange.orderbook.OrderBook
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.orderbook.OrderBook
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -31,12 +34,16 @@ class StaleOrdersDetectorTest {
         val maxOrderBookAge = Duration.of(maxTickerAgeMillis, ChronoUnit.MILLIS)
         val orderBookPairWithTooOldOrders = OrderBookPair(
             first = OrderBook(
+                exchange = exchangeA,
+                currencyPair = CurrencyPair.of("A/B"),
                 buyOrders = emptyList(),
                 sellOrders = emptyList(),
                 receivedAtMillis = firstOrderBookReceivedAtMillis,
                 exchangeTimestampMillis = firstOrderBookExchangeTimestampMillis,
             ),
             second = OrderBook(
+                exchange = exchangeB,
+                currencyPair = CurrencyPair.of("A/B"),
                 buyOrders = emptyList(),
                 sellOrders = emptyList(),
                 receivedAtMillis = secondOrderBookReceivedAtMillis,

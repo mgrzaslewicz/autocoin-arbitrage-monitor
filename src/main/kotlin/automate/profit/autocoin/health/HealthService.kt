@@ -1,18 +1,18 @@
 package automate.profit.autocoin.health
 
 import automate.profit.autocoin.exchange.ExchangeWithCurrencyPair
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
-import automate.profit.autocoin.exchange.currency.CurrencyPair
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
-import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
-import automate.profit.autocoin.exchange.orderbook.OrderBook
-import automate.profit.autocoin.exchange.orderbook.OrderBookListener
 import automate.profit.autocoin.exchange.orderbook.OrderBookListeners
-import automate.profit.autocoin.exchange.ticker.Ticker
-import automate.profit.autocoin.exchange.ticker.TickerListener
 import automate.profit.autocoin.exchange.ticker.TickerListeners
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.metadata.gateway.AuthorizedMetadataServiceGateway
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBook
+import com.autocoin.exchangegateway.spi.exchange.orderbook.listener.OrderBookListener
+import com.autocoin.exchangegateway.spi.exchange.ticker.Ticker
+import com.autocoin.exchangegateway.spi.exchange.ticker.listener.TickerListener
 import java.util.*
 
 data class TwoLegArbitrageOpportunitiesCount(
@@ -25,8 +25,8 @@ data class Health(
     val healthy: Boolean,
     val healthChecks: List<HealthCheckResult>,
     val twoLegArbitrageOpportunities: TwoLegArbitrageOpportunitiesCount,
-    val receivedOrderBooksSinceStart: Map<SupportedExchange, Long>,
-    val receivedTickersSinceStart: Map<SupportedExchange, Long>,
+    val receivedOrderBooksSinceStart: Map<Exchange, Long>,
+    val receivedTickersSinceStart: Map<Exchange, Long>,
     /**
      * e.g. "bittrex-binance" to 100
      */
@@ -34,35 +34,36 @@ data class Health(
     /**
      * e.g. "bittrex" to setOf("XRP/USDT", "ETH/BTC")
      */
-    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<SupportedExchange, Set<String>>,
+    val exchangeToCurrencyPairsCommonWithAtLeastOneOtherExchange: Map<Exchange, Set<String>>,
 )
 
 
 class HealthService(
     private val healthChecks: List<HealthCheck>,
     private val appVersion: String?,
-    private val metadataService: ExchangeMetadataService,
+    private val metadataServiceGateway: AuthorizedMetadataServiceGateway,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
 ) {
-    private val orderBookUpdatesSinceStart: EnumMap<SupportedExchange, Long> by lazy {
-        val count = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java)
-        metadataService.getAllExchangesMetadata().forEach {
-            count[it.exchange] = 0L
+    private val orderBookUpdatesSinceStart: MutableMap<Exchange, Long> by lazy {
+        val count = HashMap<Exchange, Long>()
+        metadataServiceGateway.getAllExchangesMetadata().forEach {
+            count[it.key] = 0L
         }
         count
     }
-    private val tickerUpdatesSinceStart: EnumMap<SupportedExchange, Long> by lazy {
-        val count = EnumMap<SupportedExchange, Long>(SupportedExchange::class.java)
-        metadataService.getAllExchangesMetadata().forEach {
-            count[it.exchange] = 0L
+
+    private val tickerUpdatesSinceStart: MutableMap<Exchange, Long> by lazy {
+        val count = HashMap<Exchange, Long>()
+        metadataServiceGateway.getAllExchangesMetadata().forEach {
+            count[it.key] = 0L
         }
         count
     }
 
     fun addOrderBookListenersTo(orderBookListeners: OrderBookListeners) {
         val orderBookListener = object : OrderBookListener {
-            override fun onOrderBook(exchange: SupportedExchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
+            override fun onOrderBook(exchange: Exchange, currencyPair: CurrencyPair, orderBook: OrderBook) {
                 this@HealthService.onOrderBook(exchange)
             }
         }
@@ -86,7 +87,7 @@ class HealthService(
 
     fun addTickerListenersTo(tickerListeners: TickerListeners) {
         val orderBookListener = object : TickerListener {
-            override fun onTicker(exchange: SupportedExchange, currencyPair: CurrencyPair, ticker: Ticker) {
+            override fun onTicker(exchange: Exchange, currencyPair: CurrencyPair, ticker: Ticker) {
                 this@HealthService.onTicker(exchange)
             }
         }
@@ -108,12 +109,12 @@ class HealthService(
         }
     }
 
-    private fun onOrderBook(exchange: SupportedExchange) {
+    private fun onOrderBook(exchange: Exchange) {
         orderBookUpdatesSinceStart[exchange] = orderBookUpdatesSinceStart[exchange]!! + 1
     }
 
 
-    private fun onTicker(exchange: SupportedExchange) {
+    private fun onTicker(exchange: Exchange) {
         tickerUpdatesSinceStart[exchange] = orderBookUpdatesSinceStart[exchange]!! + 1
     }
 

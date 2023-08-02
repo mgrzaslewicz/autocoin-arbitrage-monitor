@@ -2,12 +2,12 @@ package automate.profit.autocoin.exchange.arbitrage.orderbook
 
 import automate.profit.autocoin.exchange.PriceResponseException
 import automate.profit.autocoin.exchange.PriceService
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.orderbook.OrderBookAveragePrice
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
 import automate.profit.autocoin.exchange.ticker.TickerPair
 import automate.profit.autocoin.logger.PeriodicalLogger
 import automate.profit.autocoin.metrics.MetricsService
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.orderbook.OrderBookAveragePrice
 import mu.KotlinLogging
 import java.math.BigDecimal
 
@@ -79,8 +79,8 @@ class TwoLegArbitrageProfitOpportunityCalculator(
             val currentTimeMillis = currentTimeMillisFunction()
             val usdPrice = priceService.getUsdPrice(currencyPairWithExchangePair.currencyPair.counter).price
 
-            lateinit var buyAtExchange: SupportedExchange
-            lateinit var sellAtExchange: SupportedExchange
+            lateinit var buyAtExchange: Exchange
+            lateinit var sellAtExchange: Exchange
             var usd24hVolumeAtBuyExchange: BigDecimal? = null
             var usd24hVolumeAtSellExchange: BigDecimal? = null
 

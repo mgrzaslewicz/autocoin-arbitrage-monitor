@@ -1,14 +1,14 @@
 package automate.profit.autocoin.app.config
 
-import automate.profit.autocoin.exchange.SupportedExchange
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
 import java.io.File
 import java.math.BigDecimal
 import java.time.Duration
 
 data class ExchangePair(
-    val firstExchange: SupportedExchange,
-    val secondExchange: SupportedExchange
+    val firstExchange: Exchange,
+    val secondExchange: Exchange
 )
 
 data class AppConfig(
@@ -30,7 +30,7 @@ data class AppConfig(
 
     // region: arbitrage
     val currencyPairsOverride: Set<CurrencyPair>,
-    val exchangesToMonitorOverride: List<SupportedExchange>,
+    val exchangesToMonitorOverride: List<Exchange>,
     val twoLegArbitrageProfitCacheDuration: Duration,
     val orderBookUsdAmountThresholds: List<BigDecimal>,
     // endregion

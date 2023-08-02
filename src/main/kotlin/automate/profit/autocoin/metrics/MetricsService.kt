@@ -2,9 +2,9 @@ package automate.profit.autocoin.metrics
 
 import autocoin.metrics.MetricsService
 import automate.profit.autocoin.app.config.ExchangePair
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.ExchangePairWithOpportunityCount
-import automate.profit.autocoin.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.currency.CurrencyPair
 import com.timgroup.statsd.StatsDClient
 
 class MetricsService(private val statsDClient: StatsDClient) : MetricsService(statsDClient) {
@@ -31,7 +31,7 @@ class MetricsService(private val statsDClient: StatsDClient) : MetricsService(st
         recordNoDataForTwoLegProfitOpportunityCalculation(exchangePair.secondExchange, "missing=usd-price,currencyPair=$currencyPair,reason=$reasonTag")
     }
 
-    private fun recordNoDataForTwoLegProfitOpportunityCalculation(exchange: SupportedExchange, tags: String) {
+    private fun recordNoDataForTwoLegProfitOpportunityCalculation(exchange: Exchange, tags: String) {
         statsDClient.gauge("missing-data-for-opportunity-calculation,exchange=${exchange.exchangeName},$tags", 1)
     }
 }

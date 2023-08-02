@@ -1,12 +1,12 @@
 package automate.profit.autocoin.api
 
-import automate.profit.autocoin.exchange.SupportedExchange
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunity
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityAtDepth
 import automate.profit.autocoin.exchange.arbitrage.orderbook.TwoLegArbitrageProfitOpportunityCache
 import automate.profit.autocoin.exchange.metadata.CommonExchangeCurrencyPairsService
-import automate.profit.autocoin.exchange.metadata.ExchangeMetadataService
 import automate.profit.autocoin.oauth.server.authorizeWithOauth2
+import com.autocoin.exchangegateway.spi.exchange.Exchange
+import com.autocoin.exchangegateway.spi.exchange.metadata.gateway.AuthorizedMetadataServiceGateway
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.undertow.security.api.SecurityContext
 import io.undertow.server.HttpHandler
@@ -41,8 +41,8 @@ data class TwoLegArbitrageProfitOpportunityAtDepthDto(
 data class TwoLegArbitrageProfitOpportunityDto(
     val baseCurrency: String,
     val counterCurrency: String,
-    val buyAtExchange: SupportedExchange,
-    val sellAtExchange: SupportedExchange?,
+    val buyAtExchange: Exchange,
+    val sellAtExchange: Exchange?,
     val withdrawalEnabled: Boolean?,
     val depositEnabled: Boolean?,
     val usd24hVolumeAtBuyExchange: String?,
@@ -72,7 +72,7 @@ private fun SecurityContext.authenticatedUserHasRole(roleName: String) =
 
 class ClientTwoLegArbitrageProfitOpportunities(
     private val freePlanRelativeProfitCutOff: BigDecimal,
-    private val exchangeMetadataService: ExchangeMetadataService,
+    private val exchangeMetadataService: AuthorizedMetadataServiceGateway,
     private val timeMillisFunction: () -> Long = { System.currentTimeMillis() },
 ) {
 
@@ -104,20 +104,21 @@ class ClientTwoLegArbitrageProfitOpportunities(
             counterCurrency = currencyPairWithExchangePair.currencyPair.counter,
             buyAtExchange = buyAtExchange,
             sellAtExchange = if (shouldHideOpportunityDetails) null else sellAtExchange,
-            withdrawalEnabled = exchangeMetadataService.getCurrencyMetadata(
-                buyAtExchange.exchangeName,
-                currencyPairWithExchangePair.currencyPair.base
-            )?.withdrawalEnabled,
-            depositEnabled = exchangeMetadataService.getCurrencyMetadata(
-                sellAtExchange.exchangeName,
-                currencyPairWithExchangePair.currencyPair.counter
-            )?.depositEnabled,
+            withdrawalEnabled = exchangeMetadataService
+                .getMetadata(buyAtExchange)
+                .currencyMetadata[currencyPairWithExchangePair.currencyPair.base]
+                ?.withdrawalEnabled,
+            depositEnabled = exchangeMetadataService
+                .getMetadata(sellAtExchange)
+                .currencyMetadata[currencyPairWithExchangePair.currencyPair.counter]
+                ?.depositEnabled,
             usd24hVolumeAtBuyExchange = usd24hVolumeAtBuyExchange?.setScale(2, HALF_DOWN)?.toPlainString(),
             usd24hVolumeAtSellExchange = if (shouldHideOpportunityDetails) null else usd24hVolumeAtSellExchange?.setScale(
                 2,
                 HALF_DOWN
             )?.toPlainString(),
-            profitOpportunityHistogram = profitOpportunityHistogram.map {
+            profitOpportunityHistogram = profitOpportunityHistogram.map
+            {
                 it?.toDto(shouldHideOpportunityDetails)
             },
             areDetailsHidden = shouldHideOpportunityDetails,
@@ -143,7 +144,7 @@ class ClientTwoLegArbitrageProfitOpportunities(
 }
 
 class ArbitrageProfitController(
-    private val exchangesToMonitor: Supplier<List<SupportedExchange>>,
+    private val exchangesToMonitor: Supplier<List<Exchange>>,
     private val twoLegArbitrageProfitOpportunityCache: TwoLegArbitrageProfitOpportunityCache,
     private val orderBookUsdAmountThresholds: List<BigDecimal>,
     private val commonExchangeCurrencyPairsService: CommonExchangeCurrencyPairsService,

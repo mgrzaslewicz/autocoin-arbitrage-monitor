@@ -1,17 +1,15 @@
 package automate.profit.autocoin.exchange.arbitrage.orderbook
 
+import automate.profit.autocoin.TestExchange.exchangeA
+import automate.profit.autocoin.TestExchange.exchangeB
 import automate.profit.autocoin.app.config.ExchangePair
 import automate.profit.autocoin.exchange.CurrencyPrice
 import automate.profit.autocoin.exchange.RestPriceService
-import automate.profit.autocoin.exchange.SupportedExchange.BINANCE
-import automate.profit.autocoin.exchange.SupportedExchange.BITTREX
-import automate.profit.autocoin.exchange.currency.CurrencyPair
-import automate.profit.autocoin.exchange.order.ExchangeOrderType
-import automate.profit.autocoin.exchange.orderbook.OrderBook
-import automate.profit.autocoin.exchange.orderbook.OrderBookExchangeOrder
 import automate.profit.autocoin.exchange.ticker.CurrencyPairWithExchangePair
-import automate.profit.autocoin.exchange.ticker.Ticker
 import automate.profit.autocoin.exchange.ticker.TickerPair
+import com.autocoin.exchangegateway.api.exchange.currency.CurrencyPair
+import com.autocoin.exchangegateway.api.exchange.orderbook.OrderBook
+import com.autocoin.exchangegateway.api.exchange.ticker.Ticker
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -22,8 +20,6 @@ import java.math.BigDecimal
 
 class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val currencyPair = CurrencyPair.of("X/Y")
-    private val exchangeA = BITTREX
-    private val exchangeB = BINANCE
     private val exchangePair = ExchangePair(exchangeA, exchangeB)
     private val currencyPairWithExchangePair = CurrencyPairWithExchangePair(currencyPair, exchangePair)
     private val usdValueFromPriceService = BigDecimal("2000.0")
@@ -42,20 +38,24 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
     private val counterCurrency24hVolume = BigDecimal("10.0")
     private val receivedAtMillis = System.currentTimeMillis()
     private val exchangeATicker = Ticker(
+        exchange = exchangeA,
         currencyPair = currencyPair,
         ask = bigDecimalWhichDoesNotMatter,
         bid = bigDecimalWhichDoesNotMatter,
         baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
         counterCurrency24hVolume = counterCurrency24hVolume,
-        receivedAtMillis = receivedAtMillis, exchangeTimestampMillis = null,
+        receivedAtMillis = receivedAtMillis,
+        exchangeTimestampMillis = null,
     )
     private val exchangeBTicker = Ticker(
+        exchange = exchangeB,
         currencyPair = currencyPair,
         ask = bigDecimalWhichDoesNotMatter,
         bid = bigDecimalWhichDoesNotMatter,
         baseCurrency24hVolume = bigDecimalWhichDoesNotMatter,
         counterCurrency24hVolume = BigDecimal("10.0"),
-        receivedAtMillis = receivedAtMillis, exchangeTimestampMillis = null,
+        receivedAtMillis = receivedAtMillis,
+        exchangeTimestampMillis = null,
     )
     private val tickerPair = TickerPair(first = exchangeATicker, second = exchangeBTicker)
 
@@ -73,7 +73,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         orderedAmount = 500.toBigDecimal(),
         price = 7200.toBigDecimal(),
         currencyPair = currencyPair,
-        receivedAtMillis = receivedAtMillis, exchangeTimestampMillis = null,
+        receivedAtMillis = receivedAtMillis,
+        exchangeTimestampMillis = null,
     )
     private val buyOrderExchangeB = buyOrderExchangeA.copy(
         exchangeName = "exchangeB"
@@ -88,8 +89,16 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
-            staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply { whenever(this.orderBooksAreTooOld(any())).thenReturn(true) },
-            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(false) },
+            staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply {
+                whenever(this.orderBooksAreTooOld(any())).thenReturn(
+                    true
+                )
+            },
+            staleTickerDetector = mock<StaleTickerDetector>().apply {
+                whenever(this.oneOfTickersIsTooOld(any())).thenReturn(
+                    false
+                )
+            },
             relativeProfitCalculator = mock(),
             metricsService = mock(),
         )
@@ -108,8 +117,16 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             opportunityCutOff = TwoLegArbitrageProfitOpportunityCutOff(),
             priceService = mock(),
             orderBookUsdAmountThresholds = mock(),
-            staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply { whenever(this.orderBooksAreTooOld(any())).thenReturn(false) },
-            staleTickerDetector = mock<StaleTickerDetector>().apply { whenever(this.oneOfTickersIsTooOld(any())).thenReturn(true) },
+            staleOrderBooksDetector = mock<StaleOrderBooksDetector>().apply {
+                whenever(this.orderBooksAreTooOld(any())).thenReturn(
+                    false
+                )
+            },
+            staleTickerDetector = mock<StaleTickerDetector>().apply {
+                whenever(this.oneOfTickersIsTooOld(any())).thenReturn(
+                    true
+                )
+            },
             relativeProfitCalculator = mock(),
             metricsService = mock(),
         )
@@ -127,15 +144,22 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
         // given
         val orderBookPair = OrderBookPair(
             first = OrderBook(
+                exchange = exchangeA,
+                currencyPair = currencyPair,
                 buyOrders = listOf(buyOrderExchangeA), sellOrders = listOf(buyOrderExchangeA),
-                receivedAtMillis = receivedAtMillis, exchangeTimestampMillis = null,
+                receivedAtMillis = receivedAtMillis,
+                exchangeTimestampMillis = null,
             ), second = OrderBook(
+                exchange = exchangeB,
+                currencyPair = currencyPair,
                 buyOrders = listOf(buyOrderExchangeB), sellOrders = listOf(buyOrderExchangeB),
-                receivedAtMillis = receivedAtMillis, exchangeTimestampMillis = null,
+                receivedAtMillis = receivedAtMillis,
+                exchangeTimestampMillis = null,
             )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
+        val profit =
+            twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
         // then
         assertThat(profit).isNull()
     }
@@ -165,7 +189,8 @@ class TwoLegOrderBookArbitrageProfitCalculatorTest {
             )
         )
         // when
-        val profit = twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
+        val profit =
+            twoLegArbitrageProfitCalculator.calculateProfit(currencyPairWithExchangePair, orderBookPair, tickerPair)
         // then
         assertThat(profit).isNotNull
         with(profit!!) {
